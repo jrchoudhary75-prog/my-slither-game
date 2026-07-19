@@ -427,7 +427,8 @@
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d");
         
-        const MAP_RADIUS = 3000; 
+        // CHANGE: Dynamic Map Radius Set Kiya (Multiplayer: 800px, Offline: 3000px)
+        let MAP_RADIUS = 3000; 
         let isGameRunning = false;
         let mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
         let isBoosting = false;
@@ -441,6 +442,10 @@
 
         function initGameData(multiplayerFlag) {
             isMultiplayerArena = multiplayerFlag;
+            
+            // MAP SIZE ADJUSTMENT FOR MULTIPLAYER MODE (800 pixels)
+            MAP_RADIUS = isMultiplayerArena ? 800 : 3000;
+
             snake = { 
                 id: "player", name: document.getElementById('player-nick').value || "You", x: 0, y: 0, angle: -Math.PI / 2,
                 currentRadius: 15, 
@@ -451,7 +456,10 @@
             for(let i=0; i < snake.length; i++) snake.body.push({x: snake.x, y: snake.y});
             
             cameraScale = 1.0; foods = [];
-            for (let i = 0; i < 800; i++) foods.push(createFood(true));
+            
+            // Food count adjusted to match map size perfectly
+            let foodCount = isMultiplayerArena ? 250 : 800;
+            for (let i = 0; i < foodCount; i++) foods.push(createFood(true));
 
             bots = [];
             if (!isMultiplayerArena) {
@@ -611,7 +619,6 @@
                 let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));
                 if (dist < snake.currentRadius + 6) {
                     snake.score += f.value;
-                    // CHANGE: Har ek khane par exact +1 segment spawn hoga
                     snake.targetLength += 1; 
                     foods[i] = createFood(false);
                 }
@@ -676,20 +683,19 @@
                     while(b.body.length < bIntLength) b.body.push({x: b.body[b.body.length-1].x, y: b.body[b.body.length-1].y});
                     while(b.body.length > bIntLength) b.body.pop();
 
-                    // --- BOTS EATING FOOD (+1 SEGMENT PER FOOD) ---
+                    // --- BOTS EATING FOOD ---
                     for (let i = foods.length - 1; i >= 0; i--) {
                         let f = foods[i];
                         let dist = Math.sqrt(Math.pow(b.x - f.x, 2) + Math.pow(b.y - f.y, 2));
                         if (dist < b.currentRadius + 6) {
                             b.score += f.value;
-                            // CHANGE: Bot ko bhi per food khane par +1 segment
                             b.targetLength += 1;
                             foods[i] = createFood(false);
                         }
                     }
                 });
 
-                // --- DETAILED COLLISION DETECTOR (Includes Bot VS Bot Collision) ---
+                // --- DETAILED COLLISION DETECTOR ---
                 let deadBotIndices = [];
 
                 for (let i = 0; i < bots.length; i++) {
@@ -719,9 +725,9 @@
                         continue;
                     }
 
-                    // 3. CHANGE: Bot colliding with OTHER Bot's Body
+                    // 3. Bot colliding with OTHER Bot's Body
                     for (let k = 0; k < bots.length; k++) {
-                        if (i === k) continue; // Don't check collision with itself
+                        if (i === k) continue; 
                         let otherBot = bots[k];
 
                         for (let j = 2; j < otherBot.body.length; j++) {
@@ -734,7 +740,6 @@
                     }
                 }
 
-                // Process dead bots (highest index first to avoid array offset bugs)
                 deadBotIndices.sort((a, b) => b - a);
                 deadBotIndices.forEach(idx => killBot(idx));
             }

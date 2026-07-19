@@ -449,7 +449,7 @@
                 currentRadius: 15, 
                 normalSpeed: 3.5, boostSpeed: 7.0, 
                 maxTurnSpeed: 0.08, 
-                body: [], length: 45, score: 100, isDead: false 
+                body: [], length: 45, targetLength: 45, score: 100, isDead: false 
             };
             for(let i=0; i < snake.length; i++) snake.body.push({x: snake.x, y: snake.y});
             
@@ -519,10 +519,21 @@
             if (isBoosting) {
                 if (snake.score > 20) {
                     snake.score -= 0.35; 
-                    snake.length = Math.max(20, Math.floor(snake.score / 2.2)); 
+                    snake.targetLength = Math.max(20, Math.floor(snake.score / 2.2)); 
                 } else {
                     isBoosting = false; 
                 }
+            }
+
+            // --- FIXED: GRADUAL LENGTH GROWTH MECHANISM ---
+            if (snake.length < snake.targetLength) {
+                // Har 5 frames mein lagbhag 1 segment smoothly add hoga (Aap 0.15 ko kam/zyada karke speed badal sakte ho)
+                snake.length += 0.15; 
+                if (snake.length > snake.targetLength) snake.length = snake.targetLength;
+            } else if (snake.length > snake.targetLength) {
+                // Boost karte waqt length smoothly ghatne ke liye
+                snake.length -= 0.2;
+                if (snake.length < snake.targetLength) snake.length = snake.targetLength;
             }
 
             let targetAngle = Math.atan2(mouse.y - canvas.height/2, mouse.x - canvas.width/2);
@@ -550,11 +561,12 @@
                 }
             }
 
-            while(snake.body.length < snake.length) {
+            let currentIntLength = Math.floor(snake.length);
+            while(snake.body.length < currentIntLength) {
                 let last = snake.body[snake.body.length - 1] || head;
                 snake.body.push({x: last.x, y: last.y});
             }
-            while(snake.body.length > snake.length) {
+            while(snake.body.length > currentIntLength) {
                 snake.body.pop();
             }
 
@@ -569,27 +581,25 @@
                 let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));
                 if (dist < snake.currentRadius + 6) {
                     snake.score += f.value;
-                    snake.length = Math.floor(snake.score / 2.2);
+                    // FIX: Instant length badhane ki jagah Target length badha di
+                    snake.targetLength = Math.floor(snake.score / 2.2); 
                     foods[i] = createFood(false);
                 }
             }
 
-            // --- INTEL BOTS TRAIN CONTROL (NO DRAIN BOOSTING MECHANISM) ---
+            // --- INTEL BOTS TRAIN CONTROL ---
             if (!isMultiplayerArena) {
                 bots.forEach(b => {
                     let pDist = Math.sqrt(Math.pow(snake.x - b.x, 2) + Math.pow(snake.y - b.y, 2));
 
-                    // HARD DIFFICULTY: High Skill Offensive Track
                     if (config.difficulty === 'Hard' && pDist < 350) {
                         let futurePlayerX = snake.x + Math.cos(snake.angle) * 80;
                         let futurePlayerY = snake.y + Math.sin(snake.angle) * 80;
                         b.targetAngle = Math.atan2(futurePlayerY - b.y, futurePlayerX - b.x);
                     }
-                    // MEDIUM DIFFICULTY: Defensive Escape Angle
                     else if (config.difficulty === 'Medium' && pDist < 200) {
                         b.targetAngle = Math.atan2(b.y - snake.y, b.x - snake.x);
                     }
-                    // GENERAL SYSTEM FOOD SCANNING 
                     else {
                         b.changeDirTimer--;
                         if (b.changeDirTimer <= 0 || Math.random() < 0.02) {
@@ -613,12 +623,10 @@
                     while (bAngleDiff > Math.PI) bAngleDiff -= Math.PI * 2;
                     b.angle += Math.max(-b.maxTurnSpeed, Math.min(b.maxTurnSpeed, bAngleDiff));
 
-                    // FIX: Bots use constant custom speed limit without boost activation
                     b.x += Math.cos(b.angle) * b.speed;
                     b.y += Math.sin(b.angle) * b.speed;
 
-                    let bHead = {x: b.x, y: b.y};
-                    b.body[0] = bHead;
+                    b.body[0] = {x: b.x, y: b.y};
                     for (let j = 1; j < b.body.length; j++) {
                         let bdx = b.body[j].x - b.body[j-1].x;
                         let bdy = b.body[j].y - b.body[j-1].y;
@@ -714,7 +722,6 @@
             } else {
                 bots.forEach(b => {
                     for (let j = b.body.length - 1; j >= 0; j--) {
-                        // Bots will never render boost aura since b.isBoosting is permanently false
                         drawSlitherSkin(ctx, b.body[j].x, b.body[j].y, b.currentRadius, j, b.skin, j === 0, b.angle + Math.PI/2, false, config.effect);
                     }
                 });

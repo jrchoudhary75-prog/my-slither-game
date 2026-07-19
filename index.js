@@ -2,103 +2,69 @@ const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
+const path = require('path');
 
 const PORT = process.env.PORT || 3000;
-app.use(express.static(__dirname));
 
-app.get('/', (req, res) => { res.sendFile(__dirname + '/index.html'); });
+// Static files (HTML, CSS, JS) serve karne ke liye
+app.use(express.static(path.join(__dirname, 'public')));
 
-let players = {};
-let serverFoods = [];
-const MAP_RADIUS = 2500;
-const TOTAL_FOODS = 500;
-
-function createServerFood() {
-    return {
-        id: Math.random().toString(36).substring(2, 9),
-        x: (Math.random() - 0.5) * MAP_RADIUS * 1.6,
-        y: (Math.random() - 0.5) * MAP_RADIUS * 1.6,
-        color: `hsl(${Math.random() * 360}, 100%, 60%)`,
-        radius: Math.random() * 2 + 5,
-        value: 1
-    };
-}
-
-for (let i = 0; i < TOTAL_FOODS; i++) {
-    serverFoods.push(createServerFood());
-}
-
-// Server Game Loop (60 FPS)
-setInterval(() => {
-    // Exact Server Side Food Collision Detection to prevent ghost food
-    for (let id in players) {
-        let p = players[id];
-        if (!p.body || p.body.length === 0) continue;
-        
-        let head = p.body[0];
-        for (let i = serverFoods.length - 1; i >= 0; i--) {
-            let f = serverFoods[i];
-            let dist = Math.sqrt(Math.pow(head.x - f.x, 2) + Math.pow(head.y - f.y, 2));
-            if (dist < p.currentRadius + f.radius) {
-                p.score += f.value;
-                p.length = 45 + Math.floor(p.score / 5); // 5 score = 1 segment
-                serverFoods[i] = createServerFood(); // Replace instantly on server
-            }
-        }
-    }
-
-    io.emit('serverGameStateUpdate', { players: players, foods: serverFoods });
-}, 1000 / 60);
-
-io.on('connection', (socket) => {
-    socket.on('joinMultiplayer', (data) => {
-        let rx = (Math.random() - 0.5) * 800;
-        let ry = (Math.random() - 0.5) * 800;
-        players[socket.id] = {
-            id: socket.id,
-            name: data.name || "Guest",
-            skin: data.skin || "Neon Stripe",
-            x: rx, y: ry,
-            angle: 0,
-            score: 0,
-            length: 45,
-            currentRadius: 15,
-            body: Array(45).fill({x: rx, y: ry}),
-            isBoosting: false
-        };
-    });
-
-    socket.on('updatePlayerMovement', (data) => {
-        if (players[socket.id]) {
-            players[socket.id].x = data.x;
-            players[socket.id].y = data.y;
-            players[socket.id].angle = data.angle;
-            players[socket.id].body = data.body;
-            players[socket.id].score = data.score;
-            players[socket.id].length = data.length;
-            players[socket.id].isBoosting = data.isBoosting;
-        }
-    });
-
-    socket.on('playerExplodedDeath', () => {
-        if (players[socket.id]) {
-            players[socket.id].body.forEach((seg, index) => {
-                if (index % 4 === 0) {
-                    serverFoods.push({
-                        id: Math.random().toString(36).substring(2, 9),
-                        x: seg.x + (Math.random()-0.5)*15,
-                        y: seg.y + (Math.random()-0.5)*15,
-                        color: '#ff3355',
-                        radius: 6, value: 1
-                    });
-                }
-            });
-            delete players[socket.id];
-            socket.emit('forceClientGameOver');
-        }
-    });
-
-    socket.on('disconnect', () => { delete players[socket.id]; });
+// Default route jo index.html loading sambhalega
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-http.listen(PORT, () => { console.log(`Server running on port: ${PORT}`); });
+// Real-time arena mein connected sabhi active players ka data
+let activePlayers = {};
+
+io.on('connection', (socket) => {
+    console.log(`> Node Connection Established: ${socket.id}`);
+
+    // Jab koi player multiplayer lobby se arena mein enter karega
+    socket.on('joinMultiplayer', (playerData) => {
+        activePlayers[socket.id] = {
+            id: socket.id,
+            name: playerData.name || "Slither_Guest",
+            skin: playerData.skin || "Neon Stripe",
+            x: 0,
+            y: 0,
+            angle: 0,
+            body: [],
+            score: 100
+        };
+        console.log(`> Player Spawned in Arena: ${activePlayers[socket.id].name} (${socket.id})`);
+    });
+
+    // Har frame par player ki badli hui position aur nodes ka sync data
+    socket.on('updatePlayer', (data) => {
+        if (activePlayers[socket.id]) {
+            activePlayers[socket.id].x = data.x;
+            activePlayers[socket.id].y = data.y;
+            activePlayers[socket.id].angle = data.angle;
+            activePlayers[socket.id].body = data.body;
+            activePlayers[socket.id].score = data.score;
+        }
+    });
+
+    // Jab player disconnect ho ya game leave kare
+    socket.on('disconnect', () => {
+        if (activePlayers[socket.id]) {
+            console.log(`> Player Left Arena: ${activePlayers[socket.id].name}`);
+            delete activePlayers[socket.id];
+        }
+        console.log(`> Connection Terminated: ${socket.id}`);
+    });
+});
+
+// Sabhi connected clients ko 60FPS tick-rate par game state updates bhejna
+setInterval(() => {
+    io.emit('gameStateUpdate', activePlayers);
+}, 1000 / 60);
+
+// Server initialization listener
+http.listen(PORT, () => {
+    console.log(`=============================================`);
+    console.log(`🚀 SLITHER PRO SERVER ONLINE ON PORT: ${PORT}`);
+    console.log(`🔗 Local Gateway: http://localhost:${PORT}`);
+    console.log(`=============================================`);
+});

@@ -62,9 +62,6 @@
         .lb-row.active-player { color: #00ffaa; font-weight: bold; }
         
         #killfeed { position: absolute; top: 260px; right: 20px; z-index: 5; width: 250px; pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
-        .feed-msg { background: rgba(220, 20, 60, 0.85); color: #fff; padding: 6px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; animation: slideIn 0.3s ease-out; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         
         .name-input { padding: 12px; width: 315px; border-radius: 12px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1.1rem; margin-bottom: 15px; }
     </style>
@@ -463,17 +460,17 @@
                     let startX = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
                     let startY = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
                     let bScore = Math.floor(Math.random()*300) + 50;
-                    let bLength = Math.floor(bScore / 2.2);
+                    let bLength = 45;
                     
                     let bBody = [];
                     for(let k = 0; k < bLength; k++) bBody.push({x: startX, y: startY});
 
-                    // Dynamic Bot Custom Speed Assignment based on Difficulty
                     let botDefaultSpeed = 3.0;
                     if (config.difficulty === 'Easy') botDefaultSpeed = 2.2;
                     else if (config.difficulty === 'Hard') botDefaultSpeed = 4.2;
 
                     bots.push({
+                        id: "bot_" + Math.random().toString(36).substr(2, 9),
                         x: startX, y: startY,
                         angle: Math.random() * Math.PI * 2,
                         maxTurnSpeed: config.difficulty === 'Hard' ? 0.09 : 0.07, 
@@ -481,10 +478,10 @@
                         changeDirTimer: Math.floor(Math.random() * 60),
                         skin: skins[Math.floor(Math.random() * skins.length)],
                         name: "Bot_" + Math.floor(Math.random()*900),
-                        score: bScore, length: bLength,
+                        score: bScore, length: bLength, targetLength: bLength,
                         body: bBody,
                         currentRadius: 15,
-                        speed: botDefaultSpeed // FIX: Permanent speed according to difficulty
+                        speed: botDefaultSpeed
                     });
                 }
             }
@@ -511,6 +508,38 @@
             showScreen('screen-gameover');
         }
 
+        function killBot(bIndex) {
+            let b = bots[bIndex];
+            if (!b) return;
+            
+            b.body.forEach((seg, index) => {
+                if (index % 2 === 0) {
+                    foods.push({
+                        x: seg.x + (Math.random()-0.5)*12,
+                        y: seg.y + (Math.random()-0.5)*12,
+                        color: b.skin === 'Neon Stripe' ? '#00ffaa' : '#ff3300',
+                        maxRadius: 7, value: 12
+                    });
+                }
+            });
+            
+            bots.splice(bIndex, 1);
+            
+            setTimeout(() => {
+                if(!isGameRunning) return;
+                let rx = (Math.random() - 0.5) * MAP_RADIUS;
+                let ry = (Math.random() - 0.5) * MAP_RADIUS;
+                let bScore = 100;
+                let botDefaultSpeed = config.difficulty==='Easy'? 2.2 : (config.difficulty==='Hard'? 4.2 : 3.0);
+                bots.push({
+                    id: "bot_" + Math.random().toString(36).substr(2, 9),
+                    x: rx, y: ry, angle: Math.random()*Math.PI*2, maxTurnSpeed: config.difficulty==='Hard'?0.09:0.07, targetAngle: Math.random()*Math.PI*2, changeDirTimer: 80,
+                    skin: skins[Math.floor(Math.random()*skins.length)], name: "Bot_" + Math.floor(Math.random()*900), score: bScore, length: 45, targetLength: 45,
+                    body: Array(45).fill({x: rx, y: ry}), currentRadius: 15, speed: botDefaultSpeed
+                });
+            }, 3000);
+        }
+
         function runGameLoop() {
             if (!isGameRunning) return;
             gameLoopId = requestAnimationFrame(runGameLoop);
@@ -519,19 +548,19 @@
             if (isBoosting) {
                 if (snake.score > 20) {
                     snake.score -= 0.35; 
-                    snake.targetLength = Math.max(20, Math.floor(snake.score / 2.2)); 
+                    if (snake.targetLength > 20 && Math.random() < 0.1) {
+                        snake.targetLength -= 1; 
+                    }
                 } else {
                     isBoosting = false; 
                 }
             }
 
-            // --- FIXED: GRADUAL LENGTH GROWTH MECHANISM ---
+            // --- SMOOTH LENGTH GROWTH MECHANISM ---
             if (snake.length < snake.targetLength) {
-                // Har 5 frames mein lagbhag 1 segment smoothly add hoga (Aap 0.15 ko kam/zyada karke speed badal sakte ho)
                 snake.length += 0.15; 
                 if (snake.length > snake.targetLength) snake.length = snake.targetLength;
             } else if (snake.length > snake.targetLength) {
-                // Boost karte waqt length smoothly ghatne ke liye
                 snake.length -= 0.2;
                 if (snake.length < snake.targetLength) snake.length = snake.targetLength;
             }
@@ -576,20 +605,26 @@
                 });
             }
 
+            // --- PLAYER EATING FOOD (+1 SEGMENT PER FOOD) ---
             for (let i = foods.length - 1; i >= 0; i--) {
                 let f = foods[i];
                 let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));
                 if (dist < snake.currentRadius + 6) {
                     snake.score += f.value;
-                    // FIX: Instant length badhane ki jagah Target length badha di
-                    snake.targetLength = Math.floor(snake.score / 2.2); 
+                    // CHANGE: Har ek khane par exact +1 segment spawn hoga
+                    snake.targetLength += 1; 
                     foods[i] = createFood(false);
                 }
             }
 
-            // --- INTEL BOTS TRAIN CONTROL ---
+            // --- INTEL BOTS CONTROL ---
             if (!isMultiplayerArena) {
                 bots.forEach(b => {
+                    if (b.length < b.targetLength) {
+                        b.length += 0.15;
+                        if (b.length > b.targetLength) b.length = b.targetLength;
+                    }
+
                     let pDist = Math.sqrt(Math.pow(snake.x - b.x, 2) + Math.pow(snake.y - b.y, 2));
 
                     if (config.difficulty === 'Hard' && pDist < 350) {
@@ -637,22 +672,30 @@
                         }
                     }
 
+                    let bIntLength = Math.floor(b.length);
+                    while(b.body.length < bIntLength) b.body.push({x: b.body[b.body.length-1].x, y: b.body[b.body.length-1].y});
+                    while(b.body.length > bIntLength) b.body.pop();
+
+                    // --- BOTS EATING FOOD (+1 SEGMENT PER FOOD) ---
                     for (let i = foods.length - 1; i >= 0; i--) {
                         let f = foods[i];
                         let dist = Math.sqrt(Math.pow(b.x - f.x, 2) + Math.pow(b.y - f.y, 2));
                         if (dist < b.currentRadius + 6) {
                             b.score += f.value;
-                            b.length = Math.floor(b.score / 2.2);
-                            while(b.body.length < b.length) b.body.push({x: b.body[b.body.length-1].x, y: b.body[b.body.length-1].y});
+                            // CHANGE: Bot ko bhi per food khane par +1 segment
+                            b.targetLength += 1;
                             foods[i] = createFood(false);
                         }
                     }
                 });
 
-                // --- COLLISION MATRIX DETECTOR ---
-                for (let i = bots.length - 1; i >= 0; i--) {
+                // --- DETAILED COLLISION DETECTOR (Includes Bot VS Bot Collision) ---
+                let deadBotIndices = [];
+
+                for (let i = 0; i < bots.length; i++) {
                     let b = bots[i];
-                    
+
+                    // 1. Player colliding with Bot's Body
                     for (let j = 2; j < b.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(snake.x - b.body[j].x, 2) + Math.pow(snake.y - b.body[j].y, 2));
                         if (dist < snake.currentRadius + b.currentRadius - 4) {
@@ -661,42 +704,39 @@
                         }
                     }
 
-                    let botExploded = false;
+                    // 2. Bot colliding with Player's Body
+                    let hitPlayer = false;
                     for (let j = 2; j < snake.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(b.x - snake.body[j].x, 2) + Math.pow(b.y - snake.body[j].y, 2));
                         if (dist < b.currentRadius + snake.currentRadius - 4) {
-                            botExploded = true;
+                            hitPlayer = true;
                             break;
                         }
                     }
 
-                    if (botExploded) {
-                        b.body.forEach((seg, index) => {
-                            if (index % 3 === 0) {
-                                foods.push({
-                                    x: seg.x + (Math.random()-0.5)*12,
-                                    y: seg.y + (Math.random()-0.5)*12,
-                                    color: b.skin === 'Neon Stripe' ? '#00ffaa' : '#ff3300',
-                                    maxRadius: 7, value: 12
-                                });
+                    if (hitPlayer) {
+                        if (!deadBotIndices.includes(i)) deadBotIndices.push(i);
+                        continue;
+                    }
+
+                    // 3. CHANGE: Bot colliding with OTHER Bot's Body
+                    for (let k = 0; k < bots.length; k++) {
+                        if (i === k) continue; // Don't check collision with itself
+                        let otherBot = bots[k];
+
+                        for (let j = 2; j < otherBot.body.length; j++) {
+                            let dist = Math.sqrt(Math.pow(b.x - otherBot.body[j].x, 2) + Math.pow(b.y - otherBot.body[j].y, 2));
+                            if (dist < b.currentRadius + otherBot.currentRadius - 4) {
+                                if (!deadBotIndices.includes(i)) deadBotIndices.push(i);
+                                break;
                             }
-                        });
-                        bots.splice(i, 1);
-                        
-                        setTimeout(() => {
-                            if(!isGameRunning) return;
-                            let rx = (Math.random() - 0.5) * MAP_RADIUS;
-                            let ry = (Math.random() - 0.5) * MAP_RADIUS;
-                            let bScore = 100;
-                            let botDefaultSpeed = config.difficulty==='Easy'? 2.2 : (config.difficulty==='Hard'? 4.2 : 3.0);
-                            bots.push({
-                                x: rx, y: ry, angle: Math.random()*Math.PI*2, maxTurnSpeed: config.difficulty==='Hard'?0.09:0.07, targetAngle: Math.random()*Math.PI*2, changeDirTimer: 80,
-                                skin: skins[Math.floor(Math.random()*skins.length)], name: "Bot_" + Math.floor(Math.random()*900), score: bScore, length: 45,
-                                body: Array(45).fill({x: rx, y: ry}), currentRadius: 15, speed: botDefaultSpeed
-                            });
-                        }, 3000);
+                        }
                     }
                 }
+
+                // Process dead bots (highest index first to avoid array offset bugs)
+                deadBotIndices.sort((a, b) => b - a);
+                deadBotIndices.forEach(idx => killBot(idx));
             }
 
             drawMapBackground(ctx, config.map, canvas.width, canvas.height, cameraScale, snake.x, snake.y, MAP_RADIUS, false, isBoosting);

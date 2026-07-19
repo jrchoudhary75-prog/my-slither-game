@@ -6,21 +6,21 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 
-// Static files (HTML, CSS, JS) serve karne ke liye
+// Public directory se static HTML, CSS aur JS files serve karega
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Default route jo index.html loading sambhalega
+// Default entry point
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Real-time arena mein connected sabhi active players ka data
+// Multiplayer Arena mein connect hue saare active players ka registry object
 let activePlayers = {};
 
 io.on('connection', (socket) => {
-    console.log(`> Node Connection Established: ${socket.id}`);
+    console.log(`> [CONNECT] New player connected: ${socket.id}`);
 
-    // Jab koi player multiplayer lobby se arena mein enter karega
+    // Jab player multiplayer mode select karke spawn hota hai
     socket.on('joinMultiplayer', (playerData) => {
         activePlayers[socket.id] = {
             id: socket.id,
@@ -30,12 +30,14 @@ io.on('connection', (socket) => {
             y: 0,
             angle: 0,
             body: [],
-            score: 100
+            score: 100,
+            length: 45,
+            targetLength: 45
         };
-        console.log(`> Player Spawned in Arena: ${activePlayers[socket.id].name} (${socket.id})`);
+        console.log(`> [SPAWN] Player Joined Arena: ${activePlayers[socket.id].name} (${socket.id})`);
     });
 
-    // Har frame par player ki badli hui position aur nodes ka sync data
+    // Client side se per-frame position aur body movement sync receive karna
     socket.on('updatePlayer', (data) => {
         if (activePlayers[socket.id]) {
             activePlayers[socket.id].x = data.x;
@@ -43,28 +45,32 @@ io.on('connection', (socket) => {
             activePlayers[socket.id].angle = data.angle;
             activePlayers[socket.id].body = data.body;
             activePlayers[socket.id].score = data.score;
+            if (data.targetLength) {
+                activePlayers[socket.id].targetLength = data.targetLength;
+            }
         }
     });
 
-    // Jab player disconnect ho ya game leave kare
+    // Disconnect event handler
     socket.on('disconnect', () => {
         if (activePlayers[socket.id]) {
-            console.log(`> Player Left Arena: ${activePlayers[socket.id].name}`);
+            console.log(`> [DISCONNECT] Player Left: ${activePlayers[socket.id].name}`);
             delete activePlayers[socket.id];
+        } else {
+            console.log(`> [DISCONNECT] Connection closed: ${socket.id}`);
         }
-        console.log(`> Connection Terminated: ${socket.id}`);
     });
 });
 
-// Sabhi connected clients ko 60FPS tick-rate par game state updates bhejna
+// 60 FPS (approx 16.6ms) frequency par arena ke sabhi clients ko state broad-cast karna
 setInterval(() => {
     io.emit('gameStateUpdate', activePlayers);
 }, 1000 / 60);
 
-// Server initialization listener
+// HTTP Server start
 http.listen(PORT, () => {
     console.log(`=============================================`);
     console.log(`🚀 SLITHER PRO SERVER ONLINE ON PORT: ${PORT}`);
-    console.log(`🔗 Local Gateway: http://localhost:${PORT}`);
+    console.log(`🔗 Local Address: http://localhost:${PORT}`);
     console.log(`=============================================`);
 });

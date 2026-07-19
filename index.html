@@ -1,42 +1,120 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Global Arena</title>
+    <title>Slither.io Pro - Premium Global Arena</title>
     <style>
-        body { margin: 0; background: #030308; overflow: hidden; font-family: sans-serif; user-select: none; color: #fff; }
+        body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; }
         canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
-        .ui-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #0a0a1f; z-index: 10; }
-        .hidden { display: none; }
-        h1 { font-size: 3rem; margin: 0 0 20px 0; color: #00ffaa; }
-        .btn { background: #00ffaa; color: #000; padding: 12px 30px; font-size: 1.2rem; font-weight: bold; cursor: pointer; border-radius: 25px; border: none; margin-top: 15px; }
-        .name-input { padding: 12px; width: 250px; border-radius: 10px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1.1rem; }
-        #hud { position: absolute; top: 20px; left: 20px; z-index: 5; background: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px; display: none; }
-        #leaderboard { position: absolute; top: 20px; right: 20px; z-index: 5; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 10px; width: 200px; display: none; }
-        .lb-title { font-weight: bold; border-bottom: 1px solid #fff; padding-bottom: 5px; margin-bottom: 5px; color: #00bfff; }
-        .lb-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin: 3px 0; }
-        .active-player { color: #00ffaa; font-weight: bold; }
+        
+        .ui-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: radial-gradient(circle at center, #0f0f24 0%, #03030a 100%);
+            z-index: 10;
+            transition: opacity 0.4s ease, visibility 0.4s;
+        }
+        .hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        
+        h1 { font-size: 3.5rem; font-weight: 900; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 6px; background: linear-gradient(45deg, #00ffaa, #0077ff, #ff0077); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 10px rgba(0,255,170,0.2)); }
+        h2 { font-size: 2.2rem; margin: 0 0 20px 0; color: #a0aec0; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .loader-container { width: 320px; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 25px; border: 1px solid rgba(255,255,255,0.1); }
+        .loader-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #00ffaa, #00bfff); box-shadow: 0 0 10px #00ffaa; }
+
+        .setup-container { display: flex; flex-direction: row; align-items: center; gap: 40px; background: rgba(255, 255, 255, 0.02); padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(15px); }
+        .controls-side { display: flex; flex-direction: column; gap: 12px; }
+        
+        .preview-box { width: 280px; height: 280px; background: #05050f; border: 2px solid #2d2d4d; border-radius: 20px; overflow: hidden; position: relative; box-shadow: inset 0 0 25px rgba(0,0,0,0.9); cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
+        .preview-box.boosting-active { border-color: #ff0055; box-shadow: inset 0 0 30px rgba(255, 0, 85, 0.4), 0 0 15px rgba(255,0,85,0.2); }
+        #previewCanvas { width: 100%; height: 100%; display: block; }
+        .preview-label { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 0.8rem; color: #64748b; letter-spacing: 1px; text-transform: uppercase; pointer-events: none; }
+
+        .btn {
+            background: linear-gradient(135deg, #17172e 0%, #0d0d1a 100%); border: 1px solid #2e2e54; color: white;
+            padding: 14px 35px; margin: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; border-radius: 30px; min-width: 220px; text-align: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        .btn:hover { background: linear-gradient(135deg, #00ffaa 0%, #00bfff 100%); border-color: #fff; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,255,170,0.3); color: #000; }
+        
+        .option-row { display: flex; align-items: center; justify-content: space-between; width: 340px; background: rgba(255,255,255,0.01); padding: 10px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.03); }
+        .option-label { font-size: 1rem; color: #94a3b8; font-weight: 500; }
+        .select-btn { background: #131324; border: 1px solid #363659; color: #fff; padding: 6px 14px; border-radius: 8px; cursor: pointer; min-width: 140px; font-weight: 600; text-align: center; }
+        
+        #server-console-box { width: 450px; height: 160px; background: #020207; border: 1px solid #1e1e38; border-radius: 12px; font-family: monospace; padding: 15px; color: #00ffaa; overflow-y: hidden; text-align: left; font-size: 0.85rem; line-height: 1.5; box-shadow: inset 0 0 15px rgba(0,0,0,0.8); margin-bottom: 20px; }
+
+        #hud { position: absolute; top: 20px; left: 20px; z-index: 5; pointer-events: none; background: rgba(3,3,10,0.8); padding: 16px 22px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); display: none; backdrop-filter: blur(8px); }
+        #leaderboard { position: absolute; top: 20px; right: 20px; z-index: 5; background: rgba(3,3,10,0.85); padding: 15px 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); width: 220px; display: none; font-size: 0.85rem; backdrop-filter: blur(8px); }
+        .lb-title { font-weight: 800; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; margin-bottom: 8px; color: #38bdf8; letter-spacing: 1px; }
+        .lb-row { display: flex; justify-content: space-between; margin: 4px 0; color: #cbd5e1; }
+        .lb-row.active-player { color: #00ffaa; font-weight: bold; }
+        
+        .name-input { padding: 12px; width: 315px; border-radius: 12px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1.1rem; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <div id="screen-main" class="ui-screen">
-        <h1>SLITHER PRO MULTIPLAYER</h1>
-        <input type="text" id="player-nick" class="name-input" placeholder="Enter Name" value="Player_X">
-        <button class="btn" onclick="launchGame()">SPAWN IN ARENA</button>
+    <!-- Premium Splash -->
+    <div id="screen-splash" class="ui-screen">
+        <h1>SLITHER PRO</h1>
+        <div class="loader-container"><div id="loader" class="loader-bar"></div></div>
+        <p style="color: #4b5563; font-size: 0.9rem; margin-top: 15px; letter-spacing: 2px;">SYNCING ARENA CONTEXT...</p>
     </div>
 
+    <!-- Premium Main Hub Setup -->
+    <div id="screen-main" class="ui-screen hidden">
+        <h1>SLITHER PRO</h1>
+        <input type="text" id="player-nick" class="name-input" placeholder="Enter Nickname" value="Player_X">
+        
+        <div class="setup-container">
+            <div class="controls-side">
+                <div class="option-row">
+                    <div class="option-label">Snake Skin</div>
+                    <button class="select-btn" id="btn-skin" onclick="changeSetting('skin')">Neon Stripe</button>
+                </div>
+                <div class="option-row">
+                    <div class="option-label">Body Aura</div>
+                    <button class="select-btn" id="btn-effect" onclick="changeSetting('effect')">Plasma Glow</button>
+                </div>
+                <div class="option-row">
+                    <div class="option-label">Arena Style</div>
+                    <button class="select-btn" id="btn-map" onclick="changeSetting('map')">Standard Grid</button>
+                </div>
+            </div>
+
+            <div class="preview-box" id="previewBox">
+                <canvas id="previewCanvas"></canvas>
+                <div class="preview-label" id="previewLabel">Hold Click to Boost</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 25px; display: flex;">
+            <div class="btn" onclick="launchGlobalArena()">SPAWN INTO ARENA</div>
+        </div>
+    </div>
+
+    <!-- Multiplayer Loading Sync Console -->
+    <div id="screen-multiplayer-load" class="ui-screen hidden">
+        <h2 style="color: #00bfff;">Connecting To Global Clusters</h2>
+        <div id="server-console-box"></div>
+        <div class="loader-container" style="width: 450px;"><div id="mp-loader" class="loader-bar" style="background:linear-gradient(90deg, #00bfff, #ff00aa)"></div></div>
+    </div>
+
+    <!-- Wasted Panel -->
     <div id="screen-gameover" class="ui-screen hidden">
-        <h1 style="color: #ff3333;">GAME OVER</h1>
-        <p id="final-score" style="font-size: 1.5rem;">Score: 0</p>
-        <button class="btn" onclick="location.reload()">Play Again</button>
+        <h1 style="background: linear-gradient(45deg, #ff3333, #ff7700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 4.5rem;">WASTED</h1>
+        <p id="final-score-display" style="font-size: 1.6rem; color: #cbd5e1; margin: 0 0 25px 0;">Final Score: 0</p>
+        <div class="btn" onclick="showScreen('screen-main')">Return to Hub</div>
     </div>
 
+    <!-- HUD Layouts -->
     <div id="hud">
-        <div id="hud-score" style="font-size: 20px; color: #00ffaa;">Score: 0</div>
+        <div id="hud-score" style="font-size: 24px; font-weight: 800; color: #00ffaa;">Score: 0</div>
+        <div id="hud-length" style="color: #94a3b8; font-size: 14px; margin-top: 2px;">Length: 45 segments</div>
     </div>
 
     <div id="leaderboard">
-        <div class="lb-title">Leaderboard</div>
+        <div class="lb-title">Global Top 10</div>
         <div id="lb-content"></div>
     </div>
 
@@ -44,19 +122,16 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const canvas = document.getElementById("game");
-        const ctx = canvas.getContext("2d");
-        const socket = io();
-
-        let isGameRunning = false;
-        let mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
+        const skins = ['Neon Stripe', 'Cosmic Polka', 'Magma Flow', 'Cyber Grid', 'Glow Phantom', 'Void Nebula', 'Rainbow Pulse'];
+        const effects = ['Plasma Glow', 'Fire Storm', 'Neon Shockwave'];
+        const maps = ['Standard Grid', 'Deep Space Void', 'Tech Hexagon'];
+        
+        let config = { skin: 'Neon Stripe', effect: 'Plasma Glow', map: 'Standard Grid' };
         let currentServerPlayers = {};
         let currentServerFoods = [];
         let currentServerBots = [];
 
-        let clientSnake = { x: 0, y: 0, angle: 0, score: 0, length: 45, currentRadius: 15, body: [] };
-
-        window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        const socket = io();
 
         socket.on('serverGameStateUpdate', (data) => {
             currentServerPlayers = data.players;
@@ -65,58 +140,267 @@
         });
 
         socket.on('forceClientGameOver', () => {
-            isGameRunning = false;
-            document.getElementById('hud').style.display = 'none';
-            document.getElementById('leaderboard').style.display = 'none';
-            document.getElementById('final-score').innerText = "Final Score: " + Math.floor(clientSnake.score);
-            document.getElementById('screen-gameover').classList.remove('hidden');
+            triggerGameOver();
         });
 
-        function launchGame() {
-            document.getElementById('screen-main').classList.add('hidden');
-            document.getElementById('hud').style.display = 'block';
-            document.getElementById('leaderboard').style.display = 'block';
+        function showScreen(screenId) {
+            document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+            if(screenId === 'screen-main') initPreviewSystem();
+            else stopPreviewSystem();
+        }
+
+        const consoleLogs = [
+            "> Initializing connection sockets architecture...",
+            "> Synced cloud infrastructure node clusters...",
+            "> Connection established successfully.",
+            "> Downloading persistent server state metrics...",
+            "> Spawning cluster client packet pipeline..."
+        ];
+
+        function launchGlobalArena() {
+            showScreen('screen-multiplayer-load');
+            const consoleBox = document.getElementById('server-console-box');
+            consoleBox.innerHTML = "";
+            let logIndex = 0;
             
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            let rx = (Math.random() - 0.5) * 1000;
-            let ry = (Math.random() - 0.5) * 1000;
+            let logInterval = setInterval(() => {
+                if(logIndex < consoleLogs.length) {
+                    consoleBox.innerHTML += consoleLogs[logIndex] + "<br/>";
+                    logIndex++;
+                }
+            }, 1200 / consoleLogs.length);
+
+            let progress = 0;
+            let mpLoader = document.getElementById('mp-loader');
+            let progressInterval = setInterval(() => {
+                progress += 5;
+                if(progress >= 100) {
+                    clearInterval(progressInterval);
+                    clearInterval(logInterval);
+                    setTimeout(() => {
+                        socket.emit('joinMultiplayer', { name: document.getElementById('player-nick').value, skin: config.skin });
+                        startGame(); 
+                    }, 200);
+                }
+                mpLoader.style.width = progress + '%';
+            }, 40);
+        }
+
+        let loadProgress = 0;
+        const loaderInterval = setInterval(() => {
+            loadProgress += 4;
+            if (loadProgress >= 100) {
+                clearInterval(loaderInterval);
+                setTimeout(() => showScreen('screen-main'), 300);
+            }
+            document.getElementById('loader').style.width = loadProgress + '%';
+        }, 20);
+
+        function changeSetting(type) {
+            if(type === 'skin') {
+                config.skin = skins[(skins.indexOf(config.skin) + 1) % skins.length];
+                document.getElementById('btn-skin').innerText = config.skin;
+            } else if(type === 'effect') {
+                config.effect = effects[(effects.indexOf(config.effect) + 1) % effects.length];
+                document.getElementById('btn-effect').innerText = config.effect;
+            } else if(type === 'map') {
+                config.map = maps[(maps.indexOf(config.map) + 1) % maps.length];
+                document.getElementById('btn-map').innerText = config.map;
+            }
+        }
+
+        // --- PREMIUM SKIN DRAWING RENDER MATRIX ---
+        function drawSlitherSkin(ctx, x, y, radius, index, skinName, isHead, angle = 0, auraActive = false, auraType = 'Plasma Glow') {
+            ctx.save(); ctx.translate(x, y);
+
+            if (auraActive) {
+                ctx.save(); ctx.globalAlpha = 0.45; ctx.shadowBlur = radius * 1.5;
+                if (auraType === 'Plasma Glow') { ctx.fillStyle = '#00ffff'; ctx.shadowColor = '#00ffff'; }
+                else if (auraType === 'Fire Storm') { ctx.fillStyle = '#ff3300'; ctx.shadowColor = '#ffaa00'; }
+                else { ctx.fillStyle = '#ff00aa'; ctx.shadowColor = '#ff00aa'; }
+                ctx.beginPath(); ctx.arc(0, 0, radius * 1.35, 0, Math.PI * 2); ctx.fill();
+                ctx.restore();
+            }
+            ctx.shadowColor = "rgba(0, 0, 0, 0.3)"; ctx.shadowBlur = 6;
+
+            if (skinName === 'Neon Stripe') {
+                ctx.fillStyle = (index % 4 < 2) ? '#00ffaa' : '#0066ff';
+                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+            } else if (skinName === 'Cosmic Polka') {
+                ctx.fillStyle = '#6d28d9'; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(-radius*0.2, -radius*0.2, radius*0.25, 0, Math.PI*2); ctx.fill();
+            } else if (skinName === 'Magma Flow') {
+                let grad = ctx.createRadialGradient(-radius*0.2, -radius*0.2, radius*0.1, 0, 0, radius);
+                grad.addColorStop(0, '#facc15'); grad.addColorStop(1, '#450a0a');
+                ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+            } else if (skinName === 'Cyber Grid') {
+                ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.moveTo(-radius, 0); ctx.lineTo(radius, 0); ctx.stroke();
+            } else if (skinName === 'Glow Phantom') {
+                ctx.fillStyle = (index % 6 < 3) ? 'rgba(0, 255, 200, 0.8)' : 'rgba(10, 20, 40, 0.9)';
+                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#00ffc8'; ctx.lineWidth = 1; ctx.stroke();
+            } else if (skinName === 'Void Nebula') {
+                let grad = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+                grad.addColorStop(0, '#ec4899'); grad.addColorStop(0.5, '#3b82f6'); grad.addColorStop(1, '#1e1b4b');
+                ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+            } else if (skinName === 'Rainbow Pulse') {
+                ctx.fillStyle = `hsl(${(index * 15 + Date.now()/20) % 360}, 90%, 60%)`;
+                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+            }
+
+            if (isHead) {
+                ctx.rotate(angle); ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(radius * 0.4, -radius * 0.35, radius * 0.3, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(radius * 0.4, radius * 0.35, radius * 0.3, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.beginPath(); ctx.arc(radius * 0.45, -radius * 0.35, radius * 0.15, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(radius * 0.45, radius * 0.35, radius * 0.15, 0, Math.PI*2); ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // --- LAYERED PARTICLE ENGINE ---
+        let particles = []; let previewParticles = [];
+        function spawnFullBodyVisualAura(bodyArray, radius, type, isPreview = false) {
+            let step = Math.max(1, Math.floor(bodyArray.length / 12)); 
+            for(let i = 0; i < bodyArray.length; i += step) {
+                let seg = bodyArray[i]; if(!seg) continue;
+                let angle = Math.random() * Math.PI * 2;
+                let speed = Math.random() * 0.8 + 0.3;
+                let p = {
+                    x: seg.x, y: seg.y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed,
+                    life: 1.0, decay: Math.random()*0.05 + 0.04, size: Math.random()*3 + 2, type: type
+                };
+                if(isPreview) previewParticles.push(p); else particles.push(p);
+            }
+        }
+
+        function drawLayeredParticles(ctx, particleArray) {
+            for (let i = particleArray.length - 1; i >= 0; i--) {
+                let p = particleArray[i]; p.x += p.vx; p.y += p.vy; p.life -= p.decay;
+                if(p.life <= 0) { particleArray.splice(i, 1); continue; }
+                ctx.save(); ctx.globalAlpha = p.life * 0.7; ctx.shadowBlur = 8;
+                if(p.type === 'Plasma Glow') { ctx.fillStyle = '#00ffff'; ctx.shadowColor = '#00ffff'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); }
+                else if(p.type === 'Fire Storm') { ctx.fillStyle = '#ff5500'; ctx.shadowColor = '#ffaa00'; ctx.beginPath(); ctx.rect(p.x - p.size/2, p.y - p.size/2, p.size, p.size); ctx.fill(); }
+                else { ctx.strokeStyle = '#ff00aa'; ctx.lineWidth = 1.5; ctx.shadowColor = '#ff00aa'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (2.0 - p.life), 0, Math.PI*2); ctx.stroke(); }
+                ctx.restore();
+            }
+        }
+
+        function drawMapBackground(ctx, mapName, width, height, scale, snakeX, snakeY, isPreview, localBoostState = false) {
+            ctx.save();
+            if(!isPreview) { ctx.translate(canvas.width / 2, canvas.height / 2); ctx.scale(scale, scale); ctx.translate(-snakeX, -snakeY); }
+            let viewLeft = isPreview ? 0 : snakeX - canvas.width / scale;
+            let viewRight = isPreview ? width : snakeX + canvas.width / scale;
+            let viewTop = isPreview ? 0 : snakeY - canvas.height / scale;
+            let viewBottom = isPreview ? height : snakeY + canvas.height / scale;
+
+            if (mapName === 'Standard Grid') ctx.fillStyle = localBoostState ? '#0c0717' : '#0a0a1f';
+            else if (mapName === 'Deep Space Void') ctx.fillStyle = localBoostState ? '#0a0004' : '#020205';
+            else ctx.fillStyle = localBoostState ? '#0d0202' : '#05070a';
+            ctx.fillRect(viewLeft, viewTop, viewRight-viewLeft, viewBottom-viewTop);
+
+            ctx.strokeStyle = localBoostState ? 'rgba(0, 255, 200, 0.05)' : 'rgba(255, 255, 255, 0.04)';
+            ctx.lineWidth = 1; let step = isPreview ? 35 : 100;
+            for (let x = Math.floor(viewLeft / step) * step; x < viewRight; x += step) { ctx.beginPath(); ctx.moveTo(x, viewTop); ctx.lineTo(x, viewBottom); ctx.stroke(); }
+            for (let y = Math.floor(viewTop / step) * step; y < viewBottom; y += step) { ctx.beginPath(); ctx.moveTo(viewLeft, y); ctx.lineTo(viewRight, y); ctx.stroke(); }
+            ctx.restore();
+        }
+
+        // --- HUB PREVIEW RENDER SYSTEM ---
+        let previewCanvas, previewCtx, previewAnimId;
+        let previewSnake = { angle: 0, body: [], isBoosting: false };
+        function initPreviewSystem() {
+            previewCanvas = document.getElementById('previewCanvas'); previewCtx = previewCanvas.getContext('2d');
+            previewCanvas.width = 280; previewCanvas.height = 280; previewSnake.body = [];
+            for(let i=0; i<25; i++) previewSnake.body.push({x: 140, y: 140});
+            let pBox = document.getElementById('previewBox');
+            pBox.onmousedown = () => { previewSnake.isBoosting = true; pBox.classList.add('boosting-active'); };
+            pBox.onmouseup = () => { previewSnake.isBoosting = false; pBox.classList.remove('boosting-active'); };
+            pBox.onmouseleave = pBox.onmouseup; runPreviewLoop();
+        }
+        function stopPreviewSystem() { cancelAnimationFrame(previewAnimId); }
+        function runPreviewLoop() {
+            previewAnimId = requestAnimationFrame(runPreviewLoop);
+            drawMapBackground(previewCtx, config.map, 280, 280, 1, 0, 0, true, previewSnake.isBoosting);
+            previewSnake.angle += previewSnake.isBoosting ? 0.095 : 0.05;
+            let headX = 140 + Math.cos(previewSnake.angle) * 60; let headY = 140 + Math.sin(previewSnake.angle) * 48;
+            previewSnake.body[0] = {x: headX, y: headY};
+            for (let i = 1; i < previewSnake.body.length; i++) {
+                let dx = previewSnake.body[i].x - previewSnake.body[i-1].x; let dy = previewSnake.body[i].y - previewSnake.body[i-1].y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist > 5 && dist > 0) { previewSnake.body[i].x = previewSnake.body[i-1].x + (dx / dist) * 5; previewSnake.body[i].y = previewSnake.body[i-1].y + (dy / dist) * 5; }
+            }
+            if(previewSnake.isBoosting && Math.random() < 0.6) spawnFullBodyVisualAura(previewSnake.body, 12, config.effect, true);
+            drawLayeredParticles(previewCtx, previewParticles);
+            for (let i = previewSnake.body.length - 1; i >= 0; i--) { drawSlitherSkin(previewCtx, previewSnake.body[i].x, previewSnake.body[i].y, 12, i, config.skin, i === 0, previewSnake.angle + Math.PI/2, previewSnake.isBoosting, config.effect); }
+        }
+
+        // --- WORLD MULTIPLAYER SYSTEM ENGINE ---
+        const canvas = document.getElementById("game"); const ctx = canvas.getContext("2d");
+        let isGameRunning = false; let mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
+        let isBoosting = false; let gameLoopId;
+        let clientSnake = { x: 0, y: 0, angle: 0, score: 0, length: 45, maxTurnSpeed: 0.08, currentRadius: 15, body: [] };
+
+        window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        window.addEventListener("mousedown", () => { if(isGameRunning && clientSnake.score > 5) isBoosting = true; });
+        window.addEventListener("mouseup", () => { isBoosting = false; });
+
+        function startGame() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            let rx = (Math.random() - 0.5) * 1000; let ry = (Math.random() - 0.5) * 1000;
             clientSnake = {
-                x: rx, y: ry, angle: 0, score: 0, length: 45, currentRadius: 15,
+                x: rx, y: ry, angle: -Math.PI/2, score: 0, length: 45, maxTurnSpeed: 0.08, currentRadius: 15,
                 body: Array(45).fill({x: rx, y: ry})
             };
+            particles = [];
+            document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById('hud').style.display = 'block';
+            document.getElementById('leaderboard').style.display = 'block';
+            isGameRunning = true; runGameLoop();
+        }
 
-            socket.emit('joinMultiplayer', { name: document.getElementById('player-nick').value });
-            isGameRunning = true;
-            runGameLoop();
+        function triggerGameOver() {
+            isGameRunning = false; cancelAnimationFrame(gameLoopId);
+            document.getElementById('hud').style.display = 'none'; document.getElementById('leaderboard').style.display = 'none';
+            document.getElementById('final-score-display').innerText = "Final Score: " + Math.floor(clientSnake.score);
+            showScreen('screen-gameover');
         }
 
         function runGameLoop() {
             if (!isGameRunning) return;
-            requestAnimationFrame(runGameLoop);
+            gameLoopId = requestAnimationFrame(runGameLoop);
 
-            // Handle Turning Angle
+            if (isBoosting) {
+                if (clientSnake.score > 5) { 
+                    clientSnake.score -= 0.1; 
+                    clientSnake.length = 45 + Math.floor(clientSnake.score / 5); 
+                }
+                else { isBoosting = false; }
+            }
+
             let targetAngle = Math.atan2(mouse.y - canvas.height/2, mouse.x - canvas.width/2);
             let angleDiff = targetAngle - clientSnake.angle;
             while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
             while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-            clientSnake.angle += Math.max(-0.08, Math.min(0.08, angleDiff));
+            clientSnake.angle += Math.max(-clientSnake.maxTurnSpeed, Math.min(clientSnake.maxTurnSpeed, angleDiff));
 
-            clientSnake.x += Math.cos(clientSnake.angle) * 3.5;
-            clientSnake.y += Math.sin(clientSnake.angle) * 3.5;
+            let currentSpeed = isBoosting ? 6.5 : 3.5;
+            clientSnake.x += Math.cos(clientSnake.angle) * currentSpeed;
+            clientSnake.y += Math.sin(clientSnake.angle) * currentSpeed;
 
-            // Follow tail
             let head = { x: clientSnake.x, y: clientSnake.y };
             clientSnake.body.unshift(head);
             if (clientSnake.body.length > clientSnake.length) {
                 clientSnake.body.pop();
             }
 
-            // Sync with server
             socket.emit('updatePlayerMovement', {
                 x: clientSnake.x, y: clientSnake.y, angle: clientSnake.angle,
-                body: clientSnake.body, score: clientSnake.score, length: clientSnake.length, isBoosting: false
+                body: clientSnake.body, score: clientSnake.score, length: clientSnake.length, isBoosting: isBoosting
             });
 
             // Local Food Check
@@ -124,18 +408,18 @@
                 let dist = Math.sqrt(Math.pow(clientSnake.x - f.x, 2) + Math.pow(clientSnake.y - f.y, 2));
                 if (dist < clientSnake.currentRadius + 6) {
                     clientSnake.score += f.value;
-                    clientSnake.length = 45 + Math.floor(clientSnake.score / 5); // 5 score = 1 segment
+                    clientSnake.length = 45 + Math.floor(clientSnake.score / 5); 
                     socket.emit('foodEatenIndex', f.id);
                 }
             });
 
-            // Local Collision Checks
+            // Live Collision Engine Setup
             for (let id in currentServerPlayers) {
                 if (id !== socket.id) {
                     let p = currentServerPlayers[id];
                     for (let j = 3; j < p.body.length; j++) {
                         let d = Math.sqrt(Math.pow(clientSnake.x - p.body[j].x, 2) + Math.pow(clientSnake.y - p.body[j].y, 2));
-                        if (d < clientSnake.currentRadius + 10) {
+                        if (d < clientSnake.currentRadius + 11) {
                             socket.emit('playerExplodedDeath');
                             return;
                         }
@@ -153,54 +437,53 @@
                 }
             });
 
-            // Rendering Screen
-            ctx.fillStyle = '#0a0a1f';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Premium Render World Graphics Pipeline
+            drawMapBackground(ctx, config.map, canvas.width, canvas.height, 1.0, clientSnake.x, clientSnake.y, false, isBoosting);
 
-            ctx.save();
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.translate(-clientSnake.x, -clientSnake.y);
+            ctx.save(); ctx.translate(canvas.width / 2, canvas.height / 2); ctx.translate(-clientSnake.x, -clientSnake.y);
 
-            // Draw Food
+            // Draw Server Sync Foods
             currentServerFoods.forEach(f => {
                 ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x, f.y, f.maxRadius, 0, Math.PI*2); ctx.fill();
             });
 
-            // Draw Other Players
+            // Draw Other Real Custom Skin Players
             for (let id in currentServerPlayers) {
                 if (id !== socket.id) {
                     let p = currentServerPlayers[id];
-                    p.body.forEach(seg => {
-                        ctx.fillStyle = '#0066ff'; ctx.beginPath(); ctx.arc(seg.x, seg.y, 15, 0, Math.PI*2); ctx.fill();
-                    });
+                    for (let j = p.body.length - 1; j >= 0; j--) {
+                        drawSlitherSkin(ctx, p.body[j].x, p.body[j].y, 15, j, p.skin, j === 0, p.angle + Math.PI/2, p.isBoosting, 'Plasma Glow');
+                    }
                 }
             }
 
-            // Draw Server Bots
+            // Draw Dynamic Global Server AI Bots (Never Boost Aura)
             currentServerBots.forEach(b => {
-                b.body.forEach(seg => {
-                    ctx.fillStyle = '#ffaa00'; ctx.beginPath(); ctx.arc(seg.x, seg.y, b.currentRadius, 0, Math.PI*2); ctx.fill();
-                });
+                for (let j = b.body.length - 1; j >= 0; j--) {
+                    drawSlitherSkin(ctx, b.body[j].x, b.body[j].y, b.currentRadius, j, b.skin, j === 0, b.angle + Math.PI/2, false, 'Plasma Glow');
+                }
             });
 
-            // Draw Client
-            clientSnake.body.forEach((seg, idx) => {
-                ctx.fillStyle = (idx === 0) ? '#00ff77' : '#00ffaa';
-                ctx.beginPath(); ctx.arc(seg.x, seg.y, clientSnake.currentRadius, 0, Math.PI*2); ctx.fill();
-            });
+            // Draw Client Visual Effects Pipeline
+            if (isBoosting && Math.random() < 0.6) spawnFullBodyVisualAura(clientSnake.body, clientSnake.currentRadius, config.effect, false);
+            drawLayeredParticles(ctx, particles);
+            for (let i = clientSnake.body.length - 1; i >= 0; i--) {
+                drawSlitherSkin(ctx, clientSnake.body[i].x, clientSnake.body[i].y, clientSnake.currentRadius, i, config.skin, i === 0, clientSnake.angle + Math.PI/2, isBoosting, config.effect);
+            }
 
             ctx.restore();
 
             document.getElementById('hud-score').innerText = "Score: " + Math.floor(clientSnake.score);
+            document.getElementById('hud-length').innerText = "Length: " + clientSnake.body.length + " segments";
 
-            // Leaderboard Update
+            // Premium HUD Leaderboard Pool Sync
             let lbPool = [{name: document.getElementById('player-nick').value || "You", score: clientSnake.score, isLocal: true}];
             for(let id in currentServerPlayers) { if(id !== socket.id) lbPool.push({name: currentServerPlayers[id].name, score: currentServerPlayers[id].score}); }
             currentServerBots.forEach(b => lbPool.push({name: b.name, score: b.score}));
             lbPool.sort((a,b) => b.score - a.score);
 
             let lbContent = "";
-            lbPool.slice(0, 7).forEach((item, idx) => {
+            lbPool.slice(0, 10).forEach((item, idx) => {
                 lbContent += `<div class="lb-row ${item.isLocal ? 'active-player' : ''}"><span>${idx+1}. ${item.name}</span><span>${Math.floor(item.score)}</span></div>`;
             });
             document.getElementById('lb-content').innerHTML = lbContent;

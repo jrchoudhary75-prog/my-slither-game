@@ -16,7 +16,7 @@ let serverFoods = [];
 let serverBots = [];
 const MAP_RADIUS = 3000;
 const TOTAL_FOODS = 600;
-const TOTAL_BOTS = 15; // Balanced Multiplayer Bots
+const TOTAL_BOTS = 15;
 
 const skins = ['Neon Stripe', 'Cosmic Polka', 'Magma Flow', 'Cyber Grid', 'Glow Phantom', 'Void Nebula', 'Rainbow Pulse'];
 
@@ -35,7 +35,7 @@ for (let i = 0; i < TOTAL_FOODS; i++) {
     serverFoods.push(createServerFood());
 }
 
-// Generate Global Bots on Server
+// Generate Premium Global Bots on Server
 for (let i = 0; i < TOTAL_BOTS; i++) {
     let rx = (Math.random() - 0.5) * MAP_RADIUS;
     let ry = (Math.random() - 0.5) * MAP_RADIUS;
@@ -56,7 +56,7 @@ for (let i = 0; i < TOTAL_BOTS; i++) {
     });
 }
 
-// Server Physics Loop
+// Dedicated Server Loop
 setInterval(() => {
     // Move Bots
     serverBots.forEach(b => {
@@ -83,7 +83,6 @@ setInterval(() => {
         b.x += Math.cos(b.angle) * b.speed;
         b.y += Math.sin(b.angle) * b.speed;
 
-        // Bot body follow logic
         let spacing = 6;
         let head = { x: b.x, y: b.y };
         b.body.unshift(head);
@@ -91,7 +90,7 @@ setInterval(() => {
             b.body.pop();
         }
 
-        // Bot eats food
+        // Bot food processing
         for (let i = serverFoods.length - 1; i >= 0; i--) {
             let f = serverFoods[i];
             let dist = Math.sqrt(Math.pow(b.x - f.x, 2) + Math.pow(b.y - f.y, 2));

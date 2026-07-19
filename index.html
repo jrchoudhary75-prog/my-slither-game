@@ -1,283 +1,767 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - MultiMode Cluster</title>
+    <title>Slither.io Pro - Multiplayer Arena Edition</title>
     <style>
-        body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', sans-serif; user-select: none; color: #fff; }
+        body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; }
         canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
-        .ui-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle at center, #0f0f24 0%, #03030a 100%); z-index: 10; }
-        .hidden { display: none !important; }
-        h1 { font-size: 3.5rem; font-weight: 900; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 5px; background: linear-gradient(45deg, #00ffaa, #00bfff, #ff0077); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .setup-box { background: rgba(255, 255, 255, 0.03); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.06); text-align: center; }
-        .name-input { padding: 12px; width: 280px; border-radius: 12px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1.1rem; margin-bottom: 20px; }
-        .mode-container { display: flex; gap: 20px; justify-content: center; }
-        .btn { background: linear-gradient(135deg, #1f1f3d 0%, #0b0b14 100%); border: 1px solid #3d3d75; color: white; padding: 14px 30px; font-size: 1.1rem; font-weight: bold; cursor: pointer; border-radius: 25px; min-width: 180px; transition: all 0.2s; }
-        .btn:hover { background: linear-gradient(135deg, #00ffaa 0%, #00bfff 100%); color: #000; border-color: #fff; transform: translateY(-2px); }
-        .btn-offline { border-color: #ffaa00; }
-        .btn-offline:hover { background: linear-gradient(135deg, #ffaa00 0%, #ff5500 100%); color: #fff; }
-        #hud { position: absolute; top: 20px; left: 20px; z-index: 5; background: rgba(3,3,10,0.8); padding: 15px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); display: none; }
-        #leaderboard { position: absolute; top: 20px; right: 20px; z-index: 5; background: rgba(3,3,10,0.85); padding: 15px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); width: 220px; display: none; }
-        .lb-title { font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; color: #38bdf8; }
-        .lb-row { display: flex; justify-content: space-between; margin: 4px 0; font-size: 0.9rem; }
-        .active-player { color: #00ffaa; font-weight: bold; }
+        
+        .ui-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: radial-gradient(circle at center, #0f0f24 0%, #03030a 100%);
+            z-index: 10;
+            transition: opacity 0.4s ease, visibility 0.4s;
+        }
+        .hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        
+        h1 { font-size: 3.5rem; font-weight: 900; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 6px; background: linear-gradient(45deg, #00ffaa, #0077ff, #ff0077); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 10px rgba(0,255,170,0.2)); }
+        h2 { font-size: 2.2rem; margin: 0 0 20px 0; color: #a0aec0; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .loader-container { width: 320px; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 25px; border: 1px solid rgba(255,255,255,0.1); }
+        .loader-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #00ffaa, #00bfff); box-shadow: 0 0 10px #00ffaa; }
+
+        .setup-container { display: flex; flex-direction: row; align-items: center; gap: 40px; background: rgba(255, 255, 255, 0.02); padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(15px); }
+        .controls-side { display: flex; flex-direction: column; gap: 12px; }
+        
+        .preview-box { width: 280px; height: 280px; background: #05050f; border: 2px solid #2d2d4d; border-radius: 20px; overflow: hidden; position: relative; box-shadow: inset 0 0 25px rgba(0,0,0,0.9); cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
+        .preview-box.boosting-active { border-color: #ff0055; box-shadow: inset 0 0 30px rgba(255, 0, 85, 0.4), 0 0 15px rgba(255,0,85,0.2); }
+        #previewCanvas { width: 100%; height: 100%; display: block; }
+        .preview-label { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 0.8rem; color: #64748b; letter-spacing: 1px; text-transform: uppercase; pointer-events: none; }
+
+        .btn {
+            background: linear-gradient(135deg, #17172e 0%, #0d0d1a 100%); border: 1px solid #2e2e54; color: white;
+            padding: 14px 35px; margin: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; border-radius: 30px; min-width: 220px; text-align: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        .btn:hover { background: linear-gradient(135deg, #00ffaa 0%, #00bfff 100%); border-color: #fff; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,255,170,0.3); color: #000; }
+        
+        .option-row { display: flex; align-items: center; justify-content: space-between; width: 340px; background: rgba(255,255,255,0.01); padding: 10px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.03); }
+        .option-label { font-size: 1rem; color: #94a3b8; font-weight: 500; }
+        .select-btn { background: #131324; border: 1px solid #363659; color: #fff; padding: 6px 14px; border-radius: 8px; cursor: pointer; min-width: 140px; font-weight: 600; text-align: center; }
+        
+        .controls-guide-panel {
+            display: flex; gap: 30px; margin-top: 25px; padding: 15px 35px;
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px; font-size: 0.95rem; justify-content: center; align-items: center;
+        }
+        .guide-item { display: flex; align-items: center; gap: 12px; color: #cbd5e1; }
+        .guide-icon {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8); padding: 6px 12px;
+            border-radius: 8px; font-weight: 800; font-size: 0.85rem; letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3); text-transform: uppercase;
+        }
+
+        #server-console-box { width: 450px; height: 160px; background: #020207; border: 1px solid #1e1e38; border-radius: 12px; font-family: monospace; padding: 15px; color: #00ffaa; overflow-y: hidden; text-align: left; font-size: 0.85rem; line-height: 1.5; box-shadow: inset 0 0 15px rgba(0,0,0,0.8); margin-bottom: 20px; }
+
+        #hud { position: absolute; top: 20px; left: 20px; z-index: 5; pointer-events: none; background: rgba(3,3,10,0.8); padding: 16px 22px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); display: none; backdrop-filter: blur(8px); }
+        #leaderboard { position: absolute; top: 20px; right: 20px; z-index: 5; background: rgba(3,3,10,0.85); padding: 15px 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); width: 220px; display: none; font-size: 0.85rem; backdrop-filter: blur(8px); }
+        .lb-title { font-weight: 800; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; margin-bottom: 8px; color: #38bdf8; letter-spacing: 1px; }
+        .lb-row { display: flex; justify-content: space-between; margin: 4px 0; color: #cbd5e1; }
+        .lb-row.active-player { color: #00ffaa; font-weight: bold; }
+        
+        #killfeed { position: absolute; top: 260px; right: 20px; z-index: 5; width: 250px; pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
+        .feed-msg { background: rgba(220, 20, 60, 0.85); color: #fff; padding: 6px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; animation: slideIn 0.3s ease-out; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        .name-input { padding: 12px; width: 315px; border-radius: 12px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1.1rem; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <!-- Selection Scene Launcher Hub -->
-    <div id="screen-main" class="ui-screen">
+    <!-- 1. SPLASH SCREEN -->
+    <div id="screen-splash" class="ui-screen">
         <h1>SLITHER PRO</h1>
-        <div class="setup-box">
-            <input type="text" id="player-nick" class="name-input" placeholder="Enter Nickname" value="Player_X"><br/>
-            <div class="mode-container">
-                <button class="btn btn-offline" onclick="launchGame('offline')">OFFLINE BOTS MODE</button>
-                <button class="btn" onclick="launchGame('multiplayer')">ONLINE MULTIPLAYER</button>
+        <div class="loader-container"><div id="loader" class="loader-bar"></div></div>
+        <p style="color: #4b5563; font-size: 0.9rem; margin-top: 15px; letter-spacing: 2px;">SYNCING ARENA CONTEXT...</p>
+    </div>
+
+    <!-- 2. MAIN MENU SCREEN -->
+    <div id="screen-main" class="ui-screen hidden">
+        <h1>SLITHER PRO</h1>
+        <div class="btn" onclick="openCustomization('offline')">Play Offline</div>
+        <div class="btn" onclick="openCustomization('multiplayer')">Multiplayer Mode</div>
+    </div>
+
+    <!-- MULTIPLAYER SYNCING TERMINAL -->
+    <div id="screen-multiplayer-load" class="ui-screen hidden">
+        <h2 style="color: #00bfff;">Connecting To Global Clusters</h2>
+        <div id="server-console-box"></div>
+        <div class="loader-container" style="width: 450px;"><div id="mp-loader" class="loader-bar" style="background:linear-gradient(90deg, #00bfff, #ff00aa)"></div></div>
+    </div>
+
+    <!-- 3. CONFIGURATION ARENA SETUP -->
+    <div id="screen-offline" class="ui-screen hidden">
+        <h2 id="setup-title">Snake Customization</h2>
+        <input type="text" id="player-nick" class="name-input" placeholder="Enter Nickname" value="Player_1">
+        
+        <div class="setup-container">
+            <div class="controls-side">
+                <div class="option-row" id="diff-row">
+                    <div class="option-label">Difficulty</div>
+                    <button class="select-btn" id="btn-difficulty" onclick="changeSetting('difficulty')">Medium</button>
+                </div>
+                <div class="option-row">
+                    <div class="option-label">Snake Skin</div>
+                    <button class="select-btn" id="btn-skin" onclick="changeSetting('skin')">Neon Stripe</button>
+                </div>
+                <div class="option-row">
+                    <div class="option-label">Body Aura</div>
+                    <button class="select-btn" id="btn-effect" onclick="changeSetting('effect')">Plasma Glow</button>
+                </div>
+                <div class="option-row">
+                    <div class="option-label">Arena Style</div>
+                    <button class="select-btn" id="btn-map" onclick="changeSetting('map')">Standard Grid</button>
+                </div>
             </div>
+
+            <div class="preview-box" id="previewBox">
+                <canvas id="previewCanvas"></canvas>
+                <div class="preview-label" id="previewLabel">Hold Click to Boost</div>
+            </div>
+        </div>
+
+        <div class="controls-guide-panel">
+            <div class="guide-item"><span class="guide-icon">Mouse</span><span>Move cursor to Change Direction</span></div>
+            <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.1);"></div>
+            <div class="guide-item"><span class="guide-icon" style="background: linear-gradient(135deg, #ff0055, #990033);">Left Click</span><span>Hold to Activate Speed Boost</span></div>
+        </div>
+
+        <div style="margin-top: 25px; display: flex;">
+            <div class="btn" onclick="launchSelectedMode()">SPAWN INTO ARENA</div>
+            <div class="btn" style="background: #090912; border-color: #222;" onclick="showScreen('screen-main')">Back</div>
         </div>
     </div>
 
-    <!-- Wasted Panel -->
+    <!-- 4. GAME OVER PANEL -->
     <div id="screen-gameover" class="ui-screen hidden">
-        <h1 style="color: #ff3333; font-size: 4rem;">WASTED</h1>
-        <p id="final-score" style="font-size: 1.5rem; color: #cbd5e1;">Score: 0</p>
-        <button class="btn" onclick="location.reload()">Return to Hub</button>
+        <h1 id="gameover-title" style="background: linear-gradient(45deg, #ff3333, #ff7700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 4.5rem;">GAME OVER</h1>
+        <p id="final-score-display" style="font-size: 1.6rem; color: #cbd5e1; margin: 0 0 25px 0;">Final Score: 0</p>
+        <div class="btn" id="btn-restart" onclick="launchSelectedMode()">Play Again</div>
+        <div class="btn" style="background: #241414; border-color: #4a2929;" onclick="showScreen('screen-main')">Main Menu</div>
     </div>
 
-    <!-- HUD -->
+    <!-- HUD & LEADERBOARD PANELS -->
     <div id="hud">
-        <div id="hud-score" style="font-size: 22px; font-weight: bold; color: #00ffaa;">Score: 0</div>
-        <div id="hud-mode" style="font-size: 12px; color: #a0aec0; margin-top:2px;">Mode: None</div>
+        <div id="hud-score" style="font-size: 24px; font-weight: 800; color: #00ffaa;">Score: 0</div>
+        <div id="hud-length" style="color: #94a3b8; font-size: 14px; margin-top: 2px;">Length: 45 segments</div>
     </div>
 
     <div id="leaderboard">
-        <div class="lb-title">Arena Standings</div>
+        <div class="lb-title">Global Top 10</div>
         <div id="lb-content"></div>
     </div>
+
+    <div id="killfeed"></div>
 
     <canvas id="game"></canvas>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const canvas = document.getElementById("game");
-        const ctx = canvas.getContext("2d");
+        const difficulties = ['Easy', 'Medium', 'Hard'];
+        const skins = ['Neon Stripe', 'Cosmic Polka', 'Magma Flow', 'Cyber Grid', 'Glow Phantom', 'Void Nebula', 'Rainbow Pulse'];
+        const effects = ['Plasma Glow', 'Fire Storm', 'Neon Shockwave'];
+        const maps = ['Standard Grid', 'Deep Space Void', 'Tech Hexagon'];
+        
+        let config = { difficulty: 'Medium', skin: 'Neon Stripe', effect: 'Plasma Glow', map: 'Standard Grid' };
+        let chosenMode = 'offline'; 
+        let isMultiplayerArena = false;
+        let networkPlayers = {};
+
         const socket = io();
 
-        let isGameRunning = false;
-        let gameMode = 'offline'; // 'offline' or 'multiplayer'
-        let mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
-        let isBoosting = false;
-
-        // Sync Vectors
-        let currentServerPlayers = {};
-        let currentServerFoods = [];
-        let offlineBots = [];
-        let offlineFoods = [];
-
-        let clientSnake = { x: 0, y: 0, angle: 0, score: 0, length: 45, currentRadius: 15, body: [] };
-        const MAP_RADIUS = 2500;
-
-        window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
-        window.addEventListener("mousedown", () => { if(isGameRunning && clientSnake.score > 5) isBoosting = true; });
-        window.addEventListener("mouseup", () => { isBoosting = false; });
-
-        socket.on('serverGameStateUpdate', (data) => {
-            if (gameMode === 'multiplayer') {
-                currentServerPlayers = data.players;
-                currentServerFoods = data.foods;
-            }
+        socket.on('gameStateUpdate', (players) => {
+            networkPlayers = players;
         });
 
-        socket.on('forceClientGameOver', () => { if(gameMode === 'multiplayer') triggerGameOver(); });
+        function showScreen(screenId) {
+            document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+            if(screenId === 'screen-offline') initPreviewSystem();
+            else stopPreviewSystem();
+        }
 
-        function launchGame(mode) {
-            gameMode = mode;
-            document.getElementById('screen-main').classList.add('hidden');
-            document.getElementById('hud').style.display = 'block';
-            document.getElementById('leaderboard').style.display = 'block';
-            document.getElementById('hud-mode').innerText = "Mode: " + mode.toUpperCase();
+        function openCustomization(mode) {
+            chosenMode = mode;
+            document.getElementById('setup-title').innerText = mode === 'multiplayer' ? "Multiplayer Customization" : "Offline Customization";
+            document.getElementById('diff-row').style.display = mode === 'multiplayer' ? 'none' : 'flex';
+            showScreen('screen-offline');
+        }
 
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+        const consoleLogs = [
+            "> Initializing sockets architecture...",
+            "> Pinging multi-region nodes [Local-Node-3000]...",
+            "> Server responded in 4ms. Connected.",
+            "> Allocating arena allocation slots...",
+            "> Fetching global leaderboard configurations...",
+            "> Handshake acknowledged! Preparing gateway entry..."
+        ];
 
-            let rx = (Math.random() - 0.5) * 600;
-            let ry = (Math.random() - 0.5) * 600;
-            clientSnake = {
-                x: rx, y: ry, angle: 0, score: 0, length: 45, currentRadius: 15,
-                body: Array(45).fill({x: rx, y: ry})
-            };
+        function launchSelectedMode() {
+            if (chosenMode === 'multiplayer') {
+                showScreen('screen-multiplayer-load');
+                const consoleBox = document.getElementById('server-console-box');
+                consoleBox.innerHTML = "";
+                let logIndex = 0;
+                
+                let logInterval = setInterval(() => {
+                    if(logIndex < consoleLogs.length) {
+                        consoleBox.innerHTML += consoleLogs[logIndex] + "<br/>";
+                        logIndex++;
+                    }
+                }, 2000 / consoleLogs.length);
 
-            if (mode === 'offline') {
-                // Initialize Offline Context Local Variables
-                offlineFoods = [];
-                for(let i=0; i<300; i++) {
-                    offlineFoods.push({
-                        id: i, x: (Math.random()-0.5)*MAP_RADIUS*1.5, y: (Math.random()-0.5)*MAP_RADIUS*1.5,
-                        color: `hsl(${Math.random()*360},100%,60%)`, radius: 6, value: 1
-                    });
-                }
-                offlineBots = [];
-                for(let i=0; i<12; i++) {
-                    let bx = (Math.random()-0.5)*MAP_RADIUS; let by = (Math.random()-0.5)*MAP_RADIUS;
-                    offlineBots.push({
-                        name: "AI_Bot_" + Math.floor(Math.random()*900),
-                        x: bx, y: by, angle: Math.random()*Math.PI*2,
-                        score: 0, length: 45, currentRadius: 15, body: Array(45).fill({x: bx, y: by})
-                    });
-                }
+                let progress = 0;
+                let mpLoader = document.getElementById('mp-loader');
+                let progressInterval = setInterval(() => {
+                    progress += 5;
+                    if(progress >= 100) {
+                        clearInterval(progressInterval);
+                        clearInterval(logInterval);
+                        setTimeout(() => {
+                            socket.emit('joinMultiplayer', { name: document.getElementById('player-nick').value, skin: config.skin });
+                            startGame(true); 
+                        }, 200);
+                    }
+                    mpLoader.style.width = progress + '%';
+                }, 50);
             } else {
-                socket.emit('joinMultiplayer', { name: document.getElementById('player-nick').value });
+                startGame(false);
+            }
+        }
+
+        let loadProgress = 0;
+        const loaderInterval = setInterval(() => {
+            loadProgress += 4;
+            if (loadProgress >= 100) {
+                clearInterval(loaderInterval);
+                setTimeout(() => showScreen('screen-main'), 300);
+            }
+            document.getElementById('loader').style.width = loadProgress + '%';
+        }, 30);
+
+        function changeSetting(type) {
+            if(type === 'difficulty') {
+                config.difficulty = difficulties[(difficulties.indexOf(config.difficulty) + 1) % difficulties.length];
+                document.getElementById('btn-difficulty').innerText = config.difficulty;
+            } else if(type === 'skin') {
+                config.skin = skins[(skins.indexOf(config.skin) + 1) % skins.length];
+                document.getElementById('btn-skin').innerText = config.skin;
+            } else if(type === 'effect') {
+                config.effect = effects[(effects.indexOf(config.effect) + 1) % effects.length];
+                document.getElementById('btn-effect').innerText = config.effect;
+            } else if(type === 'map') {
+                config.map = maps[(maps.indexOf(config.map) + 1) % maps.length];
+                document.getElementById('btn-map').innerText = config.map;
+            }
+        }
+
+        // --- SKIN DRAWING RENDERS ---
+        function drawSlitherSkin(ctx, x, y, radius, index, skinName, isHead, angle = 0, auraActive = false, auraType = 'Plasma Glow') {
+            ctx.save();
+            ctx.translate(x, y);
+
+            if (auraActive) {
+                ctx.save(); ctx.globalAlpha = 0.45; ctx.shadowBlur = radius * 1.5;
+                if (auraType === 'Plasma Glow') { ctx.fillStyle = '#00ffff'; ctx.shadowColor = '#00ffff'; }
+                else if (auraType === 'Fire Storm') { ctx.fillStyle = '#ff3300'; ctx.shadowColor = '#ffaa00'; }
+                else { ctx.fillStyle = '#ff00aa'; ctx.shadowColor = '#ff00aa'; }
+                ctx.beginPath(); ctx.arc(0, 0, radius * 1.35, 0, Math.PI * 2); ctx.fill();
+                ctx.restore();
             }
 
+            ctx.shadowColor = "rgba(0, 0, 0, 0.3)"; ctx.shadowBlur = 6;
+
+            if (skinName === 'Neon Stripe') {
+                ctx.fillStyle = (index % 4 < 2) ? '#00ffaa' : '#0066ff';
+                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+            } else if (skinName === 'Cosmic Polka') {
+                ctx.fillStyle = '#6d28d9';
+                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(-radius*0.2, -radius*0.2, radius*0.25, 0, Math.PI*2); ctx.fill();
+            } else if (skinName === 'Magma Flow') {
+                let grad = ctx.createRadialGradient(-radius*0.2, -radius*0.2, radius*0.1, 0, 0, radius);
+                grad.addColorStop(0, '#facc15'); grad.addColorStop(1, '#450a0a');
+                ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+            } else if (skinName === 'Cyber Grid') {
+                ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.moveTo(-radius, 0); ctx.lineTo(radius, 0); ctx.stroke();
+            } else if (skinName === 'Glow Phantom') {
+                ctx.fillStyle = (index % 6 < 3) ? 'rgba(0, 255, 200, 0.8)' : 'rgba(10, 20, 40, 0.9)';
+                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#00ffc8'; ctx.lineWidth = 1; ctx.stroke();
+            } else if (skinName === 'Void Nebula') {
+                let grad = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+                grad.addColorStop(0, '#ec4899'); grad.addColorStop(0.5, '#3b82f6'); grad.addColorStop(1, '#1e1b4b');
+                ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+            } else if (skinName === 'Rainbow Pulse') {
+                ctx.fillStyle = `hsl(${(index * 15 + Date.now()/20) % 360}, 90%, 60%)`;
+                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+            }
+
+            if (isHead) {
+                ctx.rotate(angle); ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(radius * 0.4, -radius * 0.35, radius * 0.3, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(radius * 0.4, radius * 0.35, radius * 0.3, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.beginPath(); ctx.arc(radius * 0.45, -radius * 0.35, radius * 0.15, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(radius * 0.45, radius * 0.35, radius * 0.15, 0, Math.PI*2); ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // --- PARTICLE SYSTEM ---
+        let particles = []; let previewParticles = [];
+
+        function spawnFullBodyVisualAura(bodyArray, radius, type, isPreview = false) {
+            let step = Math.max(1, Math.floor(bodyArray.length / 12)); 
+            for(let i = 0; i < bodyArray.length; i += step) {
+                let seg = bodyArray[i];
+                let angle = Math.random() * Math.PI * 2;
+                let speed = Math.random() * 0.8 + 0.3;
+
+                let p = {
+                    x: seg.x + (Math.random() - 0.5) * radius * 0.5,
+                    y: seg.y + (Math.random() - 0.5) * radius * 0.5,
+                    vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+                    life: 1.0, decay: Math.random() * 0.05 + 0.04, size: Math.random() * 3 + 2, type: type
+                };
+                if(isPreview) previewParticles.push(p); else particles.push(p);
+            }
+        }
+
+        function drawLayeredParticles(ctx, particleArray) {
+            for (let i = particleArray.length - 1; i >= 0; i--) {
+                let p = particleArray[i];
+                p.x += p.vx; p.y += p.vy; p.life -= p.decay;
+                if(p.life <= 0) { particleArray.splice(i, 1); continue; }
+
+                ctx.save(); ctx.globalAlpha = p.life * 0.7; ctx.shadowBlur = 8;
+                if(p.type === 'Plasma Glow') {
+                    ctx.fillStyle = '#00ffff'; ctx.shadowColor = '#00ffff';
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+                } else if(p.type === 'Fire Storm') {
+                    ctx.fillStyle = '#ff5500'; ctx.shadowColor = '#ffaa00';
+                    ctx.beginPath(); ctx.rect(p.x - p.size/2, p.y - p.size/2, p.size, p.size); ctx.fill();
+                } else if(p.type === 'Neon Shockwave') {
+                    ctx.strokeStyle = '#ff00aa'; ctx.lineWidth = 1.5; ctx.shadowColor = '#ff00aa';
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (2.0 - p.life), 0, Math.PI*2); ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        function drawMapBackground(ctx, mapName, width, height, scale, snakeX, snakeY, MAP_RADIUS, isPreview, localBoostState = false) {
+            ctx.save();
+            if(!isPreview) {
+                ctx.translate(canvas.width / 2, canvas.height / 2); ctx.scale(scale, scale); ctx.translate(-snakeX, -snakeY);
+            }
+            let viewLeft = isPreview ? 0 : snakeX - canvas.width / scale;
+            let viewRight = isPreview ? width : snakeX + canvas.width / scale;
+            let viewTop = isPreview ? 0 : snakeY - canvas.height / scale;
+            let viewBottom = isPreview ? height : snakeY + canvas.height / scale;
+
+            if (mapName === 'Standard Grid') ctx.fillStyle = localBoostState ? '#0c0717' : '#0a0a1f';
+            else if (mapName === 'Deep Space Void') ctx.fillStyle = localBoostState ? '#0a0004' : '#020205';
+            else ctx.fillStyle = localBoostState ? '#0d0202' : '#05070a';
+            ctx.fillRect(viewLeft, viewTop, viewRight-viewLeft, viewBottom-viewTop);
+
+            ctx.strokeStyle = localBoostState ? 'rgba(0, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.04)';
+            ctx.lineWidth = 1;
+            let step = isPreview ? 35 : 100;
+            for (let x = Math.floor(viewLeft / step) * step; x < viewRight; x += step) {
+                ctx.beginPath(); ctx.moveTo(x, viewTop); ctx.lineTo(x, viewBottom); ctx.stroke();
+            }
+            for (let y = Math.floor(viewTop / step) * step; y < viewBottom; y += step) {
+                ctx.beginPath(); ctx.moveTo(viewLeft, y); ctx.lineTo(viewRight, y); ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // --- PREVIEW WINDOW SYSTEM ---
+        let previewCanvas, previewCtx, previewAnimId;
+        let previewSnake = { angle: 0, body: [], isBoosting: false };
+
+        function initPreviewSystem() {
+            previewCanvas = document.getElementById('previewCanvas');
+            previewCtx = previewCanvas.getContext('2d');
+            previewCanvas.width = 280; previewCanvas.height = 280;
+            previewSnake.body = [];
+            for(let i=0; i<25; i++) previewSnake.body.push({x: 140, y: 140});
+            
+            let pBox = document.getElementById('previewBox');
+            pBox.onmousedown = () => { previewSnake.isBoosting = true; pBox.classList.add('boosting-active'); document.getElementById('previewLabel').innerText = "BOOSTING BODY ENERGY!"; };
+            pBox.onmouseup = () => { previewSnake.isBoosting = false; pBox.classList.remove('boosting-active'); document.getElementById('previewLabel').innerText = "Hold Click to Boost"; };
+            pBox.onmouseleave = pBox.onmouseup;
+            runPreviewLoop();
+        }
+        function stopPreviewSystem() { cancelAnimationFrame(previewAnimId); }
+
+        function runPreviewLoop() {
+            previewAnimId = requestAnimationFrame(runPreviewLoop);
+            drawMapBackground(previewCtx, config.map, 280, 280, 1, 0, 0, 0, true, previewSnake.isBoosting);
+            
+            previewSnake.angle += previewSnake.isBoosting ? 0.095 : 0.05;
+            let headX = 140 + Math.cos(previewSnake.angle) * 60;
+            let headY = 140 + Math.sin(previewSnake.angle) * 48;
+            previewSnake.body[0] = {x: headX, y: headY};
+            
+            for (let i = 1; i < previewSnake.body.length; i++) {
+                let dx = previewSnake.body[i].x - previewSnake.body[i-1].x;
+                let dy = previewSnake.body[i].y - previewSnake.body[i-1].y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist > 5 && dist > 0) {
+                    previewSnake.body[i].x = previewSnake.body[i-1].x + (dx / dist) * 5;
+                    previewSnake.body[i].y = previewSnake.body[i-1].y + (dy / dist) * 5;
+                }
+            }
+            if(previewSnake.isBoosting && Math.random() < 0.6) spawnFullBodyVisualAura(previewSnake.body, 12, config.effect, true);
+            drawLayeredParticles(previewCtx, previewParticles);
+
+            for (let i = previewSnake.body.length - 1; i >= 0; i--) {
+                drawSlitherSkin(previewCtx, previewSnake.body[i].x, previewSnake.body[i].y, 12, i, config.skin, i === 0, previewSnake.angle + Math.PI/2, previewSnake.isBoosting, config.effect);
+            }
+        }
+
+        // --- GAME PLAY ARENA ENGINE ---
+        const canvas = document.getElementById("game");
+        const ctx = canvas.getContext("2d");
+        
+        const MAP_RADIUS = 3000; 
+        let isGameRunning = false;
+        let mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
+        let isBoosting = false;
+        let gameLoopId;
+
+        window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        window.addEventListener("mousedown", () => { if(isGameRunning && snake.score > 20) isBoosting = true; });
+        window.addEventListener("mouseup", () => { isBoosting = false; });
+
+        let snake, foods, bots, cameraScale;
+
+        function initGameData(multiplayerFlag) {
+            isMultiplayerArena = multiplayerFlag;
+            snake = { 
+                id: "player", name: document.getElementById('player-nick').value || "You", x: 0, y: 0, angle: -Math.PI / 2,
+                currentRadius: 15, 
+                normalSpeed: 3.5, boostSpeed: 7.0, 
+                maxTurnSpeed: 0.08, 
+                body: [], length: 45, score: 100, isDead: false 
+            };
+            for(let i=0; i < snake.length; i++) snake.body.push({x: snake.x, y: snake.y});
+            
+            cameraScale = 1.0; foods = [];
+            for (let i = 0; i < 800; i++) foods.push(createFood(true));
+
+            bots = [];
+            if (!isMultiplayerArena) {
+                let totalBots = config.difficulty === 'Hard' ? 25 : (config.difficulty === 'Easy' ? 10 : 18);
+                for (let i = 0; i < totalBots; i++) {
+                    let startX = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
+                    let startY = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
+                    let bScore = Math.floor(Math.random()*300) + 50;
+                    let bLength = Math.floor(bScore / 2.2);
+                    
+                    let bBody = [];
+                    for(let k = 0; k < bLength; k++) bBody.push({x: startX, y: startY});
+
+                    // Dynamic Bot Custom Speed Assignment based on Difficulty
+                    let botDefaultSpeed = 3.0;
+                    if (config.difficulty === 'Easy') botDefaultSpeed = 2.2;
+                    else if (config.difficulty === 'Hard') botDefaultSpeed = 4.2;
+
+                    bots.push({
+                        x: startX, y: startY,
+                        angle: Math.random() * Math.PI * 2,
+                        maxTurnSpeed: config.difficulty === 'Hard' ? 0.09 : 0.07, 
+                        targetAngle: Math.random() * Math.PI * 2,
+                        changeDirTimer: Math.floor(Math.random() * 60),
+                        skin: skins[Math.floor(Math.random() * skins.length)],
+                        name: "Bot_" + Math.floor(Math.random()*900),
+                        score: bScore, length: bLength,
+                        body: bBody,
+                        currentRadius: 15,
+                        speed: botDefaultSpeed // FIX: Permanent speed according to difficulty
+                    });
+                }
+            }
+            particles = [];
+        }
+
+        function startGame(multiplayerFlag = false) {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            initGameData(multiplayerFlag);
+            document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById('hud').style.display = 'block';
+            document.getElementById('leaderboard').style.display = 'block';
+            
             isGameRunning = true;
             runGameLoop();
         }
 
         function triggerGameOver() {
             isGameRunning = false;
+            cancelAnimationFrame(gameLoopId);
             document.getElementById('hud').style.display = 'none';
             document.getElementById('leaderboard').style.display = 'none';
-            document.getElementById('final-score').innerText = "Final Score: " + Math.floor(clientSnake.score);
-            document.getElementById('screen-gameover').classList.remove('hidden');
+            document.getElementById('final-score-display').innerText = "Final Score: " + Math.floor(snake.score);
+            showScreen('screen-gameover');
         }
 
         function runGameLoop() {
             if (!isGameRunning) return;
-            requestAnimationFrame(runGameLoop);
+            gameLoopId = requestAnimationFrame(runGameLoop);
 
-            // 1. Boost Processing Logic
-            if (isBoosting && clientSnake.score > 5) {
-                clientSnake.score -= 0.08;
-                clientSnake.length = 45 + Math.floor(clientSnake.score / 5);
-            } else { isBoosting = false; }
-
-            let speed = isBoosting ? 6.5 : 3.5;
-
-            // 2. Dynamic Smooth Turning Angle
-            let targetAngle = Math.atan2(mouse.y - canvas.height/2, mouse.x - canvas.width/2);
-            let angleDiff = targetAngle - clientSnake.angle;
-            while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-            while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-            clientSnake.angle += Math.max(-0.07, Math.min(0.07, angleDiff));
-
-            clientSnake.x += Math.cos(clientSnake.angle) * speed;
-            clientSnake.y += Math.sin(clientSnake.angle) * speed;
-
-            // 3. FIXED: Distance-based Body Follow Logic (Gaps strictly closed)
-            let head = { x: clientSnake.x, y: clientSnake.y };
-            clientSnake.body[0] = head;
-            let spacing = 6; 
-            for (let i = 1; i < clientSnake.body.length; i++) {
-                let dx = clientSnake.body[i].x - clientSnake.body[i-1].x;
-                let dy = clientSnake.body[i].y - clientSnake.body[i-1].y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist > spacing && dist > 0) {
-                    clientSnake.body[i].x = clientSnake.body[i-1].x + (dx / dist) * spacing;
-                    clientSnake.body[i].y = clientSnake.body[i-1].y + (dy / dist) * spacing;
+            // Player Boost logic
+            if (isBoosting) {
+                if (snake.score > 20) {
+                    snake.score -= 0.35; 
+                    snake.length = Math.max(20, Math.floor(snake.score / 2.2)); 
+                } else {
+                    isBoosting = false; 
                 }
             }
-            while(clientSnake.body.length < clientSnake.length) clientSnake.body.push({x: clientSnake.x, y: clientSnake.y});
-            while(clientSnake.body.length > clientSnake.length) clientSnake.body.pop();
 
-            // 4. Mode Actions Routing
-            if (gameMode === 'offline') {
-                // Offline Local Food Eating Loop
-                offlineFoods.forEach(f => {
-                    let d = Math.sqrt(Math.pow(clientSnake.x - f.x, 2) + Math.pow(clientSnake.y - f.y, 2));
-                    if(d < clientSnake.currentRadius + f.radius) {
-                        clientSnake.score += f.value;
-                        clientSnake.length = 45 + Math.floor(clientSnake.score / 5);
-                        f.x = (Math.random()-0.5)*MAP_RADIUS*1.5;
-                        f.y = (Math.random()-0.5)*MAP_RADIUS*1.5;
+            let targetAngle = Math.atan2(mouse.y - canvas.height/2, mouse.x - canvas.width/2);
+            let angleDiff = targetAngle - snake.angle;
+            while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+            while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+            
+            snake.angle += Math.max(-snake.maxTurnSpeed, Math.min(snake.maxTurnSpeed, angleDiff));
+
+            let currentSpeed = isBoosting ? snake.boostSpeed : snake.normalSpeed;
+            snake.x += Math.cos(snake.angle) * currentSpeed;
+            snake.y += Math.sin(snake.angle) * currentSpeed;
+
+            let head = {x: snake.x, y: snake.y};
+            snake.body[0] = head;
+
+            let spacing = 6; 
+            for (let i = 1; i < snake.body.length; i++) {
+                let dx = snake.body[i].x - snake.body[i-1].x;
+                let dy = snake.body[i].y - snake.body[i-1].y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist > spacing && dist > 0) {
+                    snake.body[i].x = snake.body[i-1].x + (dx / dist) * spacing;
+                    snake.body[i].y = snake.body[i-1].y + (dy / dist) * spacing;
+                }
+            }
+
+            while(snake.body.length < snake.length) {
+                let last = snake.body[snake.body.length - 1] || head;
+                snake.body.push({x: last.x, y: last.y});
+            }
+            while(snake.body.length > snake.length) {
+                snake.body.pop();
+            }
+
+            if (isMultiplayerArena) {
+                socket.emit('updatePlayer', {
+                    x: snake.x, y: snake.y, angle: snake.angle, body: snake.body, score: snake.score
+                });
+            }
+
+            for (let i = foods.length - 1; i >= 0; i--) {
+                let f = foods[i];
+                let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));
+                if (dist < snake.currentRadius + 6) {
+                    snake.score += f.value;
+                    snake.length = Math.floor(snake.score / 2.2);
+                    foods[i] = createFood(false);
+                }
+            }
+
+            // --- INTEL BOTS TRAIN CONTROL (NO DRAIN BOOSTING MECHANISM) ---
+            if (!isMultiplayerArena) {
+                bots.forEach(b => {
+                    let pDist = Math.sqrt(Math.pow(snake.x - b.x, 2) + Math.pow(snake.y - b.y, 2));
+
+                    // HARD DIFFICULTY: High Skill Offensive Track
+                    if (config.difficulty === 'Hard' && pDist < 350) {
+                        let futurePlayerX = snake.x + Math.cos(snake.angle) * 80;
+                        let futurePlayerY = snake.y + Math.sin(snake.angle) * 80;
+                        b.targetAngle = Math.atan2(futurePlayerY - b.y, futurePlayerX - b.x);
                     }
-                });
-
-                // Move Offline Local AI Bots
-                offlineBots.forEach(b => {
-                    if(Math.random() < 0.03) b.angle = Math.random()*Math.PI*2;
-                    b.x += Math.cos(b.angle) * 3.0; b.y += Math.sin(b.angle) * 3.0;
-                    
-                    let bHead = { x: b.x, y: b.y };
-                    b.body.unshift(bHead);
-                    if(b.body.length > b.length) b.body.pop();
-
-                    // Check if player crashes into offline bot body
-                    for (let j = 3; j < b.body.length; j++) {
-                        let d = Math.sqrt(Math.pow(clientSnake.x - b.body[j].x, 2) + Math.pow(clientSnake.y - b.body[j].y, 2));
-                        if (d < clientSnake.currentRadius + 10) { triggerGameOver(); return; }
+                    // MEDIUM DIFFICULTY: Defensive Escape Angle
+                    else if (config.difficulty === 'Medium' && pDist < 200) {
+                        b.targetAngle = Math.atan2(b.y - snake.y, b.x - snake.x);
                     }
-                });
-            } else {
-                // Online Multiplayer Context Pipeline
-                socket.emit('updatePlayerMovement', {
-                    x: clientSnake.x, y: clientSnake.y, angle: clientSnake.angle,
-                    body: clientSnake.body, score: clientSnake.score, length: clientSnake.length, isBoosting: isBoosting
-                });
+                    // GENERAL SYSTEM FOOD SCANNING 
+                    else {
+                        b.changeDirTimer--;
+                        if (b.changeDirTimer <= 0 || Math.random() < 0.02) {
+                            let closeFood = null; let minDist = 400;
+                            foods.forEach(f => {
+                                let fD = Math.sqrt(Math.pow(f.x - b.x, 2) + Math.pow(f.y - b.y, 2));
+                                if (fD < minDist) { minDist = fD; closeFood = f; }
+                            });
 
-                // Check collisions with online real players
-                for (let id in currentServerPlayers) {
-                    if (id !== socket.id) {
-                        let p = currentServerPlayers[id];
-                        for (let j = 3; j < p.body.length; j++) {
-                            let d = Math.sqrt(Math.pow(clientSnake.x - p.body[j].x, 2) + Math.pow(clientSnake.y - p.body[j].y, 2));
-                            if (d < clientSnake.currentRadius + 10) {
-                                socket.emit('playerExplodedDeath');
-                                return;
+                            if (closeFood && config.difficulty !== 'Easy') {
+                                b.targetAngle = Math.atan2(closeFood.y - b.y, closeFood.x - b.x);
+                            } else {
+                                b.targetAngle = Math.random() * Math.PI * 2;
                             }
+                            b.changeDirTimer = Math.floor(Math.random() * 80) + 40;
+                        }
+                    }
+                    
+                    let bAngleDiff = b.targetAngle - b.angle;
+                    while (bAngleDiff < -Math.PI) bAngleDiff += Math.PI * 2;
+                    while (bAngleDiff > Math.PI) bAngleDiff -= Math.PI * 2;
+                    b.angle += Math.max(-b.maxTurnSpeed, Math.min(b.maxTurnSpeed, bAngleDiff));
+
+                    // FIX: Bots use constant custom speed limit without boost activation
+                    b.x += Math.cos(b.angle) * b.speed;
+                    b.y += Math.sin(b.angle) * b.speed;
+
+                    let bHead = {x: b.x, y: b.y};
+                    b.body[0] = bHead;
+                    for (let j = 1; j < b.body.length; j++) {
+                        let bdx = b.body[j].x - b.body[j-1].x;
+                        let bdy = b.body[j].y - b.body[j-1].y;
+                        let bdist = Math.sqrt(bdx*bdx + bdy*bdy);
+                        if (bdist > spacing && bdist > 0) {
+                            b.body[j].x = b.body[j-1].x + (bdx / bdist) * spacing;
+                            b.body[j].y = b.body[j-1].y + (bdy / bdist) * spacing;
+                        }
+                    }
+
+                    for (let i = foods.length - 1; i >= 0; i--) {
+                        let f = foods[i];
+                        let dist = Math.sqrt(Math.pow(b.x - f.x, 2) + Math.pow(b.y - f.y, 2));
+                        if (dist < b.currentRadius + 6) {
+                            b.score += f.value;
+                            b.length = Math.floor(b.score / 2.2);
+                            while(b.body.length < b.length) b.body.push({x: b.body[b.body.length-1].x, y: b.body[b.body.length-1].y});
+                            foods[i] = createFood(false);
+                        }
+                    }
+                });
+
+                // --- COLLISION MATRIX DETECTOR ---
+                for (let i = bots.length - 1; i >= 0; i--) {
+                    let b = bots[i];
+                    
+                    for (let j = 2; j < b.body.length; j++) {
+                        let dist = Math.sqrt(Math.pow(snake.x - b.body[j].x, 2) + Math.pow(snake.y - b.body[j].y, 2));
+                        if (dist < snake.currentRadius + b.currentRadius - 4) {
+                            triggerGameOver();
+                            return;
+                        }
+                    }
+
+                    let botExploded = false;
+                    for (let j = 2; j < snake.body.length; j++) {
+                        let dist = Math.sqrt(Math.pow(b.x - snake.body[j].x, 2) + Math.pow(b.y - snake.body[j].y, 2));
+                        if (dist < b.currentRadius + snake.currentRadius - 4) {
+                            botExploded = true;
+                            break;
+                        }
+                    }
+
+                    if (botExploded) {
+                        b.body.forEach((seg, index) => {
+                            if (index % 3 === 0) {
+                                foods.push({
+                                    x: seg.x + (Math.random()-0.5)*12,
+                                    y: seg.y + (Math.random()-0.5)*12,
+                                    color: b.skin === 'Neon Stripe' ? '#00ffaa' : '#ff3300',
+                                    maxRadius: 7, value: 12
+                                });
+                            }
+                        });
+                        bots.splice(i, 1);
+                        
+                        setTimeout(() => {
+                            if(!isGameRunning) return;
+                            let rx = (Math.random() - 0.5) * MAP_RADIUS;
+                            let ry = (Math.random() - 0.5) * MAP_RADIUS;
+                            let bScore = 100;
+                            let botDefaultSpeed = config.difficulty==='Easy'? 2.2 : (config.difficulty==='Hard'? 4.2 : 3.0);
+                            bots.push({
+                                x: rx, y: ry, angle: Math.random()*Math.PI*2, maxTurnSpeed: config.difficulty==='Hard'?0.09:0.07, targetAngle: Math.random()*Math.PI*2, changeDirTimer: 80,
+                                skin: skins[Math.floor(Math.random()*skins.length)], name: "Bot_" + Math.floor(Math.random()*900), score: bScore, length: 45,
+                                body: Array(45).fill({x: rx, y: ry}), currentRadius: 15, speed: botDefaultSpeed
+                            });
+                        }, 3000);
+                    }
+                }
+            }
+
+            drawMapBackground(ctx, config.map, canvas.width, canvas.height, cameraScale, snake.x, snake.y, MAP_RADIUS, false, isBoosting);
+
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.scale(cameraScale, cameraScale);
+            ctx.translate(-snake.x, -snake.y);
+
+            foods.forEach(f => {
+                ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x, f.y, f.maxRadius, 0, Math.PI*2); ctx.fill();
+            });
+
+            if (isMultiplayerArena) {
+                for (let id in networkPlayers) {
+                    if (id !== socket.id) {
+                        let p = networkPlayers[id];
+                        for (let j = p.body.length - 1; j >= 0; j--) {
+                            drawSlitherSkin(ctx, p.body[j].x, p.body[j].y, 15, j, p.skin, j === 0, p.angle + Math.PI/2, false, config.effect);
                         }
                     }
                 }
-            }
-
-            // 5. Render Pipeline Draw Matrix
-            ctx.fillStyle = '#0a0a1f'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.save();
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.translate(-clientSnake.x, -clientSnake.y);
-
-            // Render Foods
-            let activeFoods = (gameMode === 'offline') ? offlineFoods : currentServerFoods;
-            activeFoods.forEach(f => {
-                ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x, f.y, f.radius, 0, Math.PI*2); ctx.fill();
-            });
-
-            // Render Opponents
-            if (gameMode === 'offline') {
-                offlineBots.forEach(b => {
-                    b.body.forEach(seg => {
-                        ctx.fillStyle = '#ff9900'; ctx.beginPath(); ctx.arc(seg.x, seg.y, b.currentRadius, 0, Math.PI*2); ctx.fill();
-                    });
-                });
             } else {
-                for (let id in currentServerPlayers) {
-                    if (id !== socket.id) {
-                        let p = currentServerPlayers[id];
-                        p.body.forEach(seg => {
-                            ctx.fillStyle = '#0066ff'; ctx.beginPath(); ctx.arc(seg.x, seg.y, 15, 0, Math.PI*2); ctx.fill();
-                        });
+                bots.forEach(b => {
+                    for (let j = b.body.length - 1; j >= 0; j--) {
+                        // Bots will never render boost aura since b.isBoosting is permanently false
+                        drawSlitherSkin(ctx, b.body[j].x, b.body[j].y, b.currentRadius, j, b.skin, j === 0, b.angle + Math.PI/2, false, config.effect);
                     }
-                }
+                });
             }
 
-            // Render Local Main Snake Player
-            clientSnake.body.forEach((seg, idx) => {
-                ctx.fillStyle = (idx === 0) ? '#00ff77' : '#00ffaa';
-                ctx.beginPath(); ctx.arc(seg.x, seg.y, clientSnake.currentRadius, 0, Math.PI*2); ctx.fill();
-            });
+            if (isBoosting && Math.random() < 0.6) spawnFullBodyVisualAura(snake.body, snake.currentRadius, config.effect, false);
+            drawLayeredParticles(ctx, particles);
+
+            for (let i = snake.body.length - 1; i >= 0; i--) {
+                drawSlitherSkin(ctx, snake.body[i].x, snake.body[i].y, snake.currentRadius, i, config.skin, i === 0, snake.angle + Math.PI/2, isBoosting, config.effect);
+            }
 
             ctx.restore();
-            document.getElementById('hud-score').innerText = "Score: " + Math.floor(clientSnake.score);
 
-            // Leaderboard Pool Sync Assembly
-            let lbPool = [{name: document.getElementById('player-nick').value || "You", score: clientSnake.score, isLocal: true}];
-            if (gameMode === 'offline') { offlineBots.forEach(b => lbPool.push({name: b.name, score: b.score})); }
-            else { for(let id in currentServerPlayers) { if(id !== socket.id) lbPool.push({name: currentServerPlayers[id].name, score: currentServerPlayers[id].score}); } }
-            lbPool.sort((a,b) => b.score - a.score);
+            document.getElementById('hud-score').innerText = "Score: " + Math.floor(snake.score);
+            document.getElementById('hud-length').innerText = "Length: " + snake.body.length + " segments";
+
+            let sortedScores = [];
+            sortedScores.push({name: snake.name, score: snake.score, isLocal: true});
+            if (isMultiplayerArena) {
+                for (let id in networkPlayers) {
+                    if (id !== socket.id) sortedScores.push({name: networkPlayers[id].name, score: networkPlayers[id].score});
+                }
+            } else {
+                bots.forEach(b => sortedScores.push({name: b.name, score: b.score}));
+            }
+            sortedScores.sort((a,b) => b.score - a.score);
 
             let lbContent = "";
-            lbPool.slice(0, 8).forEach((item, idx) => {
-                lbContent += `<div class="lb-row ${item.isLocal ? 'active-player' : ''}"><span>${idx+1}. ${item.name}</span><span>${Math.floor(item.score)}</span></div>`;
+            sortedScores.slice(0, 10).forEach((item, idx) => {
+                lbContent += `<div class="lb-row ${item.isLocal ? 'active-player' : ''}">
+                    <span>${idx+1}. ${item.name}</span>
+                    <span>${Math.floor(item.score)}</span>
+                </div>`;
             });
             document.getElementById('lb-content').innerHTML = lbContent;
+        }
+
+        function createFood(isInitial = false) {
+            let maxRadius = Math.random() * 2 + 4;
+            let range = isInitial ? MAP_RADIUS * 1.8 : MAP_RADIUS * 1.6;
+            return {
+                x: (Math.random() - 0.5) * range,
+                y: (Math.random() - 0.5) * range,
+                color: `hsl(${Math.random()*360},100%, 65%)`,
+                maxRadius: maxRadius, value: Math.floor(maxRadius * 2)
+            };
         }
     </script>
 </body>

@@ -7,7 +7,7 @@ const fs = require('fs');
 const app = express();
 const server = http.createServer(app);
 
-// CORS and WebSockets optimization
+// Optimize Socket connection for low latency
 const io = new Server(server, {
     cors: {
         origin: "*",
@@ -19,7 +19,7 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3000;
 const publicPath = path.join(__dirname, 'public');
 
-// Static assets serve logic
+// Static assets serve
 if (fs.existsSync(publicPath)) {
     app.use(express.static(publicPath));
 }
@@ -33,17 +33,17 @@ app.get('/', (req, res) => {
     } else if (fs.existsSync(htmlInRoot)) {
         res.sendFile(htmlInRoot);
     } else {
-        res.status(404).send('<h1>Error: index.html missing! Please check file placement.</h1>');
+        res.status(404).send('<h1>Error: index.html missing! Please check directory setup.</h1>');
     }
 });
 
-// Spatial Hashing Arena Configs
-const MAP_RADIUS = 6000; // 12,000px Arena Size
-const CHUNK_SIZE = 1000; // Spatial Hashing Chunk Size
+// Arena Grid Settings
+const MAP_RADIUS = 6000; 
+const CHUNK_SIZE = 1000; 
 
 const players = {};
 
-// Helper: Get Chunk Key via X, Y position
+// Helper: Calculate Spatial Grid Chunk
 function getChunkKey(x, y) {
     const chunkX = Math.floor((x + MAP_RADIUS) / CHUNK_SIZE);
     const chunkY = Math.floor((y + MAP_RADIUS) / CHUNK_SIZE);
@@ -65,7 +65,7 @@ io.on('connection', (socket) => {
             body: [],
             chunkKey: getChunkKey(0, 0)
         };
-        console.log(`[+] Arena Joined: ${players[socket.id].name} (${socket.id})`);
+        console.log(`[+] Player Entered Arena: ${players[socket.id].name} (${socket.id})`);
     });
 
     socket.on('updatePlayer', (data) => {
@@ -81,12 +81,12 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        console.log(`[-] Disconnected: ${socket.id}`);
+        console.log(`[-] Player Disconnected: ${socket.id}`);
         delete players[socket.id];
     });
 });
 
-// High-Performance Chunk Broadcast Loop (30 FPS)
+// Spatial Hashing Viewport Loop (30 Syncs/sec)
 setInterval(() => {
     const socketIds = Object.keys(players);
 
@@ -95,12 +95,12 @@ setInterval(() => {
         const clientSocket = io.sockets.sockets.get(id);
         if (!clientSocket) return;
 
-        // Player ke current chunk ke aaspas ke 9 grid chunks filter karein
         const pChunkX = Math.floor((p.x + MAP_RADIUS) / CHUNK_SIZE);
         const pChunkY = Math.floor((p.y + MAP_RADIUS) / CHUNK_SIZE);
 
         const visiblePlayers = {};
 
+        // Only sync nearby 9 chunks to save mobile & server performance
         for (let dx = -1; dx <= 1; dx++) {
             for (let dy = -1; dy <= 1; dy++) {
                 const targetChunk = `${pChunkX + dx}_${pChunkY + dy}`;
@@ -113,14 +113,13 @@ setInterval(() => {
             }
         }
 
-        // Send optimized viewport data to individual client
         clientSocket.emit('gameStateUpdate', visiblePlayers);
     });
 }, 1000 / 30);
 
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`=================================`);
-    console.log(`🚀 Slither Pro Engine Running!`);
+    console.log(`🚀 Slither Pro Backend Engine Online`);
     console.log(`🌐 Port: ${PORT}`);
     console.log(`=================================`);
 });

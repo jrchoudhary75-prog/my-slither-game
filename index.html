@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Spatial Chunked Arena Edition</title>
+    <title>Slither.io Pro - Mobile & Desktop Ready</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; }
+        body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
         canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
         
         .ui-screen {
@@ -16,52 +17,40 @@
         }
         .hidden { opacity: 0; visibility: hidden; pointer-events: none; }
         
-        h1 { font-size: 3.5rem; font-weight: 900; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 6px; background: linear-gradient(45deg, #00ffaa, #0077ff, #ff0077); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 10px rgba(0,255,170,0.2)); }
-        h2 { font-size: 2.2rem; margin: 0 0 20px 0; color: #a0aec0; text-transform: uppercase; letter-spacing: 2px; }
+        h1 { font-size: 3rem; font-weight: 900; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 4px; background: linear-gradient(45deg, #00ffaa, #0077ff, #ff0077); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 10px rgba(0,255,170,0.2)); text-align: center; }
+        h2 { font-size: 1.8rem; margin: 0 0 15px 0; color: #a0aec0; text-transform: uppercase; letter-spacing: 2px; text-align: center; }
         
-        .loader-container { width: 320px; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 25px; border: 1px solid rgba(255,255,255,0.1); }
+        .loader-container { width: 80%; max-width: 320px; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 20px; border: 1px solid rgba(255,255,255,0.1); }
         .loader-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #00ffaa, #00bfff); box-shadow: 0 0 10px #00ffaa; }
 
-        .setup-container { display: flex; flex-direction: row; align-items: center; gap: 40px; background: rgba(255, 255, 255, 0.02); padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(15px); }
-        .controls-side { display: flex; flex-direction: column; gap: 12px; }
+        .setup-container { display: flex; flex-direction: row; align-items: center; gap: 20px; background: rgba(255, 255, 255, 0.02); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(15px); max-width: 90%; flex-wrap: wrap; justify-content: center; }
+        .controls-side { display: flex; flex-direction: column; gap: 10px; }
         
-        .preview-box { width: 280px; height: 280px; background: #05050f; border: 2px solid #2d2d4d; border-radius: 20px; overflow: hidden; position: relative; box-shadow: inset 0 0 25px rgba(0,0,0,0.9); cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; }
-        .preview-box.boosting-active { border-color: #ff0055; box-shadow: inset 0 0 30px rgba(255, 0, 85, 0.4), 0 0 15px rgba(255,0,85,0.2); }
+        .preview-box { width: 220px; height: 220px; background: #05050f; border: 2px solid #2d2d4d; border-radius: 16px; overflow: hidden; position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,0.9); cursor: pointer; }
+        .preview-box.boosting-active { border-color: #ff0055; box-shadow: inset 0 0 25px rgba(255, 0, 85, 0.4); }
         #previewCanvas { width: 100%; height: 100%; display: block; }
-        .preview-label { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 0.8rem; color: #64748b; letter-spacing: 1px; text-transform: uppercase; pointer-events: none; }
+        .preview-label { position: absolute; bottom: 8px; left: 0; width: 100%; text-align: center; font-size: 0.75rem; color: #64748b; letter-spacing: 1px; text-transform: uppercase; pointer-events: none; }
 
         .btn {
             background: linear-gradient(135deg, #17172e 0%, #0d0d1a 100%); border: 1px solid #2e2e54; color: white;
-            padding: 14px 35px; margin: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; border-radius: 30px; min-width: 220px; text-align: center;
+            padding: 12px 25px; margin: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; border-radius: 25px; min-width: 180px; text-align: center;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         }
-        .btn:hover { background: linear-gradient(135deg, #00ffaa 0%, #00bfff 100%); border-color: #fff; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,255,170,0.3); color: #000; }
+        .btn:hover { background: linear-gradient(135deg, #00ffaa 0%, #00bfff 100%); border-color: #fff; color: #000; }
         
-        .option-row { display: flex; align-items: center; justify-content: space-between; width: 340px; background: rgba(255,255,255,0.01); padding: 10px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.03); }
-        .option-label { font-size: 1rem; color: #94a3b8; font-weight: 500; }
-        .select-btn { background: #131324; border: 1px solid #363659; color: #fff; padding: 6px 14px; border-radius: 8px; cursor: pointer; min-width: 140px; font-weight: 600; text-align: center; }
-        
-        .controls-guide-panel {
-            display: flex; gap: 30px; margin-top: 25px; padding: 15px 35px;
-            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px; font-size: 0.95rem; justify-content: center; align-items: center;
-        }
-        .guide-item { display: flex; align-items: center; gap: 12px; color: #cbd5e1; }
-        .guide-icon {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8); padding: 6px 12px;
-            border-radius: 8px; font-weight: 800; font-size: 0.85rem; letter-spacing: 1px;
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3); text-transform: uppercase;
-        }
+        .option-row { display: flex; align-items: center; justify-content: space-between; width: 280px; background: rgba(255,255,255,0.01); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03); }
+        .option-label { font-size: 0.9rem; color: #94a3b8; font-weight: 500; }
+        .select-btn { background: #131324; border: 1px solid #363659; color: #fff; padding: 6px 12px; border-radius: 8px; cursor: pointer; min-width: 120px; font-size: 0.85rem; font-weight: 600; text-align: center; }
 
-        #server-console-box { width: 450px; height: 160px; background: #020207; border: 1px solid #1e1e38; border-radius: 12px; font-family: monospace; padding: 15px; color: #00ffaa; overflow-y: hidden; text-align: left; font-size: 0.85rem; line-height: 1.5; box-shadow: inset 0 0 15px rgba(0,0,0,0.8); margin-bottom: 20px; }
+        #server-console-box { width: 90%; max-width: 400px; height: 140px; background: #020207; border: 1px solid #1e1e38; border-radius: 12px; font-family: monospace; padding: 12px; color: #00ffaa; overflow-y: hidden; text-align: left; font-size: 0.8rem; line-height: 1.4; margin-bottom: 15px; }
 
-        #hud { position: absolute; top: 20px; left: 20px; z-index: 5; pointer-events: none; background: rgba(3,3,10,0.8); padding: 16px 22px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); display: none; backdrop-filter: blur(8px); }
-        #leaderboard { position: absolute; top: 20px; right: 20px; z-index: 5; background: rgba(3,3,10,0.85); padding: 15px 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); width: 220px; display: none; font-size: 0.85rem; backdrop-filter: blur(8px); }
-        .lb-title { font-weight: 800; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; margin-bottom: 8px; color: #38bdf8; letter-spacing: 1px; }
-        .lb-row { display: flex; justify-content: space-between; margin: 4px 0; color: #cbd5e1; }
+        #hud { position: absolute; top: 15px; left: 15px; z-index: 5; pointer-events: none; background: rgba(3,3,10,0.8); padding: 12px 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); display: none; backdrop-filter: blur(8px); }
+        #leaderboard { position: absolute; top: 15px; right: 15px; z-index: 5; background: rgba(3,3,10,0.85); padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); width: 180px; display: none; font-size: 0.8rem; backdrop-filter: blur(8px); }
+        .lb-title { font-weight: 800; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 6px; color: #38bdf8; }
+        .lb-row { display: flex; justify-content: space-between; margin: 3px 0; color: #cbd5e1; }
         .lb-row.active-player { color: #00ffaa; font-weight: bold; }
         
-        .name-input { padding: 12px; width: 315px; border-radius: 12px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1.1rem; margin-bottom: 15px; }
+        .name-input { padding: 10px; width: 260px; border-radius: 10px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1rem; margin-bottom: 12px; }
     </style>
 </head>
 <body>
@@ -69,7 +58,7 @@
     <div id="screen-splash" class="ui-screen">
         <h1>SLITHER PRO</h1>
         <div class="loader-container"><div id="loader" class="loader-bar"></div></div>
-        <p style="color: #4b5563; font-size: 0.9rem; margin-top: 15px; letter-spacing: 2px;">SYNCING ARENA CONTEXT...</p>
+        <p style="color: #4b5563; font-size: 0.8rem; margin-top: 15px; letter-spacing: 2px;">SYNCING ARENA CONTEXT...</p>
     </div>
 
     <div id="screen-main" class="ui-screen hidden">
@@ -79,13 +68,13 @@
     </div>
 
     <div id="screen-multiplayer-load" class="ui-screen hidden">
-        <h2 style="color: #00bfff;">Connecting To Spatial Grid Node</h2>
+        <h2 style="color: #00bfff;">Connecting To Server Node</h2>
         <div id="server-console-box"></div>
-        <div class="loader-container" style="width: 450px;"><div id="mp-loader" class="loader-bar" style="background:linear-gradient(90deg, #00bfff, #ff00aa)"></div></div>
+        <div class="loader-container"><div id="mp-loader" class="loader-bar" style="background:linear-gradient(90deg, #00bfff, #ff00aa)"></div></div>
     </div>
 
     <div id="screen-offline" class="ui-screen hidden">
-        <h2 id="setup-title">Snake Customization</h2>
+        <h2 id="setup-title">Customization</h2>
         <input type="text" id="player-nick" class="name-input" placeholder="Enter Nickname" value="Player_1">
         
         <div class="setup-container">
@@ -110,36 +99,30 @@
 
             <div class="preview-box" id="previewBox">
                 <canvas id="previewCanvas"></canvas>
-                <div class="preview-label" id="previewLabel">Hold Click to Boost</div>
+                <div class="preview-label" id="previewLabel">Hold to Boost</div>
             </div>
         </div>
 
-        <div class="controls-guide-panel">
-            <div class="guide-item"><span class="guide-icon">Mouse</span><span>Move cursor to Change Direction</span></div>
-            <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.1);"></div>
-            <div class="guide-item"><span class="guide-icon" style="background: linear-gradient(135deg, #ff0055, #990033);">Left Click</span><span>Hold to Activate Speed Boost</span></div>
-        </div>
-
-        <div style="margin-top: 25px; display: flex;">
+        <div style="margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center;">
             <div class="btn" onclick="launchSelectedMode()">SPAWN INTO ARENA</div>
             <div class="btn" style="background: #090912; border-color: #222;" onclick="showScreen('screen-main')">Back</div>
         </div>
     </div>
 
     <div id="screen-gameover" class="ui-screen hidden">
-        <h1 id="gameover-title" style="background: linear-gradient(45deg, #ff3333, #ff7700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 4.5rem;">GAME OVER</h1>
-        <p id="final-score-display" style="font-size: 1.6rem; color: #cbd5e1; margin: 0 0 25px 0;">Final Score: 0</p>
-        <div class="btn" id="btn-restart" onclick="launchSelectedMode()">Play Again</div>
+        <h1 style="background: linear-gradient(45deg, #ff3333, #ff7700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 3.5rem;">GAME OVER</h1>
+        <p id="final-score-display" style="font-size: 1.4rem; color: #cbd5e1; margin: 0 0 20px 0;">Final Score: 0</p>
+        <div class="btn" onclick="launchSelectedMode()">Play Again</div>
         <div class="btn" style="background: #241414; border-color: #4a2929;" onclick="showScreen('screen-main')">Main Menu</div>
     </div>
 
     <div id="hud">
-        <div id="hud-score" style="font-size: 24px; font-weight: 800; color: #00ffaa;">Score: 0</div>
-        <div id="hud-length" style="color: #94a3b8; font-size: 14px; margin-top: 2px;">Length: 45 segments</div>
+        <div id="hud-score" style="font-size: 20px; font-weight: 800; color: #00ffaa;">Score: 0</div>
+        <div id="hud-length" style="color: #94a3b8; font-size: 12px;">Length: 45 segments</div>
     </div>
 
     <div id="leaderboard">
-        <div class="lb-title">Global Top 10</div>
+        <div class="lb-title">Top 10</div>
         <div id="lb-content"></div>
     </div>
 
@@ -147,6 +130,9 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        // Auto Detect Mobile Device for Performance Optimization
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
         const difficulties = ['Easy', 'Medium', 'Hard'];
         const skins = ['Neon Stripe', 'Cosmic Polka', 'Magma Flow', 'Cyber Grid', 'Glow Phantom', 'Void Nebula', 'Rainbow Pulse'];
         const effects = ['Plasma Glow', 'Fire Storm', 'Neon Shockwave'];
@@ -157,7 +143,6 @@
         let isMultiplayerArena = false;
         let networkPlayers = {};
 
-        // Ultra-low latency socket configuration
         const socket = io({
             transports: ['websocket', 'polling']
         });
@@ -175,7 +160,7 @@
 
         function openCustomization(mode) {
             chosenMode = mode;
-            document.getElementById('setup-title').innerText = mode === 'multiplayer' ? "Multiplayer Customization" : "Offline Customization";
+            document.getElementById('setup-title').innerText = mode === 'multiplayer' ? "Multiplayer Mode" : "Offline Mode";
             document.getElementById('diff-row').style.display = mode === 'multiplayer' ? 'none' : 'flex';
             showScreen('screen-offline');
         }
@@ -183,9 +168,9 @@
         const consoleLogs = [
             "> Initializing Spatial Grid system...",
             "> Allocation Chunk Bounds [12,000 x 12,000 px]...",
-            "> Pinging multi-region WebSocket node...",
-            "> Spatial Hashing Handler active.",
-            "> Connecting client to nearest grid neighbor..."
+            "> Connecting to WebSocket node...",
+            "> Optimizing for device hardware...",
+            "> Ready to join stream..."
         ];
 
         function launchSelectedMode() {
@@ -200,7 +185,7 @@
                         consoleBox.innerHTML += consoleLogs[logIndex] + "<br/>";
                         logIndex++;
                     }
-                }, 1500 / consoleLogs.length);
+                }, 1200 / consoleLogs.length);
 
                 let progress = 0;
                 let mpLoader = document.getElementById('mp-loader');
@@ -212,10 +197,10 @@
                         setTimeout(() => {
                             socket.emit('joinMultiplayer', { name: document.getElementById('player-nick').value, skin: config.skin });
                             startGame(true); 
-                        }, 150);
+                        }, 100);
                     }
                     mpLoader.style.width = progress + '%';
-                }, 40);
+                }, 30);
             } else {
                 startGame(false);
             }
@@ -226,7 +211,7 @@
             loadProgress += 5;
             if (loadProgress >= 100) {
                 clearInterval(loaderInterval);
-                setTimeout(() => showScreen('screen-main'), 200);
+                setTimeout(() => showScreen('screen-main'), 150);
             }
             document.getElementById('loader').style.width = loadProgress + '%';
         }, 20);
@@ -247,11 +232,13 @@
             }
         }
 
+        // Mobile Optimized Skin Renderer (Bypasses Shadows on Phones for High FPS)
         function drawSlitherSkin(ctx, x, y, radius, index, skinName, isHead, angle = 0, auraActive = false, auraType = 'Plasma Glow') {
             ctx.save();
             ctx.translate(x, y);
 
-            if (auraActive) {
+            // Aura disabled on mobile to boost rendering speed
+            if (auraActive && !isMobile) {
                 ctx.save(); ctx.globalAlpha = 0.45; ctx.shadowBlur = radius * 1.5;
                 if (auraType === 'Plasma Glow') { ctx.fillStyle = '#00ffff'; ctx.shadowColor = '#00ffff'; }
                 else if (auraType === 'Fire Storm') { ctx.fillStyle = '#ff3300'; ctx.shadowColor = '#ffaa00'; }
@@ -260,7 +247,11 @@
                 ctx.restore();
             }
 
-            ctx.shadowColor = "rgba(0, 0, 0, 0.3)"; ctx.shadowBlur = 6;
+            // Skip heavy shadow blur on mobile GPUs
+            if (!isMobile) {
+                ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+                ctx.shadowBlur = 6;
+            }
 
             if (skinName === 'Neon Stripe') {
                 ctx.fillStyle = (index % 4 < 2) ? '#00ffaa' : '#0066ff';
@@ -304,6 +295,7 @@
         let particles = []; let previewParticles = [];
 
         function spawnFullBodyVisualAura(bodyArray, radius, type, isPreview = false) {
+            if (isMobile) return; // Skip particles on mobile to maintain 60 FPS
             let step = Math.max(1, Math.floor(bodyArray.length / 12)); 
             for(let i = 0; i < bodyArray.length; i += step) {
                 let seg = bodyArray[i];
@@ -321,6 +313,7 @@
         }
 
         function drawLayeredParticles(ctx, particleArray) {
+            if (isMobile) return;
             for (let i = particleArray.length - 1; i >= 0; i--) {
                 let p = particleArray[i];
                 p.x += p.vx; p.y += p.vy; p.life -= p.decay;
@@ -358,7 +351,7 @@
 
             ctx.strokeStyle = localBoostState ? 'rgba(0, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.04)';
             ctx.lineWidth = 1;
-            let step = isPreview ? 35 : 100;
+            let step = isPreview ? 35 : (isMobile ? 150 : 100); // Broader grid lines on mobile
             for (let x = Math.floor(viewLeft / step) * step; x < viewRight; x += step) {
                 ctx.beginPath(); ctx.moveTo(x, viewTop); ctx.lineTo(x, viewBottom); ctx.stroke();
             }
@@ -374,25 +367,26 @@
         function initPreviewSystem() {
             previewCanvas = document.getElementById('previewCanvas');
             previewCtx = previewCanvas.getContext('2d');
-            previewCanvas.width = 280; previewCanvas.height = 280;
+            previewCanvas.width = 220; previewCanvas.height = 220;
             previewSnake.body = [];
-            for(let i=0; i<25; i++) previewSnake.body.push({x: 140, y: 140});
+            for(let i=0; i<20; i++) previewSnake.body.push({x: 110, y: 110});
             
             let pBox = document.getElementById('previewBox');
-            pBox.onmousedown = () => { previewSnake.isBoosting = true; pBox.classList.add('boosting-active'); document.getElementById('previewLabel').innerText = "BOOSTING BODY ENERGY!"; };
-            pBox.onmouseup = () => { previewSnake.isBoosting = false; pBox.classList.remove('boosting-active'); document.getElementById('previewLabel').innerText = "Hold Click to Boost"; };
-            pBox.onmouseleave = pBox.onmouseup;
+            let startBoost = () => { previewSnake.isBoosting = true; pBox.classList.add('boosting-active'); };
+            let stopBoost = () => { previewSnake.isBoosting = false; pBox.classList.remove('boosting-active'); };
+            pBox.onmousedown = startBoost; pBox.onmouseup = stopBoost; pBox.onmouseleave = stopBoost;
+            pBox.ontouchstart = startBoost; pBox.ontouchend = stopBoost;
             runPreviewLoop();
         }
         function stopPreviewSystem() { cancelAnimationFrame(previewAnimId); }
 
         function runPreviewLoop() {
             previewAnimId = requestAnimationFrame(runPreviewLoop);
-            drawMapBackground(previewCtx, config.map, 280, 280, 1, 0, 0, 0, true, previewSnake.isBoosting);
+            drawMapBackground(previewCtx, config.map, 220, 220, 1, 0, 0, 0, true, previewSnake.isBoosting);
             
             previewSnake.angle += previewSnake.isBoosting ? 0.095 : 0.05;
-            let headX = 140 + Math.cos(previewSnake.angle) * 60;
-            let headY = 140 + Math.sin(previewSnake.angle) * 48;
+            let headX = 110 + Math.cos(previewSnake.angle) * 50;
+            let headY = 110 + Math.sin(previewSnake.angle) * 40;
             previewSnake.body[0] = {x: headX, y: headY};
             
             for (let i = 1; i < previewSnake.body.length; i++) {
@@ -404,11 +398,9 @@
                     previewSnake.body[i].y = previewSnake.body[i-1].y + (dy / dist) * 5;
                 }
             }
-            if(previewSnake.isBoosting && Math.random() < 0.6) spawnFullBodyVisualAura(previewSnake.body, 12, config.effect, true);
-            drawLayeredParticles(previewCtx, previewParticles);
 
             for (let i = previewSnake.body.length - 1; i >= 0; i--) {
-                drawSlitherSkin(previewCtx, previewSnake.body[i].x, previewSnake.body[i].y, 12, i, config.skin, i === 0, previewSnake.angle + Math.PI/2, previewSnake.isBoosting, config.effect);
+                drawSlitherSkin(previewCtx, previewSnake.body[i].x, previewSnake.body[i].y, 10, i, config.skin, i === 0, previewSnake.angle + Math.PI/2, previewSnake.isBoosting, config.effect);
             }
         }
 
@@ -421,16 +413,31 @@
         let isBoosting = false;
         let gameLoopId;
 
+        // Desktop Controls
         window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
         window.addEventListener("mousedown", () => { if(isGameRunning && snake.score > 20) isBoosting = true; });
         window.addEventListener("mouseup", () => { isBoosting = false; });
+
+        // Touch Screen Controls for Mobile Devices
+        window.addEventListener("touchmove", (e) => {
+            if (e.touches.length > 0) {
+                mouse.x = e.touches[0].clientX;
+                mouse.y = e.touches[0].clientY;
+            }
+        }, { passive: true });
+        window.addEventListener("touchstart", (e) => {
+            if (e.touches.length > 0) {
+                mouse.x = e.touches[0].clientX;
+                mouse.y = e.touches[0].clientY;
+            }
+            if (isGameRunning && snake.score > 20) isBoosting = true;
+        });
+        window.addEventListener("touchend", () => { isBoosting = false; });
 
         let snake, foods, bots, cameraScale;
 
         function initGameData(multiplayerFlag) {
             isMultiplayerArena = multiplayerFlag;
-            
-            // MAP RADIUS SETTING (12000px Width Arena = 6000 Radius)
             MAP_RADIUS = isMultiplayerArena ? 6000 : 3000;
 
             snake = { 
@@ -444,7 +451,7 @@
             
             cameraScale = 1.0; foods = [];
             
-            let foodCount = isMultiplayerArena ? 2500 : 800;
+            let foodCount = isMultiplayerArena ? (isMobile ? 1200 : 2500) : 800;
             for (let i = 0; i < foodCount; i++) foods.push(createFood(true));
 
             bots = [];

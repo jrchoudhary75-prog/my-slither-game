@@ -7,12 +7,10 @@ const fs = require('fs');
 const app = express();
 const server = http.createServer(app);
 
-// Low Latency WebSocket Direct Driver (No HTTP Polling Delay)
 const io = new Server(server, {
     cors: { origin: "*", methods: ["GET", "POST"] },
     transports: ['websocket'],
-    pingTimeout: 10000,
-    pingInterval: 5000
+    perMessageDeflate: false
 });
 
 const PORT = process.env.PORT || 3000;
@@ -35,8 +33,6 @@ const MAP_RADIUS = 4000;
 const players = {};
 
 io.on('connection', (socket) => {
-    console.log(`[+] Client Connected: ${socket.id}`);
-
     socket.on('pingTest', () => {
         socket.emit('pongTest');
     });
@@ -49,12 +45,14 @@ io.on('connection', (socket) => {
             id: socket.id,
             name: data.name || 'Player',
             skin: data.skin || 'Neon Stripe',
+            region: data.region || 'Asia / India',
             x: Math.cos(randomAngle) * randomDist,
             y: Math.sin(randomAngle) * randomDist,
             angle: 0,
             score: data.score || 100,
             length: data.length || 45,
-            radius: data.radius || 15
+            radius: data.radius || 15,
+            isBoosting: false
         };
     });
 
@@ -76,6 +74,7 @@ io.on('connection', (socket) => {
             players[socket.id].score = data.score;
             players[socket.id].length = data.length || players[socket.id].length;
             players[socket.id].radius = data.radius || players[socket.id].radius;
+            players[socket.id].isBoosting = data.isBoosting || false;
         }
     });
 
@@ -90,14 +89,13 @@ io.on('connection', (socket) => {
     });
 });
 
-// Broadcast game state using volatile packet emission (Eliminates High Ping Lag)
 setInterval(() => {
     io.volatile.emit('gameStateUpdate', { players: players });
 }, 1000 / 30);
 
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`=================================`);
-    console.log(`🚀 Slither Pro Ultra Low Ping Cluster Live!`);
+    console.log(`🚀 Slither Pro Multi-Region Server Engine Active!`);
     console.log(`🌐 Port: ${PORT}`);
     console.log(`=================================`);
 });

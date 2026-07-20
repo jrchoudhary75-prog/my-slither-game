@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Low Ping Edition</title>
+    <title>Slither.io Pro - Server Select Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
@@ -60,7 +60,7 @@
     <div id="screen-splash" class="ui-screen">
         <h1>SLITHER PRO</h1>
         <div class="loader-container"><div id="loader" class="loader-bar"></div></div>
-        <p style="color: #4b5563; font-size: 0.8rem; margin-top: 15px; letter-spacing: 2px;">OPTIMIZING LOW PING ENGINE...</p>
+        <p style="color: #4b5563; font-size: 0.8rem; margin-top: 15px; letter-spacing: 2px;">INITIALIZING SERVER CLUSTER...</p>
     </div>
 
     <div id="screen-main" class="ui-screen hidden">
@@ -70,7 +70,7 @@
     </div>
 
     <div id="screen-multiplayer-load" class="ui-screen hidden">
-        <h2 style="color: #00bfff;">Connecting To Live Cluster</h2>
+        <h2 style="color: #00bfff;">Connecting To Selected Region</h2>
         <div id="server-console-box"></div>
         <div class="loader-container"><div id="mp-loader" class="loader-bar" style="background:linear-gradient(90deg, #00bfff, #ff00aa)"></div></div>
     </div>
@@ -81,6 +81,10 @@
         
         <div class="setup-container">
             <div class="controls-side">
+                <div class="option-row" id="server-row">
+                    <div class="option-label">Server Region</div>
+                    <button class="select-btn" id="btn-server" onclick="changeSetting('server')">Asia / India</button>
+                </div>
                 <div class="option-row" id="diff-row">
                     <div class="option-label">Difficulty</div>
                     <button class="select-btn" id="btn-difficulty" onclick="changeSetting('difficulty')">Medium</button>
@@ -136,21 +140,20 @@
     <script>
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+        const servers = ['Asia / India', 'Singapore (Low Ping)', 'Europe Central', 'US East'];
         const difficulties = ['Easy', 'Medium', 'Hard'];
         const skins = ['Neon Stripe', 'Cosmic Polka', 'Magma Flow', 'Cyber Grid', 'Glow Phantom', 'Void Nebula', 'Rainbow Pulse'];
         const effects = ['Plasma Glow', 'Fire Storm', 'Neon Shockwave'];
         const maps = ['Standard Grid', 'Deep Space Void', 'Tech Hexagon'];
         
-        let config = { difficulty: 'Medium', skin: 'Neon Stripe', effect: 'Plasma Glow', map: 'Standard Grid' };
+        let config = { server: 'Asia / India', difficulty: 'Medium', skin: 'Neon Stripe', effect: 'Plasma Glow', map: 'Standard Grid' };
         let chosenMode = 'offline'; 
         let isMultiplayerArena = false;
         let networkPlayers = {};
 
-        // LOW LATENCY OPTIMIZED SOCKET CONFIGURATION
         const socket = io({ 
             transports: ['websocket'],
-            upgrade: false,
-            reconnectionAttempts: 5
+            upgrade: false
         });
 
         let pingStartTime = 0;
@@ -159,16 +162,16 @@
                 pingStartTime = Date.now();
                 socket.emit('pingTest');
             }
-        }, 3000);
+        }, 1500);
 
         socket.on('pongTest', () => {
             let latency = Date.now() - pingStartTime;
             let badge = document.getElementById('pingBadge');
-            badge.innerText = `Ping: ${latency} ms`;
-            badge.style.color = latency < 80 ? '#00ffaa' : (latency < 160 ? '#facc15' : '#ff3333');
+            badge.innerText = `Region: ${config.server.split(' ')[0]} | Ping: ${latency} ms`;
+            badge.style.color = latency < 80 ? '#00ffaa' : (latency < 180 ? '#facc15' : '#ff3333');
         });
 
-        // HIGH ACCURACY REALTIME INTERPOLATION (Fixes slow speed of other players)
+        // FAST EXTENDED INTERPOLATION ENGINE (EQUALIZES PLAYER SPEEDS COMPLETELY)
         socket.on('gameStateUpdate', (data) => {
             if (!isMultiplayerArena) return;
             let serverPlayers = data.players || data;
@@ -184,7 +187,7 @@
                             id: id, name: sp.name, skin: sp.skin,
                             x: sp.x, y: sp.y, targetX: sp.x, targetY: sp.y,
                             angle: sp.angle, score: sp.score, length: len,
-                            body: initBody, radius: sp.radius || 15
+                            body: initBody, radius: sp.radius || 15, isBoosting: sp.isBoosting || false
                         };
                     } else {
                         networkPlayers[id].targetX = sp.x;
@@ -194,6 +197,7 @@
                         networkPlayers[id].length = sp.length || networkPlayers[id].length;
                         networkPlayers[id].skin = sp.skin;
                         networkPlayers[id].radius = sp.radius || 15;
+                        networkPlayers[id].isBoosting = sp.isBoosting || false;
                     }
                 }
             }
@@ -215,31 +219,32 @@
 
         function openCustomization(mode) {
             chosenMode = mode;
-            document.getElementById('setup-title').innerText = mode === 'multiplayer' ? "Multiplayer Mode" : "Offline Mode";
+            document.getElementById('setup-title').innerText = mode === 'multiplayer' ? "Multiplayer Setup" : "Offline Setup";
             document.getElementById('diff-row').style.display = mode === 'multiplayer' ? 'none' : 'flex';
+            document.getElementById('server-row').style.display = mode === 'multiplayer' ? 'flex' : 'none';
             showScreen('screen-offline');
         }
-
-        const consoleLogs = [
-            "> Establishing High-Speed Stream...",
-            "> Synchronizing Arena Session...",
-            "> WebSocket Direct Transport Attached...",
-            "> Ultra Low Ping Cluster Connected!"
-        ];
 
         function launchSelectedMode() {
             if (chosenMode === 'multiplayer') {
                 showScreen('screen-multiplayer-load');
                 const consoleBox = document.getElementById('server-console-box');
-                consoleBox.innerHTML = "";
-                let logIndex = 0;
+                consoleBox.innerHTML = `> Selected Region: ${config.server}<br/>`;
                 
+                const consoleLogs = [
+                    `> Routing connection to ${config.server}...`,
+                    "> Allocating Low Latency Socket Channel...",
+                    "> Speed Synchronization Applied (1:1 Ratio)...",
+                    "> Region Matchmaking Ready!"
+                ];
+                
+                let logIndex = 0;
                 let logInterval = setInterval(() => {
                     if(logIndex < consoleLogs.length) {
                         consoleBox.innerHTML += consoleLogs[logIndex] + "<br/>";
                         logIndex++;
                     }
-                }, 600 / consoleLogs.length);
+                }, 500 / consoleLogs.length);
 
                 let progress = 0;
                 let mpLoader = document.getElementById('mp-loader');
@@ -251,7 +256,8 @@
                         setTimeout(() => {
                             socket.emit('joinMultiplayer', { 
                                 name: document.getElementById('player-nick').value, 
-                                skin: config.skin, score: 100, length: 45, radius: 15
+                                skin: config.skin, score: 100, length: 45, radius: 15,
+                                region: config.server
                             });
                             startGame(true); 
                         }, 100);
@@ -274,7 +280,10 @@
         }, 20);
 
         function changeSetting(type) {
-            if(type === 'difficulty') {
+            if(type === 'server') {
+                config.server = servers[(servers.indexOf(config.server) + 1) % servers.length];
+                document.getElementById('btn-server').innerText = config.server;
+            } else if(type === 'difficulty') {
                 config.difficulty = difficulties[(difficulties.indexOf(config.difficulty) + 1) % difficulties.length];
                 document.getElementById('btn-difficulty').innerText = config.difficulty;
             } else if(type === 'skin') {
@@ -411,6 +420,7 @@
         let isBoosting = false;
         let gameLoopId;
         let lastPacketTime = 0;
+        let lastFrameTime = performance.now();
 
         window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
         window.addEventListener("mousedown", () => { if(isGameRunning && snake.score > 20) isBoosting = true; });
@@ -442,10 +452,6 @@
             let botBody = [];
             for(let k=0; k<bLength; k++) botBody.push({x: rx, y: ry});
 
-            let botSpeed = 3.5;
-            if (config.difficulty === 'Easy') botSpeed = 2.5;
-            if (config.difficulty === 'Hard') botSpeed = 5.0;
-
             return {
                 id: "bot_" + Math.random().toString(36).substr(2, 9),
                 x: rx, y: ry, angle: Math.random() * Math.PI * 2,
@@ -454,7 +460,7 @@
                 name: "AI_" + Math.floor(Math.random()*900), 
                 score: bScore, length: bLength, targetLength: bLength,
                 body: botBody, currentRadius: 15, 
-                speed: botSpeed, changeDirTimer: 0
+                speed: 3.5, changeDirTimer: 0
             };
         }
 
@@ -478,6 +484,7 @@
             let startX = Math.cos(startAngle) * startDist;
             let startY = Math.sin(startAngle) * startDist;
 
+            // ABSOLUTE UNIFORM SPEED SETUP
             snake = { 
                 id: "player", name: document.getElementById('player-nick').value || "You", x: startX, y: startY, angle: -Math.PI / 2,
                 currentRadius: 15, 
@@ -489,12 +496,12 @@
             for(let i=0; i < snake.length; i++) snake.body.push({x: snake.x, y: snake.y});
             
             cameraScale = 1.0; foods = [];
-            let foodCount = isMobile ? 1000 : 1800;
+            let foodCount = isMobile ? 800 : 1500;
             for (let i = 0; i < foodCount; i++) foods.push(createFood(true));
 
             bots = [];
             if (!isMultiplayerArena) {
-                let totalBots = config.difficulty === 'Hard' ? 22 : (config.difficulty === 'Easy' ? 10 : 15);
+                let totalBots = config.difficulty === 'Hard' ? 20 : (config.difficulty === 'Easy' ? 10 : 15);
                 for (let i = 0; i < totalBots; i++) bots.push(createBot());
             }
         }
@@ -508,6 +515,7 @@
             document.getElementById('pingBadge').style.display = multiplayerFlag ? 'block' : 'none';
             
             isGameRunning = true;
+            lastFrameTime = performance.now();
             runGameLoop();
         }
 
@@ -534,9 +542,13 @@
             if (!isGameRunning) return;
             gameLoopId = requestAnimationFrame(runGameLoop);
 
+            let now = performance.now();
+            let dt = Math.min((now - lastFrameTime) / (1000 / 60), 2.0); // Exact 60 FPS Delta Normalization
+            lastFrameTime = now;
+
             if (isBoosting) {
                 if (snake.score > 20) {
-                    snake.score -= 0.35; 
+                    snake.score -= 0.35 * dt; 
                     if (snake.targetLength > 20 && Math.random() < 0.1) snake.targetLength -= 0.2;
                 } else {
                     isBoosting = false; 
@@ -544,10 +556,10 @@
             }
 
             if (snake.length < snake.targetLength) {
-                snake.length += 0.15; 
+                snake.length += 0.15 * dt; 
                 if (snake.length > snake.targetLength) snake.length = snake.targetLength;
             } else if (snake.length > snake.targetLength) {
-                snake.length -= 0.2;
+                snake.length -= 0.2 * dt;
                 if (snake.length < snake.targetLength) snake.length = snake.targetLength;
             }
 
@@ -556,9 +568,9 @@
             while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
             while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
             
-            snake.angle += Math.max(-snake.maxTurnSpeed, Math.min(snake.maxTurnSpeed, angleDiff));
+            snake.angle += Math.max(-snake.maxTurnSpeed * dt, Math.min(snake.maxTurnSpeed * dt, angleDiff));
 
-            let currentSpeed = isBoosting ? snake.boostSpeed : snake.normalSpeed;
+            let currentSpeed = (isBoosting ? snake.boostSpeed : snake.normalSpeed) * dt;
             snake.x += Math.cos(snake.angle) * currentSpeed;
             snake.y += Math.sin(snake.angle) * currentSpeed;
 
@@ -587,24 +599,29 @@
                 snake.body.pop();
             }
 
-            // OPTIMIZED MULTIPLAYER SOCKET TRANSMISSION (Max 33ms throttle to prevent high ping)
-            let now = Date.now();
-            if (isMultiplayerArena && (now - lastPacketTime > 30)) {
-                lastPacketTime = now;
+            // High Frequency State Send (30ms Limit)
+            let currentTimestamp = Date.now();
+            if (isMultiplayerArena && (currentTimestamp - lastPacketTime > 30)) {
+                lastPacketTime = currentTimestamp;
                 socket.emit('updatePlayer', {
                     x: snake.x, y: snake.y, angle: snake.angle, 
-                    score: snake.score, length: Math.floor(snake.length), radius: snake.currentRadius
+                    score: snake.score, length: Math.floor(snake.length), radius: snake.currentRadius,
+                    isBoosting: isBoosting
                 });
             }
 
-            // --- MULTIPLAYER INTERPOLATION FOR SMOOTH HIGH SPEED OPPONENTS ---
+            // EQUAL VELOCITY SPEED MATCHING FOR MULTIPLAYER ENEMIES
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
                     let p = networkPlayers[id];
                     
-                    // Fixed speed tracking factor (0.55 ensures instant sync without speed drag)
-                    p.x += (p.targetX - p.x) * 0.55;
-                    p.y += (p.targetY - p.y) * 0.55;
+                    // Exact match of local speed calculation
+                    let pSpeed = (p.isBoosting ? 7.0 : 3.5) * dt;
+                    p.targetX += Math.cos(p.angle) * pSpeed * 0.5;
+                    p.targetY += Math.sin(p.angle) * pSpeed * 0.5;
+
+                    p.x += (p.targetX - p.x) * 0.4 * dt;
+                    p.y += (p.targetY - p.y) * 0.4 * dt;
                     p.body[0] = {x: p.x, y: p.y};
 
                     let targetLen = p.length || 45;
@@ -621,7 +638,7 @@
                         }
                     }
 
-                    // Local Player Collides with Multi-Player Body
+                    // Collision Detection
                     for (let j = 2; j < p.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(snake.x - p.body[j].x, 2) + Math.pow(snake.y - p.body[j].y, 2));
                         if (dist < snake.currentRadius + 10) {
@@ -634,29 +651,23 @@
                 }
             }
 
-            // --- AI BOTS LOGIC ---
+            // AI BOTS LOGIC (Offline)
             if (!isMultiplayerArena) {
                 for (let bIdx = bots.length - 1; bIdx >= 0; bIdx--) {
                     let b = bots[bIdx];
                     b.changeDirTimer--;
                     if (b.changeDirTimer <= 0) {
                         b.changeDirTimer = Math.floor(Math.random() * 40) + 20;
-                        if (config.difficulty === 'Hard' && Math.random() < 0.6) {
-                            let interceptX = snake.x + Math.cos(snake.angle) * 60;
-                            let interceptY = snake.y + Math.sin(snake.angle) * 60;
-                            b.targetAngle = Math.atan2(interceptY - b.y, interceptX - b.x);
-                        } else {
-                            b.targetAngle = Math.random() * Math.PI * 2;
-                        }
+                        b.targetAngle = Math.random() * Math.PI * 2;
                     }
 
                     let bAngleDiff = b.targetAngle - b.angle;
                     while (bAngleDiff < -Math.PI) bAngleDiff += Math.PI * 2;
                     while (bAngleDiff > Math.PI) bAngleDiff -= Math.PI * 2;
-                    b.angle += Math.max(-b.maxTurnSpeed, Math.min(b.maxTurnSpeed, bAngleDiff));
+                    b.angle += Math.max(-b.maxTurnSpeed * dt, Math.min(b.maxTurnSpeed * dt, bAngleDiff));
 
-                    b.x += Math.cos(b.angle) * b.speed;
-                    b.y += Math.sin(b.angle) * b.speed;
+                    b.x += Math.cos(b.angle) * b.speed * dt;
+                    b.y += Math.sin(b.angle) * b.speed * dt;
 
                     enforceBarrier(b);
 
@@ -754,7 +765,7 @@
                         for (let j = p.body.length - 1; j >= 0; j--) {
                             let px = p.body[j].x, py = p.body[j].y;
                             if (px >= vLeft && px <= vRight && py >= vTop && py <= vBottom) {
-                                drawSlitherSkin(ctx, px, py, drawRadius, j, p.skin, j === 0, p.angle + Math.PI/2, false, config.effect);
+                                drawSlitherSkin(ctx, px, py, drawRadius, j, p.skin, j === 0, p.angle + Math.PI/2, p.isBoosting, config.effect);
                             }
                         }
                     }

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Mobile & Desktop Ready</title>
+    <title>Slither.io Pro - Perfect Sync Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
@@ -17,7 +17,7 @@
         }
         .hidden { opacity: 0; visibility: hidden; pointer-events: none; }
         
-        h1 { font-size: 3rem; font-weight: 900; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 4px; background: linear-gradient(45deg, #00ffaa, #0077ff, #ff0077); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 10px rgba(0,255,170,0.2)); text-align: center; }
+        h1 { font-size: 3rem; font-weight: 900; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 4px; background: linear-gradient(45deg, #00ffaa, #0077ff, #ff0077); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
         h2 { font-size: 1.8rem; margin: 0 0 15px 0; color: #a0aec0; text-transform: uppercase; letter-spacing: 2px; text-align: center; }
         
         .loader-container { width: 80%; max-width: 320px; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 20px; border: 1px solid rgba(255,255,255,0.1); }
@@ -45,7 +45,7 @@
         #server-console-box { width: 90%; max-width: 400px; height: 140px; background: #020207; border: 1px solid #1e1e38; border-radius: 12px; font-family: monospace; padding: 12px; color: #00ffaa; overflow-y: hidden; text-align: left; font-size: 0.8rem; line-height: 1.4; margin-bottom: 15px; }
 
         #hud { position: absolute; top: 15px; left: 15px; z-index: 5; pointer-events: none; background: rgba(3,3,10,0.8); padding: 12px 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); display: none; backdrop-filter: blur(8px); }
-        #leaderboard { position: absolute; top: 15px; right: 15px; z-index: 5; background: rgba(3,3,10,0.85); padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); width: 180px; display: none; font-size: 0.8rem; backdrop-filter: blur(8px); }
+        #leaderboard { position: absolute; top: 15px; right: 15px; z-index: 5; background: rgba(3,3,10,0.85); padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); width: 190px; display: none; font-size: 0.8rem; backdrop-filter: blur(8px); }
         .lb-title { font-weight: 800; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 6px; color: #38bdf8; }
         .lb-row { display: flex; justify-content: space-between; margin: 3px 0; color: #cbd5e1; }
         .lb-row.active-player { color: #00ffaa; font-weight: bold; }
@@ -68,7 +68,7 @@
     </div>
 
     <div id="screen-multiplayer-load" class="ui-screen hidden">
-        <h2 style="color: #00bfff;">Connecting To Server Node</h2>
+        <h2 style="color: #00bfff;">Connecting To Live Cluster</h2>
         <div id="server-console-box"></div>
         <div class="loader-container"><div id="mp-loader" class="loader-bar" style="background:linear-gradient(90deg, #00bfff, #ff00aa)"></div></div>
     </div>
@@ -122,7 +122,7 @@
     </div>
 
     <div id="leaderboard">
-        <div class="lb-title">Top 10</div>
+        <div class="lb-title">Live Players</div>
         <div id="lb-content"></div>
     </div>
 
@@ -130,7 +130,6 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // Auto Detect Mobile Device for Performance Optimization
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         const difficulties = ['Easy', 'Medium', 'Hard'];
@@ -166,11 +165,10 @@
         }
 
         const consoleLogs = [
-            "> Initializing Spatial Grid system...",
-            "> Allocation Chunk Bounds [12,000 x 12,000 px]...",
-            "> Connecting to WebSocket node...",
-            "> Optimizing for device hardware...",
-            "> Ready to join stream..."
+            "> Establishing Realtime Stream...",
+            "> Synchronizing Arena Session...",
+            "> Socket Handshake Confirmed...",
+            "> Multi-Device Sync Ready!"
         ];
 
         function launchSelectedMode() {
@@ -185,12 +183,12 @@
                         consoleBox.innerHTML += consoleLogs[logIndex] + "<br/>";
                         logIndex++;
                     }
-                }, 1200 / consoleLogs.length);
+                }, 800 / consoleLogs.length);
 
                 let progress = 0;
                 let mpLoader = document.getElementById('mp-loader');
                 let progressInterval = setInterval(() => {
-                    progress += 5;
+                    progress += 10;
                     if(progress >= 100) {
                         clearInterval(progressInterval);
                         clearInterval(logInterval);
@@ -208,10 +206,10 @@
 
         let loadProgress = 0;
         const loaderInterval = setInterval(() => {
-            loadProgress += 5;
+            loadProgress += 10;
             if (loadProgress >= 100) {
                 clearInterval(loaderInterval);
-                setTimeout(() => showScreen('screen-main'), 150);
+                setTimeout(() => showScreen('screen-main'), 100);
             }
             document.getElementById('loader').style.width = loadProgress + '%';
         }, 20);
@@ -232,12 +230,10 @@
             }
         }
 
-        // Mobile Optimized Skin Renderer (Bypasses Shadows on Phones for High FPS)
         function drawSlitherSkin(ctx, x, y, radius, index, skinName, isHead, angle = 0, auraActive = false, auraType = 'Plasma Glow') {
             ctx.save();
             ctx.translate(x, y);
 
-            // Aura disabled on mobile to boost rendering speed
             if (auraActive && !isMobile) {
                 ctx.save(); ctx.globalAlpha = 0.45; ctx.shadowBlur = radius * 1.5;
                 if (auraType === 'Plasma Glow') { ctx.fillStyle = '#00ffff'; ctx.shadowColor = '#00ffff'; }
@@ -247,7 +243,6 @@
                 ctx.restore();
             }
 
-            // Skip heavy shadow blur on mobile GPUs
             if (!isMobile) {
                 ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
                 ctx.shadowBlur = 6;
@@ -292,48 +287,6 @@
             ctx.restore();
         }
 
-        let particles = []; let previewParticles = [];
-
-        function spawnFullBodyVisualAura(bodyArray, radius, type, isPreview = false) {
-            if (isMobile) return; // Skip particles on mobile to maintain 60 FPS
-            let step = Math.max(1, Math.floor(bodyArray.length / 12)); 
-            for(let i = 0; i < bodyArray.length; i += step) {
-                let seg = bodyArray[i];
-                let angle = Math.random() * Math.PI * 2;
-                let speed = Math.random() * 0.8 + 0.3;
-
-                let p = {
-                    x: seg.x + (Math.random() - 0.5) * radius * 0.5,
-                    y: seg.y + (Math.random() - 0.5) * radius * 0.5,
-                    vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
-                    life: 1.0, decay: Math.random() * 0.05 + 0.04, size: Math.random() * 3 + 2, type: type
-                };
-                if(isPreview) previewParticles.push(p); else particles.push(p);
-            }
-        }
-
-        function drawLayeredParticles(ctx, particleArray) {
-            if (isMobile) return;
-            for (let i = particleArray.length - 1; i >= 0; i--) {
-                let p = particleArray[i];
-                p.x += p.vx; p.y += p.vy; p.life -= p.decay;
-                if(p.life <= 0) { particleArray.splice(i, 1); continue; }
-
-                ctx.save(); ctx.globalAlpha = p.life * 0.7; ctx.shadowBlur = 8;
-                if(p.type === 'Plasma Glow') {
-                    ctx.fillStyle = '#00ffff'; ctx.shadowColor = '#00ffff';
-                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
-                } else if(p.type === 'Fire Storm') {
-                    ctx.fillStyle = '#ff5500'; ctx.shadowColor = '#ffaa00';
-                    ctx.beginPath(); ctx.rect(p.x - p.size/2, p.y - p.size/2, p.size, p.size); ctx.fill();
-                } else if(p.type === 'Neon Shockwave') {
-                    ctx.strokeStyle = '#ff00aa'; ctx.lineWidth = 1.5; ctx.shadowColor = '#ff00aa';
-                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (2.0 - p.life), 0, Math.PI*2); ctx.stroke();
-                }
-                ctx.restore();
-            }
-        }
-
         function drawMapBackground(ctx, mapName, width, height, scale, snakeX, snakeY, MAP_RADIUS, isPreview, localBoostState = false) {
             ctx.save();
             if(!isPreview) {
@@ -351,7 +304,7 @@
 
             ctx.strokeStyle = localBoostState ? 'rgba(0, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.04)';
             ctx.lineWidth = 1;
-            let step = isPreview ? 35 : (isMobile ? 150 : 100); // Broader grid lines on mobile
+            let step = isPreview ? 35 : 120;
             for (let x = Math.floor(viewLeft / step) * step; x < viewRight; x += step) {
                 ctx.beginPath(); ctx.moveTo(x, viewTop); ctx.lineTo(x, viewBottom); ctx.stroke();
             }
@@ -413,12 +366,10 @@
         let isBoosting = false;
         let gameLoopId;
 
-        // Desktop Controls
         window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
         window.addEventListener("mousedown", () => { if(isGameRunning && snake.score > 20) isBoosting = true; });
         window.addEventListener("mouseup", () => { isBoosting = false; });
 
-        // Touch Screen Controls for Mobile Devices
         window.addEventListener("touchmove", (e) => {
             if (e.touches.length > 0) {
                 mouse.x = e.touches[0].clientX;
@@ -438,10 +389,14 @@
 
         function initGameData(multiplayerFlag) {
             isMultiplayerArena = multiplayerFlag;
-            MAP_RADIUS = isMultiplayerArena ? 6000 : 3000;
+            MAP_RADIUS = isMultiplayerArena ? 4000 : 3000; // Optimal map radius
+
+            // Random initial spawn location so players don't immediately stack at 0,0
+            let startX = (Math.random() - 0.5) * 1500;
+            let startY = (Math.random() - 0.5) * 1500;
 
             snake = { 
-                id: "player", name: document.getElementById('player-nick').value || "You", x: 0, y: 0, angle: -Math.PI / 2,
+                id: "player", name: document.getElementById('player-nick').value || "You", x: startX, y: startY, angle: -Math.PI / 2,
                 currentRadius: 15, 
                 normalSpeed: 3.5, boostSpeed: 7.0, 
                 maxTurnSpeed: 0.08, 
@@ -451,42 +406,27 @@
             
             cameraScale = 1.0; foods = [];
             
-            let foodCount = isMultiplayerArena ? (isMobile ? 1200 : 2500) : 800;
+            let foodCount = isMultiplayerArena ? 1000 : 800;
             for (let i = 0; i < foodCount; i++) foods.push(createFood(true));
 
             bots = [];
             if (!isMultiplayerArena) {
                 let totalBots = config.difficulty === 'Hard' ? 25 : (config.difficulty === 'Easy' ? 10 : 18);
                 for (let i = 0; i < totalBots; i++) {
-                    let startX = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
-                    let startY = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
+                    let rx = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
+                    let ry = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
                     let bScore = Math.floor(Math.random()*300) + 50;
-                    let bLength = 45;
                     
-                    let bBody = [];
-                    for(let k = 0; k < bLength; k++) bBody.push({x: startX, y: startY});
-
-                    let botDefaultSpeed = 3.0;
-                    if (config.difficulty === 'Easy') botDefaultSpeed = 2.2;
-                    else if (config.difficulty === 'Hard') botDefaultSpeed = 4.2;
-
                     bots.push({
                         id: "bot_" + Math.random().toString(36).substr(2, 9),
-                        x: startX, y: startY,
-                        angle: Math.random() * Math.PI * 2,
-                        maxTurnSpeed: config.difficulty === 'Hard' ? 0.09 : 0.07, 
-                        targetAngle: Math.random() * Math.PI * 2,
-                        changeDirTimer: Math.floor(Math.random() * 60),
+                        x: rx, y: ry, angle: Math.random() * Math.PI * 2,
+                        maxTurnSpeed: 0.07, targetAngle: Math.random() * Math.PI * 2, changeDirTimer: 40,
                         skin: skins[Math.floor(Math.random() * skins.length)],
-                        name: "Bot_" + Math.floor(Math.random()*900),
-                        score: bScore, length: bLength, targetLength: bLength,
-                        body: bBody,
-                        currentRadius: 15,
-                        speed: botDefaultSpeed
+                        name: "Bot_" + Math.floor(Math.random()*900), score: bScore, length: 45, targetLength: 45,
+                        body: Array(45).fill({x: rx, y: ry}), currentRadius: 15, speed: 3.0
                     });
                 }
             }
-            particles = [];
         }
 
         function startGame(multiplayerFlag = false) {
@@ -509,38 +449,6 @@
             showScreen('screen-gameover');
         }
 
-        function killBot(bIndex) {
-            let b = bots[bIndex];
-            if (!b) return;
-            
-            b.body.forEach((seg, index) => {
-                if (index % 2 === 0) {
-                    foods.push({
-                        x: seg.x + (Math.random()-0.5)*12,
-                        y: seg.y + (Math.random()-0.5)*12,
-                        color: b.skin === 'Neon Stripe' ? '#00ffaa' : '#ff3300',
-                        maxRadius: 7, value: 12
-                    });
-                }
-            });
-            
-            bots.splice(bIndex, 1);
-            
-            setTimeout(() => {
-                if(!isGameRunning) return;
-                let rx = (Math.random() - 0.5) * MAP_RADIUS;
-                let ry = (Math.random() - 0.5) * MAP_RADIUS;
-                let bScore = 100;
-                let botDefaultSpeed = config.difficulty==='Easy'? 2.2 : (config.difficulty==='Hard'? 4.2 : 3.0);
-                bots.push({
-                    id: "bot_" + Math.random().toString(36).substr(2, 9),
-                    x: rx, y: ry, angle: Math.random()*Math.PI*2, maxTurnSpeed: config.difficulty==='Hard'?0.09:0.07, targetAngle: Math.random()*Math.PI*2, changeDirTimer: 80,
-                    skin: skins[Math.floor(Math.random()*skins.length)], name: "Bot_" + Math.floor(Math.random()*900), score: bScore, length: 45, targetLength: 45,
-                    body: Array(45).fill({x: rx, y: ry}), currentRadius: 15, speed: botDefaultSpeed
-                });
-            }, 3000);
-        }
-
         function runGameLoop() {
             if (!isGameRunning) return;
             gameLoopId = requestAnimationFrame(runGameLoop);
@@ -548,9 +456,7 @@
             if (isBoosting) {
                 if (snake.score > 20) {
                     snake.score -= 0.35; 
-                    if (snake.targetLength > 20 && Math.random() < 0.1) {
-                        snake.targetLength -= 1; 
-                    }
+                    if (snake.targetLength > 20 && Math.random() < 0.1) snake.targetLength -= 1;
                 } else {
                     isBoosting = false; 
                 }
@@ -598,12 +504,14 @@
                 snake.body.pop();
             }
 
+            // Realtime Sync to Server
             if (isMultiplayerArena) {
                 socket.emit('updatePlayer', {
                     x: snake.x, y: snake.y, angle: snake.angle, body: snake.body, score: snake.score
                 });
             }
 
+            // Food collision
             for (let i = foods.length - 1; i >= 0; i--) {
                 let f = foods[i];
                 let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));
@@ -612,120 +520,6 @@
                     snake.targetLength += 1; 
                     foods[i] = createFood(false);
                 }
-            }
-
-            if (!isMultiplayerArena) {
-                bots.forEach(b => {
-                    if (b.length < b.targetLength) {
-                        b.length += 0.15;
-                        if (b.length > b.targetLength) b.length = b.targetLength;
-                    }
-
-                    let pDist = Math.sqrt(Math.pow(snake.x - b.x, 2) + Math.pow(snake.y - b.y, 2));
-
-                    if (config.difficulty === 'Hard' && pDist < 350) {
-                        let futurePlayerX = snake.x + Math.cos(snake.angle) * 80;
-                        let futurePlayerY = snake.y + Math.sin(snake.angle) * 80;
-                        b.targetAngle = Math.atan2(futurePlayerY - b.y, futurePlayerX - b.x);
-                    }
-                    else if (config.difficulty === 'Medium' && pDist < 200) {
-                        b.targetAngle = Math.atan2(b.y - snake.y, b.x - snake.x);
-                    }
-                    else {
-                        b.changeDirTimer--;
-                        if (b.changeDirTimer <= 0 || Math.random() < 0.02) {
-                            let closeFood = null; let minDist = 400;
-                            foods.forEach(f => {
-                                let fD = Math.sqrt(Math.pow(f.x - b.x, 2) + Math.pow(f.y - b.y, 2));
-                                if (fD < minDist) { minDist = fD; closeFood = f; }
-                            });
-
-                            if (closeFood && config.difficulty !== 'Easy') {
-                                b.targetAngle = Math.atan2(closeFood.y - b.y, closeFood.x - b.x);
-                            } else {
-                                b.targetAngle = Math.random() * Math.PI * 2;
-                            }
-                            b.changeDirTimer = Math.floor(Math.random() * 80) + 40;
-                        }
-                    }
-                    
-                    let bAngleDiff = b.targetAngle - b.angle;
-                    while (bAngleDiff < -Math.PI) bAngleDiff += Math.PI * 2;
-                    while (bAngleDiff > Math.PI) bAngleDiff -= Math.PI * 2;
-                    b.angle += Math.max(-b.maxTurnSpeed, Math.min(b.maxTurnSpeed, bAngleDiff));
-
-                    b.x += Math.cos(b.angle) * b.speed;
-                    b.y += Math.sin(b.angle) * b.speed;
-
-                    b.body[0] = {x: b.x, y: b.y};
-                    for (let j = 1; j < b.body.length; j++) {
-                        let bdx = b.body[j].x - b.body[j-1].x;
-                        let bdy = b.body[j].y - b.body[j-1].y;
-                        let bdist = Math.sqrt(bdx*bdx + bdy*bdy);
-                        if (bdist > spacing && bdist > 0) {
-                            b.body[j].x = b.body[j-1].x + (bdx / bdist) * spacing;
-                            b.body[j].y = b.body[j-1].y + (bdy / bdist) * spacing;
-                        }
-                    }
-
-                    let bIntLength = Math.floor(b.length);
-                    while(b.body.length < bIntLength) b.body.push({x: b.body[b.body.length-1].x, y: b.body[b.body.length-1].y});
-                    while(b.body.length > bIntLength) b.body.pop();
-
-                    for (let i = foods.length - 1; i >= 0; i--) {
-                        let f = foods[i];
-                        let dist = Math.sqrt(Math.pow(b.x - f.x, 2) + Math.pow(b.y - f.y, 2));
-                        if (dist < b.currentRadius + 6) {
-                            b.score += f.value;
-                            b.targetLength += 1;
-                            foods[i] = createFood(false);
-                        }
-                    }
-                });
-
-                let deadBotIndices = [];
-
-                for (let i = 0; i < bots.length; i++) {
-                    let b = bots[i];
-
-                    for (let j = 2; j < b.body.length; j++) {
-                        let dist = Math.sqrt(Math.pow(snake.x - b.body[j].x, 2) + Math.pow(snake.y - b.body[j].y, 2));
-                        if (dist < snake.currentRadius + b.currentRadius - 4) {
-                            triggerGameOver();
-                            return;
-                        }
-                    }
-
-                    let hitPlayer = false;
-                    for (let j = 2; j < snake.body.length; j++) {
-                        let dist = Math.sqrt(Math.pow(b.x - snake.body[j].x, 2) + Math.pow(b.y - snake.body[j].y, 2));
-                        if (dist < b.currentRadius + snake.currentRadius - 4) {
-                            hitPlayer = true;
-                            break;
-                        }
-                    }
-
-                    if (hitPlayer) {
-                        if (!deadBotIndices.includes(i)) deadBotIndices.push(i);
-                        continue;
-                    }
-
-                    for (let k = 0; k < bots.length; k++) {
-                        if (i === k) continue; 
-                        let otherBot = bots[k];
-
-                        for (let j = 2; j < otherBot.body.length; j++) {
-                            let dist = Math.sqrt(Math.pow(b.x - otherBot.body[j].x, 2) + Math.pow(b.y - otherBot.body[j].y, 2));
-                            if (dist < b.currentRadius + otherBot.currentRadius - 4) {
-                                if (!deadBotIndices.includes(i)) deadBotIndices.push(i);
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                deadBotIndices.sort((a, b) => b - a);
-                deadBotIndices.forEach(idx => killBot(idx));
             }
 
             drawMapBackground(ctx, config.map, canvas.width, canvas.height, cameraScale, snake.x, snake.y, MAP_RADIUS, false, isBoosting);
@@ -739,26 +533,21 @@
                 ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x, f.y, f.maxRadius, 0, Math.PI*2); ctx.fill();
             });
 
+            // Draw Opponent Realtime Players
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
                     if (id !== socket.id) {
                         let p = networkPlayers[id];
-                        for (let j = p.body.length - 1; j >= 0; j--) {
-                            drawSlitherSkin(ctx, p.body[j].x, p.body[j].y, 15, j, p.skin, j === 0, p.angle + Math.PI/2, false, config.effect);
+                        if (p.body && p.body.length > 0) {
+                            for (let j = p.body.length - 1; j >= 0; j--) {
+                                drawSlitherSkin(ctx, p.body[j].x, p.body[j].y, 15, j, p.skin, j === 0, p.angle + Math.PI/2, false, config.effect);
+                            }
                         }
                     }
                 }
-            } else {
-                bots.forEach(b => {
-                    for (let j = b.body.length - 1; j >= 0; j--) {
-                        drawSlitherSkin(ctx, b.body[j].x, b.body[j].y, b.currentRadius, j, b.skin, j === 0, b.angle + Math.PI/2, false, config.effect);
-                    }
-                });
             }
 
-            if (isBoosting && Math.random() < 0.6) spawnFullBodyVisualAura(snake.body, snake.currentRadius, config.effect, false);
-            drawLayeredParticles(ctx, particles);
-
+            // Draw Local Player
             for (let i = snake.body.length - 1; i >= 0; i--) {
                 drawSlitherSkin(ctx, snake.body[i].x, snake.body[i].y, snake.currentRadius, i, config.skin, i === 0, snake.angle + Math.PI/2, isBoosting, config.effect);
             }
@@ -768,14 +557,15 @@
             document.getElementById('hud-score').innerText = "Score: " + Math.floor(snake.score);
             document.getElementById('hud-length').innerText = "Length: " + snake.body.length + " segments";
 
+            // Live Leaderboard Update
             let sortedScores = [];
             sortedScores.push({name: snake.name, score: snake.score, isLocal: true});
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
-                    if (id !== socket.id) sortedScores.push({name: networkPlayers[id].name, score: networkPlayers[id].score});
+                    if (id !== socket.id) {
+                        sortedScores.push({name: networkPlayers[id].name, score: networkPlayers[id].score});
+                    }
                 }
-            } else {
-                bots.forEach(b => sortedScores.push({name: b.name, score: b.score}));
             }
             sortedScores.sort((a,b) => b.score - a.score);
 

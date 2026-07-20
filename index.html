@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Ultimate Butter-Smooth Sync</title>
+    <title>Slither.io Pro - Ultra 60FPS Sync Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
@@ -146,24 +146,30 @@
             transports: ['websocket', 'polling']
         });
 
-        // Smart LERP Interpolation for Buttery Smooth Multiplayer Physics
+        // Smart High-Performance Interpolation Engine
         socket.on('gameStateUpdate', (serverPlayers) => {
             for (let id in serverPlayers) {
                 if (id !== socket.id) {
+                    let sp = serverPlayers[id];
                     if (!networkPlayers[id]) {
-                        networkPlayers[id] = serverPlayers[id];
+                        let initBody = [];
+                        let len = sp.score ? Math.floor(sp.score / 2) + 30 : 45;
+                        for(let i=0; i<len; i++) initBody.push({x: sp.x, y: sp.y});
+                        networkPlayers[id] = {
+                            id: id, name: sp.name, skin: sp.skin,
+                            x: sp.x, y: sp.y, targetX: sp.x, targetY: sp.y,
+                            angle: sp.angle, score: sp.score,
+                            body: initBody, radius: 15
+                        };
                     } else {
-                        // Smoothly lerp position instead of snapping instantly
-                        networkPlayers[id].x += (serverPlayers[id].x - networkPlayers[id].x) * 0.4;
-                        networkPlayers[id].y += (serverPlayers[id].y - networkPlayers[id].y) * 0.4;
-                        networkPlayers[id].angle = serverPlayers[id].angle;
-                        networkPlayers[id].body = serverPlayers[id].body;
-                        networkPlayers[id].score = serverPlayers[id].score;
-                        networkPlayers[id].skin = serverPlayers[id].skin;
+                        networkPlayers[id].targetX = sp.x;
+                        networkPlayers[id].targetY = sp.y;
+                        networkPlayers[id].angle = sp.angle;
+                        networkPlayers[id].score = sp.score;
+                        networkPlayers[id].skin = sp.skin;
                     }
                 }
             }
-            // Clean up disconnected players
             for (let id in networkPlayers) {
                 if (!serverPlayers[id]) delete networkPlayers[id];
             }
@@ -522,12 +528,52 @@
                 snake.body.pop();
             }
 
+            // Sync Local Position to Server (Optimized Lightweight Packet)
             if (isMultiplayerArena) {
                 socket.emit('updatePlayer', {
-                    x: snake.x, y: snake.y, angle: snake.angle, body: snake.body, score: snake.score
+                    x: snake.x, y: snake.y, angle: snake.angle, score: snake.score
                 });
             }
 
+            // Update & Smooth Opponent Players Locally (60 FPS Local Physics)
+            if (isMultiplayerArena) {
+                for (let id in networkPlayers) {
+                    let p = networkPlayers[id];
+                    
+                    // Smooth Interpolation to target head
+                    p.x += (p.targetX - p.x) * 0.25;
+                    p.y += (p.targetY - p.y) * 0.25;
+                    
+                    p.body[0] = {x: p.x, y: p.y};
+
+                    // Re-calculate target length from score
+                    let targetLen = p.score ? Math.floor(p.score / 2) + 30 : 45;
+                    while(p.body.length < targetLen) p.body.push({x: p.x, y: p.y});
+                    while(p.body.length > targetLen) p.body.pop();
+
+                    for (let j = 1; j < p.body.length; j++) {
+                        let dx = p.body[j].x - p.body[j-1].x;
+                        let dy = p.body[j].y - p.body[j-1].y;
+                        let dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist > spacing && dist > 0) {
+                            p.body[j].x = p.body[j-1].x + (dx / dist) * spacing;
+                            p.body[j].y = p.body[j-1].y + (dy / dist) * spacing;
+                        }
+                    }
+
+                    // --- MULTIPLAYER COLLISION CHECK ---
+                    // If local player's head hits opponent body
+                    for (let j = 2; j < p.body.length; j++) {
+                        let dist = Math.sqrt(Math.pow(snake.x - p.body[j].x, 2) + Math.pow(snake.y - p.body[j].y, 2));
+                        if (dist < snake.currentRadius + 10) {
+                            triggerGameOver();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // Food collision
             for (let i = foods.length - 1; i >= 0; i--) {
                 let f = foods[i];
                 let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));
@@ -549,19 +595,19 @@
                 ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x, f.y, f.maxRadius, 0, Math.PI*2); ctx.fill();
             });
 
+            // Draw Opponent Players
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
-                    if (id !== socket.id) {
-                        let p = networkPlayers[id];
-                        if (p.body && p.body.length > 0) {
-                            for (let j = p.body.length - 1; j >= 0; j--) {
-                                drawSlitherSkin(ctx, p.body[j].x, p.body[j].y, 15, j, p.skin, j === 0, p.angle + Math.PI/2, false, config.effect);
-                            }
+                    let p = networkPlayers[id];
+                    if (p.body && p.body.length > 0) {
+                        for (let j = p.body.length - 1; j >= 0; j--) {
+                            drawSlitherSkin(ctx, p.body[j].x, p.body[j].y, 15, j, p.skin, j === 0, p.angle + Math.PI/2, false, config.effect);
                         }
                     }
                 }
             }
 
+            // Draw Local Player
             for (let i = snake.body.length - 1; i >= 0; i--) {
                 drawSlitherSkin(ctx, snake.body[i].x, snake.body[i].y, snake.currentRadius, i, config.skin, i === 0, snake.angle + Math.PI/2, isBoosting, config.effect);
             }
@@ -571,13 +617,12 @@
             document.getElementById('hud-score').innerText = "Score: " + Math.floor(snake.score);
             document.getElementById('hud-length').innerText = "Length: " + snake.body.length + " segments";
 
+            // Live Leaderboard Update
             let sortedScores = [];
             sortedScores.push({name: snake.name, score: snake.score, isLocal: true});
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
-                    if (id !== socket.id) {
-                        sortedScores.push({name: networkPlayers[id].name, score: networkPlayers[id].score});
-                    }
+                    sortedScores.push({name: networkPlayers[id].name, score: networkPlayers[id].score});
                 }
             }
             sortedScores.sort((a,b) => b.score - a.score);

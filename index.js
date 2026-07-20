@@ -41,8 +41,7 @@ io.on('connection', (socket) => {
             x: 0,
             y: 0,
             angle: 0,
-            score: 100,
-            body: []
+            score: 100
         };
         console.log(`[+] Arena Joined: ${players[socket.id].name} (${socket.id})`);
     });
@@ -52,7 +51,6 @@ io.on('connection', (socket) => {
             players[socket.id].x = data.x;
             players[socket.id].y = data.y;
             players[socket.id].angle = data.angle;
-            players[socket.id].body = data.body;
             players[socket.id].score = data.score;
         }
     });
@@ -63,7 +61,7 @@ io.on('connection', (socket) => {
     });
 });
 
-// Broadcast state continuously (30 Ticks/sec)
+// Broadcast optimized state data continuously (30 FPS)
 setInterval(() => {
     io.emit('gameStateUpdate', players);
 }, 1000 / 30);

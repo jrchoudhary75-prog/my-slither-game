@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Ultra 60FPS Sync Edition</title>
+    <title>Slither.io Pro - Smart AI Bots + Multiplayer Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
@@ -146,8 +146,8 @@
             transports: ['websocket', 'polling']
         });
 
-        // Smart High-Performance Interpolation Engine
         socket.on('gameStateUpdate', (serverPlayers) => {
+            if (!isMultiplayerArena) return;
             for (let id in serverPlayers) {
                 if (id !== socket.id) {
                     let sp = serverPlayers[id];
@@ -412,6 +412,28 @@
 
         let snake, foods, bots, cameraScale;
 
+        function createBot() {
+            let rx = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
+            let ry = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
+            let bScore = Math.floor(Math.random()*300) + 50;
+            let bLength = Math.floor(bScore / 2) + 30;
+            
+            let botBody = [];
+            for(let k=0; k<bLength; k++) botBody.push({x: rx, y: ry});
+
+            return {
+                id: "bot_" + Math.random().toString(36).substr(2, 9),
+                x: rx, y: ry, angle: Math.random() * Math.PI * 2,
+                maxTurnSpeed: config.difficulty === 'Hard' ? 0.09 : (config.difficulty === 'Easy' ? 0.05 : 0.07),
+                skin: skins[Math.floor(Math.random() * skins.length)],
+                name: "AI_" + Math.floor(Math.random()*900), 
+                score: bScore, length: bLength, targetLength: bLength,
+                body: botBody, currentRadius: 15, 
+                speed: config.difficulty === 'Hard' ? 4.0 : 3.0,
+                isBoosting: false, changeDirTimer: 0
+            };
+        }
+
         function initGameData(multiplayerFlag) {
             isMultiplayerArena = multiplayerFlag;
             MAP_RADIUS = isMultiplayerArena ? 4000 : 3000;
@@ -433,22 +455,12 @@
             let foodCount = isMultiplayerArena ? 1000 : 800;
             for (let i = 0; i < foodCount; i++) foods.push(createFood(true));
 
+            // Generate Offline AI Bots
             bots = [];
             if (!isMultiplayerArena) {
-                let totalBots = config.difficulty === 'Hard' ? 25 : (config.difficulty === 'Easy' ? 10 : 18);
+                let totalBots = config.difficulty === 'Hard' ? 25 : (config.difficulty === 'Easy' ? 12 : 18);
                 for (let i = 0; i < totalBots; i++) {
-                    let rx = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
-                    let ry = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
-                    let bScore = Math.floor(Math.random()*300) + 50;
-                    
-                    bots.push({
-                        id: "bot_" + Math.random().toString(36).substr(2, 9),
-                        x: rx, y: ry, angle: Math.random() * Math.PI * 2,
-                        maxTurnSpeed: 0.07, targetAngle: Math.random() * Math.PI * 2, changeDirTimer: 40,
-                        skin: skins[Math.floor(Math.random() * skins.length)],
-                        name: "Bot_" + Math.floor(Math.random()*900), score: bScore, length: 45, targetLength: 45,
-                        body: Array(45).fill({x: rx, y: ry}), currentRadius: 15, speed: 3.0
-                    });
+                    bots.push(createBot());
                 }
             }
         }
@@ -528,25 +540,89 @@
                 snake.body.pop();
             }
 
-            // Sync Local Position to Server (Optimized Lightweight Packet)
+            // Sync Local Position in Multiplayer Mode
             if (isMultiplayerArena) {
                 socket.emit('updatePlayer', {
                     x: snake.x, y: snake.y, angle: snake.angle, score: snake.score
                 });
             }
 
-            // Update & Smooth Opponent Players Locally (60 FPS Local Physics)
+            // --- AI BOTS LOGIC (OFFLINE MODE) ---
+            if (!isMultiplayerArena) {
+                for (let b of bots) {
+                    b.changeDirTimer--;
+                    if (b.changeDirTimer <= 0) {
+                        b.changeDirTimer = Math.floor(Math.random() * 40) + 20;
+                        
+                        // Hard AI targets Player or nearest food aggressively
+                        if (config.difficulty === 'Hard' && Math.random() < 0.6) {
+                            let distToPlayer = Math.sqrt(Math.pow(snake.x - b.x, 2) + Math.pow(snake.y - b.y, 2));
+                            if (distToPlayer < 600) {
+                                // Cut-throat intercept angle
+                                let interceptX = snake.x + Math.cos(snake.angle) * 60;
+                                let interceptY = snake.y + Math.sin(snake.angle) * 60;
+                                b.targetAngle = Math.atan2(interceptY - b.y, interceptX - b.x);
+                                b.isBoosting = b.score > 30;
+                            } else {
+                                b.targetAngle = Math.random() * Math.PI * 2;
+                                b.isBoosting = false;
+                            }
+                        } else {
+                            b.targetAngle = Math.random() * Math.PI * 2;
+                            b.isBoosting = false;
+                        }
+                    }
+
+                    let bAngleDiff = b.targetAngle - b.angle;
+                    while (bAngleDiff < -Math.PI) bAngleDiff += Math.PI * 2;
+                    while (bAngleDiff > Math.PI) bAngleDiff -= Math.PI * 2;
+                    b.angle += Math.max(-b.maxTurnSpeed, Math.min(b.maxTurnSpeed, bAngleDiff));
+
+                    let bSpeed = b.isBoosting ? 6.0 : b.speed;
+                    b.x += Math.cos(b.angle) * bSpeed;
+                    b.y += Math.sin(b.angle) * bSpeed;
+
+                    b.body[0] = {x: b.x, y: b.y};
+                    for (let j = 1; j < b.body.length; j++) {
+                        let dx = b.body[j].x - b.body[j-1].x;
+                        let dy = b.body[j].y - b.body[j-1].y;
+                        let dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist > spacing && dist > 0) {
+                            b.body[j].x = b.body[j-1].x + (dx / dist) * spacing;
+                            b.body[j].y = b.body[j-1].y + (dy / dist) * spacing;
+                        }
+                    }
+
+                    // Bot food consumption
+                    for (let fIdx = foods.length - 1; fIdx >= 0; fIdx--) {
+                        let f = foods[fIdx];
+                        let dist = Math.sqrt(Math.pow(b.x - f.x, 2) + Math.pow(b.y - f.y, 2));
+                        if (dist < b.currentRadius + 6) {
+                            b.score += f.value;
+                            b.targetLength += 1;
+                            foods[fIdx] = createFood(false);
+                        }
+                    }
+
+                    // Collision: Player hits Bot
+                    for (let j = 2; j < b.body.length; j++) {
+                        let dist = Math.sqrt(Math.pow(snake.x - b.body[j].x, 2) + Math.pow(snake.y - b.body[j].y, 2));
+                        if (dist < snake.currentRadius + 10) {
+                            triggerGameOver();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // --- MULTIPLAYER OPPONENTS LOGIC ---
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
                     let p = networkPlayers[id];
-                    
-                    // Smooth Interpolation to target head
                     p.x += (p.targetX - p.x) * 0.25;
                     p.y += (p.targetY - p.y) * 0.25;
-                    
                     p.body[0] = {x: p.x, y: p.y};
 
-                    // Re-calculate target length from score
                     let targetLen = p.score ? Math.floor(p.score / 2) + 30 : 45;
                     while(p.body.length < targetLen) p.body.push({x: p.x, y: p.y});
                     while(p.body.length > targetLen) p.body.pop();
@@ -561,8 +637,7 @@
                         }
                     }
 
-                    // --- MULTIPLAYER COLLISION CHECK ---
-                    // If local player's head hits opponent body
+                    // Player hits Multiplayer Opponent
                     for (let j = 2; j < p.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(snake.x - p.body[j].x, 2) + Math.pow(snake.y - p.body[j].y, 2));
                         if (dist < snake.currentRadius + 10) {
@@ -573,7 +648,7 @@
                 }
             }
 
-            // Food collision
+            // Food collision for Player
             for (let i = foods.length - 1; i >= 0; i--) {
                 let f = foods[i];
                 let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));
@@ -595,7 +670,16 @@
                 ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x, f.y, f.maxRadius, 0, Math.PI*2); ctx.fill();
             });
 
-            // Draw Opponent Players
+            // Draw Offline Bots
+            if (!isMultiplayerArena) {
+                bots.forEach(b => {
+                    for (let j = b.body.length - 1; j >= 0; j--) {
+                        drawSlitherSkin(ctx, b.body[j].x, b.body[j].y, 15, j, b.skin, j === 0, b.angle + Math.PI/2, b.isBoosting, config.effect);
+                    }
+                });
+            }
+
+            // Draw Multiplayer Opponents
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
                     let p = networkPlayers[id];
@@ -624,6 +708,8 @@
                 for (let id in networkPlayers) {
                     sortedScores.push({name: networkPlayers[id].name, score: networkPlayers[id].score});
                 }
+            } else {
+                bots.forEach(b => sortedScores.push({name: b.name, score: b.score}));
             }
             sortedScores.sort((a,b) => b.score - a.score);
 

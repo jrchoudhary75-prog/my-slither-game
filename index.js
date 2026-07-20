@@ -61,7 +61,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// Broadcast optimized state data continuously (30 FPS)
 setInterval(() => {
     io.emit('gameStateUpdate', players);
 }, 1000 / 30);

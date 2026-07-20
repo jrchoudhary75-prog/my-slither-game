@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Fixed Mechanics Edition</title>
+    <title>Slither.io Pro - Size Synced & Barrier Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
@@ -142,9 +142,7 @@
         let isMultiplayerArena = false;
         let networkPlayers = {};
 
-        const socket = io({
-            transports: ['websocket', 'polling']
-        });
+        const socket = io({ transports: ['websocket', 'polling'] });
 
         socket.on('gameStateUpdate', (serverPlayers) => {
             if (!isMultiplayerArena) return;
@@ -153,20 +151,22 @@
                     let sp = serverPlayers[id];
                     if (!networkPlayers[id]) {
                         let initBody = [];
-                        let len = sp.score ? Math.floor(sp.score / 2) + 30 : 45;
+                        let len = sp.length || 45;
                         for(let i=0; i<len; i++) initBody.push({x: sp.x, y: sp.y});
                         networkPlayers[id] = {
                             id: id, name: sp.name, skin: sp.skin,
                             x: sp.x, y: sp.y, targetX: sp.x, targetY: sp.y,
-                            angle: sp.angle, score: sp.score,
-                            body: initBody, radius: 15
+                            angle: sp.angle, score: sp.score, length: len,
+                            body: initBody, radius: sp.radius || 15
                         };
                     } else {
                         networkPlayers[id].targetX = sp.x;
                         networkPlayers[id].targetY = sp.y;
                         networkPlayers[id].angle = sp.angle;
                         networkPlayers[id].score = sp.score;
+                        networkPlayers[id].length = sp.length || networkPlayers[id].length;
                         networkPlayers[id].skin = sp.skin;
+                        networkPlayers[id].radius = sp.radius || 15;
                     }
                 }
             }
@@ -218,7 +218,13 @@
                         clearInterval(progressInterval);
                         clearInterval(logInterval);
                         setTimeout(() => {
-                            socket.emit('joinMultiplayer', { name: document.getElementById('player-nick').value, skin: config.skin });
+                            socket.emit('joinMultiplayer', { 
+                                name: document.getElementById('player-nick').value, 
+                                skin: config.skin,
+                                score: 100,
+                                length: 45,
+                                radius: 15
+                            });
                             startGame(true); 
                         }, 100);
                     }
@@ -336,6 +342,20 @@
             for (let y = Math.floor(viewTop / step) * step; y < viewBottom; y += step) {
                 ctx.beginPath(); ctx.moveTo(viewLeft, y); ctx.lineTo(viewRight, y); ctx.stroke();
             }
+
+            // --- RED GLOWING BARRIER CIRCLE (4000px Radius) ---
+            if (!isPreview) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(0, 0, MAP_RADIUS, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ff0055';
+                ctx.lineWidth = 14;
+                ctx.shadowColor = '#ff0055';
+                ctx.shadowBlur = 25;
+                ctx.stroke();
+                ctx.restore();
+            }
+
             ctx.restore();
         }
 
@@ -385,7 +405,7 @@
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d");
         
-        let MAP_RADIUS = 4000; // Fixed 4000px Map
+        const MAP_RADIUS = 4000; // Fixed 4000px Radius Boundary
         let isGameRunning = false;
         let mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
         let isBoosting = false;
@@ -413,15 +433,17 @@
         let snake, foods, bots, cameraScale;
 
         function createBot() {
-            let rx = (Math.random() - 0.5) * MAP_RADIUS * 1.8;
-            let ry = (Math.random() - 0.5) * MAP_RADIUS * 1.8;
+            let rAngle = Math.random() * Math.PI * 2;
+            let rDist = Math.random() * (MAP_RADIUS - 300);
+            let rx = Math.cos(rAngle) * rDist;
+            let ry = Math.sin(rAngle) * rDist;
+
             let bScore = Math.floor(Math.random()*300) + 50;
             let bLength = Math.floor(bScore / 2) + 30;
             
             let botBody = [];
             for(let k=0; k<bLength; k++) botBody.push({x: rx, y: ry});
 
-            // Speeds tuned per difficulty without boost
             let botSpeed = 3.5;
             if (config.difficulty === 'Easy') botSpeed = 2.5;
             if (config.difficulty === 'Hard') botSpeed = 5.0;
@@ -434,12 +456,10 @@
                 name: "AI_" + Math.floor(Math.random()*900), 
                 score: bScore, length: bLength, targetLength: bLength,
                 body: botBody, currentRadius: 15, 
-                speed: botSpeed,
-                changeDirTimer: 0
+                speed: botSpeed, changeDirTimer: 0
             };
         }
 
-        // Drop Food on Snake Death (Slither.io style)
         function convertBodyToFood(body) {
             for (let i = 0; i < body.length; i += 2) {
                 foods.push({
@@ -455,8 +475,10 @@
         function initGameData(multiplayerFlag) {
             isMultiplayerArena = multiplayerFlag;
 
-            let startX = (Math.random() - 0.5) * 1500;
-            let startY = (Math.random() - 0.5) * 1500;
+            let startAngle = Math.random() * Math.PI * 2;
+            let startDist = Math.random() * 1000;
+            let startX = Math.cos(startAngle) * startDist;
+            let startY = Math.sin(startAngle) * startDist;
 
             snake = { 
                 id: "player", name: document.getElementById('player-nick').value || "You", x: startX, y: startY, angle: -Math.PI / 2,
@@ -469,11 +491,9 @@
             
             cameraScale = 1.0; foods = [];
             
-            // High Density Food
             let foodCount = 2200;
             for (let i = 0; i < foodCount; i++) foods.push(createFood(true));
 
-            // Generate Offline AI Bots
             bots = [];
             if (!isMultiplayerArena) {
                 let totalBots = config.difficulty === 'Hard' ? 25 : (config.difficulty === 'Easy' ? 12 : 18);
@@ -501,6 +521,15 @@
             document.getElementById('leaderboard').style.display = 'none';
             document.getElementById('final-score-display').innerText = "Final Score: " + Math.floor(snake.score);
             showScreen('screen-gameover');
+        }
+
+        function enforceBarrier(entity) {
+            let dist = Math.hypot(entity.x, entity.y);
+            if (dist > MAP_RADIUS - entity.currentRadius) {
+                let angle = Math.atan2(entity.y, entity.x);
+                entity.x = Math.cos(angle) * (MAP_RADIUS - entity.currentRadius);
+                entity.y = Math.sin(angle) * (MAP_RADIUS - entity.currentRadius);
+            }
         }
 
         function runGameLoop() {
@@ -535,6 +564,9 @@
             snake.x += Math.cos(snake.angle) * currentSpeed;
             snake.y += Math.sin(snake.angle) * currentSpeed;
 
+            // Enforce 4000px Radius Barrier on Player
+            enforceBarrier(snake);
+
             let head = {x: snake.x, y: snake.y};
             snake.body[0] = head;
 
@@ -558,14 +590,19 @@
                 snake.body.pop();
             }
 
-            // Sync Local Position in Multiplayer Mode
+            // Sync Full Size Attributes to Server in Multiplayer
             if (isMultiplayerArena) {
                 socket.emit('updatePlayer', {
-                    x: snake.x, y: snake.y, angle: snake.angle, score: snake.score
+                    x: snake.x, 
+                    y: snake.y, 
+                    angle: snake.angle, 
+                    score: snake.score,
+                    length: Math.floor(snake.length),
+                    radius: snake.currentRadius
                 });
             }
 
-            // --- AI BOTS LOGIC (NO BOOST + COLLISION DEATH) ---
+            // --- AI BOTS LOGIC (OFFLINE MODE) ---
             if (!isMultiplayerArena) {
                 for (let bIdx = bots.length - 1; bIdx >= 0; bIdx--) {
                     let b = bots[bIdx];
@@ -589,6 +626,9 @@
                     b.x += Math.cos(b.angle) * b.speed;
                     b.y += Math.sin(b.angle) * b.speed;
 
+                    // Enforce Barrier on Bots
+                    enforceBarrier(b);
+
                     b.body[0] = {x: b.x, y: b.y};
                     for (let j = 1; j < b.body.length; j++) {
                         let dx = b.body[j].x - b.body[j-1].x;
@@ -606,12 +646,12 @@
                         let dist = Math.sqrt(Math.pow(b.x - f.x, 2) + Math.pow(b.y - f.y, 2));
                         if (dist < b.currentRadius + 6) {
                             b.score += f.value;
-                            b.targetLength += 0.2; // 5 foods = 1 segment
+                            b.targetLength += 0.2;
                             foods[fIdx] = createFood(false);
                         }
                     }
 
-                    // 1. Player Head Hits Bot Body -> Player Dies
+                    // Player Head Hits Bot Body -> Player Dies
                     for (let j = 2; j < b.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(snake.x - b.body[j].x, 2) + Math.pow(snake.y - b.body[j].y, 2));
                         if (dist < snake.currentRadius + 10) {
@@ -621,14 +661,14 @@
                         }
                     }
 
-                    // 2. Bot Head Hits Player Body -> BOT DIES & DROPS FOOD!
+                    // Bot Head Hits Player Body -> Bot Dies
                     let botDied = false;
                     for (let j = 2; j < snake.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(b.x - snake.body[j].x, 2) + Math.pow(b.y - snake.body[j].y, 2));
                         if (dist < b.currentRadius + 10) {
                             convertBodyToFood(b.body);
                             bots.splice(bIdx, 1);
-                            bots.push(createBot()); // Respawn new bot
+                            bots.push(createBot());
                             botDied = true;
                             break;
                         }
@@ -637,7 +677,7 @@
                 }
             }
 
-            // --- MULTIPLAYER OPPONENTS LOGIC ---
+            // --- MULTIPLAYER OPPONENTS LOGIC (ACCURATE SIZE SYNC) ---
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
                     let p = networkPlayers[id];
@@ -645,7 +685,7 @@
                     p.y += (p.targetY - p.y) * 0.25;
                     p.body[0] = {x: p.x, y: p.y};
 
-                    let targetLen = p.score ? Math.floor(p.score / 2) + 30 : 45;
+                    let targetLen = p.length || 45;
                     while(p.body.length < targetLen) p.body.push({x: p.x, y: p.y});
                     while(p.body.length > targetLen) p.body.pop();
 
@@ -659,7 +699,7 @@
                         }
                     }
 
-                    // Player hits Opponent Body
+                    // Player Head Hits Opponent Body
                     for (let j = 2; j < p.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(snake.x - p.body[j].x, 2) + Math.pow(snake.y - p.body[j].y, 2));
                         if (dist < snake.currentRadius + 10) {
@@ -677,7 +717,7 @@
                 let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));
                 if (dist < snake.currentRadius + 8) {
                     snake.score += f.value;
-                    snake.targetLength += 0.2; // Exactly 5 foods = 1 Segment
+                    snake.targetLength += 0.2; // 5 foods = 1 segment
                     foods[i] = createFood(false);
                 }
             }
@@ -697,18 +737,19 @@
             if (!isMultiplayerArena) {
                 bots.forEach(b => {
                     for (let j = b.body.length - 1; j >= 0; j--) {
-                        drawSlitherSkin(ctx, b.body[j].x, b.body[j].y, 15, j, b.skin, j === 0, b.angle + Math.PI/2, false, config.effect);
+                        drawSlitherSkin(ctx, b.body[j].x, b.body[j].y, b.currentRadius, j, b.skin, j === 0, b.angle + Math.PI/2, false, config.effect);
                     }
                 });
             }
 
-            // Draw Multiplayer Opponents
+            // Draw Multiplayer Opponents (Synced Radius & Length)
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
                     let p = networkPlayers[id];
                     if (p.body && p.body.length > 0) {
+                        let drawRadius = p.radius || 15;
                         for (let j = p.body.length - 1; j >= 0; j--) {
-                            drawSlitherSkin(ctx, p.body[j].x, p.body[j].y, 15, j, p.skin, j === 0, p.angle + Math.PI/2, false, config.effect);
+                            drawSlitherSkin(ctx, p.body[j].x, p.body[j].y, drawRadius, j, p.skin, j === 0, p.angle + Math.PI/2, false, config.effect);
                         }
                     }
                 }
@@ -724,7 +765,7 @@
             document.getElementById('hud-score').innerText = "Score: " + Math.floor(snake.score);
             document.getElementById('hud-length').innerText = "Length: " + Math.floor(snake.length) + " segments";
 
-            // Live Leaderboard Update
+            // Leaderboard
             let sortedScores = [];
             sortedScores.push({name: snake.name, score: snake.score, isLocal: true});
             if (isMultiplayerArena) {
@@ -748,10 +789,11 @@
 
         function createFood(isInitial = false) {
             let maxRadius = Math.random() * 2 + 4;
-            let range = isInitial ? MAP_RADIUS * 1.8 : MAP_RADIUS * 1.8;
+            let rAngle = Math.random() * Math.PI * 2;
+            let rDist = Math.random() * (MAP_RADIUS - 100);
             return {
-                x: (Math.random() - 0.5) * range,
-                y: (Math.random() - 0.5) * range,
+                x: Math.cos(rAngle) * rDist,
+                y: Math.sin(rAngle) * rDist,
                 color: `hsl(${Math.random()*360},100%, 65%)`,
                 maxRadius: maxRadius, value: Math.floor(maxRadius * 2)
             };

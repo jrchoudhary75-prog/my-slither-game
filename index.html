@@ -427,7 +427,6 @@
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d");
         
-        // CHANGE: Dynamic Map Radius Set Kiya (Multiplayer: 800px, Offline: 3000px)
         let MAP_RADIUS = 3000; 
         let isGameRunning = false;
         let mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
@@ -443,8 +442,8 @@
         function initGameData(multiplayerFlag) {
             isMultiplayerArena = multiplayerFlag;
             
-            // MAP SIZE ADJUSTMENT FOR MULTIPLAYER MODE (800 pixels)
-            MAP_RADIUS = isMultiplayerArena ? 800 : 3000;
+            // MAP SIZE ADJUSTMENT FOR MULTIPLAYER MODE (12000 pixels wide / 6000 radius)
+            MAP_RADIUS = isMultiplayerArena ? 6000 : 3000;
 
             snake = { 
                 id: "player", name: document.getElementById('player-nick').value || "You", x: 0, y: 0, angle: -Math.PI / 2,
@@ -457,8 +456,8 @@
             
             cameraScale = 1.0; foods = [];
             
-            // Food count adjusted to match map size perfectly
-            let foodCount = isMultiplayerArena ? 250 : 800;
+            // Food count adjusted for large map size
+            let foodCount = isMultiplayerArena ? 2500 : 800;
             for (let i = 0; i < foodCount; i++) foods.push(createFood(true));
 
             bots = [];

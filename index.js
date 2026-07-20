@@ -38,7 +38,7 @@ const players = {};
 io.on('connection', (socket) => {
     console.log(`[+] Client Connected: ${socket.id}`);
 
-    // Handle Player Join with complete initial size sync
+    // Handle Player Join with Equal Base Properties
     socket.on('joinMultiplayer', (data) => {
         const randomAngle = Math.random() * Math.PI * 2;
         const randomDist = Math.random() * (MAP_RADIUS - 300);
@@ -58,13 +58,13 @@ io.on('connection', (socket) => {
         console.log(`[+] Arena Joined: ${players[socket.id].name} (${socket.id})`);
     });
 
-    // Handle Realtime Movement, Size Sync, and Boundary Clamp
+    // Handle Realtime Movement and Position Sync
     socket.on('updatePlayer', (data) => {
         if (players[socket.id]) {
             let newX = data.x;
             let newY = data.y;
 
-            // --- 4000px RADIUS BARRIER SERVER ENFORCEMENT ---
+            // 4000px Boundary Clamp
             const distFromCenter = Math.hypot(newX, newY);
             if (distFromCenter > MAP_RADIUS - 15) {
                 const angle = Math.atan2(newY, newX);
@@ -72,7 +72,6 @@ io.on('connection', (socket) => {
                 newY = Math.sin(angle) * (MAP_RADIUS - 15);
             }
 
-            // Sync updated state and exact player size
             players[socket.id].x = newX;
             players[socket.id].y = newY;
             players[socket.id].angle = data.angle;
@@ -82,15 +81,23 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Handle Explicit Death Notification
+    socket.on('playerDied', () => {
+        if (players[socket.id]) {
+            console.log(`[-] Player Died in Arena: ${players[socket.id].name}`);
+            delete players[socket.id];
+        }
+    });
+
     socket.on('disconnect', () => {
         console.log(`[-] Client Disconnected: ${socket.id}`);
         delete players[socket.id];
     });
 });
 
-// Broadcast game state to all clients at 30 FPS
+// Broadcast game state at optimized 30 FPS
 setInterval(() => {
-    io.emit('gameStateUpdate', players);
+    io.emit('gameStateUpdate', { players: players });
 }, 1000 / 30);
 
 server.listen(PORT, '0.0.0.0', () => {

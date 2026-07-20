@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Size Synced & Barrier Edition</title>
+    <title>Slither.io Pro - High FPS Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
@@ -58,7 +58,7 @@
     <div id="screen-splash" class="ui-screen">
         <h1>SLITHER PRO</h1>
         <div class="loader-container"><div id="loader" class="loader-bar"></div></div>
-        <p style="color: #4b5563; font-size: 0.8rem; margin-top: 15px; letter-spacing: 2px;">SYNCING ARENA CONTEXT...</p>
+        <p style="color: #4b5563; font-size: 0.8rem; margin-top: 15px; letter-spacing: 2px;">OPTIMIZING ENGINE...</p>
     </div>
 
     <div id="screen-main" class="ui-screen hidden">
@@ -144,8 +144,11 @@
 
         const socket = io({ transports: ['websocket', 'polling'] });
 
-        socket.on('gameStateUpdate', (serverPlayers) => {
+        // Synchronize Server Sync & Multiplayer Death Food Spawn
+        socket.on('gameStateUpdate', (data) => {
             if (!isMultiplayerArena) return;
+            let serverPlayers = data.players || data;
+            
             for (let id in serverPlayers) {
                 if (id !== socket.id) {
                     let sp = serverPlayers[id];
@@ -170,8 +173,20 @@
                     }
                 }
             }
+
+            // If player disconnects or dies in multiplayer, turn body to food locally
             for (let id in networkPlayers) {
-                if (!serverPlayers[id]) delete networkPlayers[id];
+                if (!serverPlayers[id]) {
+                    if (networkPlayers[id].body) {
+                        convertBodyToFood(networkPlayers[id].body);
+                    }
+                    delete networkPlayers[id];
+                }
+            }
+
+            // Sync shared multiplayer foods if provided by server
+            if (data.serverFoods) {
+                foods = data.serverFoods;
             }
         });
 
@@ -261,51 +276,35 @@
             }
         }
 
+        // Lightweight Optimized Rendering Function
         function drawSlitherSkin(ctx, x, y, radius, index, skinName, isHead, angle = 0, auraActive = false, auraType = 'Plasma Glow') {
             ctx.save();
             ctx.translate(x, y);
 
             if (auraActive && !isMobile) {
-                ctx.save(); ctx.globalAlpha = 0.45; ctx.shadowBlur = radius * 1.5;
-                if (auraType === 'Plasma Glow') { ctx.fillStyle = '#00ffff'; ctx.shadowColor = '#00ffff'; }
-                else if (auraType === 'Fire Storm') { ctx.fillStyle = '#ff3300'; ctx.shadowColor = '#ffaa00'; }
-                else { ctx.fillStyle = '#ff00aa'; ctx.shadowColor = '#ff00aa'; }
-                ctx.beginPath(); ctx.arc(0, 0, radius * 1.35, 0, Math.PI * 2); ctx.fill();
+                ctx.save(); ctx.globalAlpha = 0.3;
+                ctx.fillStyle = (auraType === 'Plasma Glow') ? '#00ffff' : ((auraType === 'Fire Storm') ? '#ff3300' : '#ff00aa');
+                ctx.beginPath(); ctx.arc(0, 0, radius * 1.3, 0, Math.PI * 2); ctx.fill();
                 ctx.restore();
-            }
-
-            if (!isMobile) {
-                ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
-                ctx.shadowBlur = 6;
             }
 
             if (skinName === 'Neon Stripe') {
                 ctx.fillStyle = (index % 4 < 2) ? '#00ffaa' : '#0066ff';
-                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
             } else if (skinName === 'Cosmic Polka') {
                 ctx.fillStyle = '#6d28d9';
-                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(-radius*0.2, -radius*0.2, radius*0.25, 0, Math.PI*2); ctx.fill();
             } else if (skinName === 'Magma Flow') {
-                let grad = ctx.createRadialGradient(-radius*0.2, -radius*0.2, radius*0.1, 0, 0, radius);
-                grad.addColorStop(0, '#facc15'); grad.addColorStop(1, '#450a0a');
-                ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#facc15';
             } else if (skinName === 'Cyber Grid') {
-                ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.5;
-                ctx.beginPath(); ctx.moveTo(-radius, 0); ctx.lineTo(radius, 0); ctx.stroke();
+                ctx.fillStyle = '#0f172a';
             } else if (skinName === 'Glow Phantom') {
-                ctx.fillStyle = (index % 6 < 3) ? 'rgba(0, 255, 200, 0.8)' : 'rgba(10, 20, 40, 0.9)';
-                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = '#00ffc8'; ctx.lineWidth = 1; ctx.stroke();
+                ctx.fillStyle = (index % 6 < 3) ? '#00ffc8' : '#0a1428';
             } else if (skinName === 'Void Nebula') {
-                let grad = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
-                grad.addColorStop(0, '#ec4899'); grad.addColorStop(0.5, '#3b82f6'); grad.addColorStop(1, '#1e1b4b');
-                ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
-            } else if (skinName === 'Rainbow Pulse') {
-                ctx.fillStyle = `hsl(${(index * 15 + Date.now()/20) % 360}, 90%, 60%)`;
-                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#ec4899';
+            } else {
+                ctx.fillStyle = `hsl(${(index * 15 + Date.now()/30) % 360}, 90%, 60%)`;
             }
+            
+            ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
 
             if (isHead) {
                 ctx.rotate(angle); ctx.fillStyle = '#fff';
@@ -328,14 +327,12 @@
             let viewTop = isPreview ? 0 : snakeY - canvas.height / scale;
             let viewBottom = isPreview ? height : snakeY + canvas.height / scale;
 
-            if (mapName === 'Standard Grid') ctx.fillStyle = localBoostState ? '#0c0717' : '#0a0a1f';
-            else if (mapName === 'Deep Space Void') ctx.fillStyle = localBoostState ? '#0a0004' : '#020205';
-            else ctx.fillStyle = localBoostState ? '#0d0202' : '#05070a';
+            ctx.fillStyle = (mapName === 'Standard Grid') ? '#0a0a1f' : ((mapName === 'Deep Space Void') ? '#020205' : '#05070a');
             ctx.fillRect(viewLeft, viewTop, viewRight-viewLeft, viewBottom-viewTop);
 
-            ctx.strokeStyle = localBoostState ? 'rgba(0, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.04)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
             ctx.lineWidth = 1;
-            let step = isPreview ? 35 : 120;
+            let step = isPreview ? 35 : 150;
             for (let x = Math.floor(viewLeft / step) * step; x < viewRight; x += step) {
                 ctx.beginPath(); ctx.moveTo(x, viewTop); ctx.lineTo(x, viewBottom); ctx.stroke();
             }
@@ -343,17 +340,12 @@
                 ctx.beginPath(); ctx.moveTo(viewLeft, y); ctx.lineTo(viewRight, y); ctx.stroke();
             }
 
-            // --- RED GLOWING BARRIER CIRCLE (4000px Radius) ---
             if (!isPreview) {
-                ctx.save();
                 ctx.beginPath();
                 ctx.arc(0, 0, MAP_RADIUS, 0, Math.PI * 2);
                 ctx.strokeStyle = '#ff0055';
-                ctx.lineWidth = 14;
-                ctx.shadowColor = '#ff0055';
-                ctx.shadowBlur = 25;
+                ctx.lineWidth = 10;
                 ctx.stroke();
-                ctx.restore();
             }
 
             ctx.restore();
@@ -403,9 +395,9 @@
         }
 
         const canvas = document.getElementById("game");
-        const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d", { alpha: false });
         
-        const MAP_RADIUS = 4000; // Fixed 4000px Radius Boundary
+        const MAP_RADIUS = 4000;
         let isGameRunning = false;
         let mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
         let isBoosting = false;
@@ -460,11 +452,13 @@
             };
         }
 
+        // Convert Snake Body to Glowing Foods on Death
         function convertBodyToFood(body) {
+            if(!body) return;
             for (let i = 0; i < body.length; i += 2) {
                 foods.push({
-                    x: body[i].x + (Math.random() - 0.5) * 10,
-                    y: body[i].y + (Math.random() - 0.5) * 10,
+                    x: body[i].x + (Math.random() - 0.5) * 12,
+                    y: body[i].y + (Math.random() - 0.5) * 12,
                     color: `hsl(${Math.random()*360}, 100%, 75%)`,
                     maxRadius: Math.random() * 3 + 6,
                     value: 2
@@ -480,10 +474,12 @@
             let startX = Math.cos(startAngle) * startDist;
             let startY = Math.sin(startAngle) * startDist;
 
+            // EQUAL MULTIPLAYER SPEED (Normal 3.5, Boost 7.0)
             snake = { 
                 id: "player", name: document.getElementById('player-nick').value || "You", x: startX, y: startY, angle: -Math.PI / 2,
                 currentRadius: 15, 
-                normalSpeed: 3.5, boostSpeed: 7.0, 
+                normalSpeed: 3.5, 
+                boostSpeed: 7.0, 
                 maxTurnSpeed: 0.08, 
                 body: [], length: 45, targetLength: 45, score: 100, isDead: false 
             };
@@ -491,12 +487,12 @@
             
             cameraScale = 1.0; foods = [];
             
-            let foodCount = 2200;
+            let foodCount = isMobile ? 1200 : 2000;
             for (let i = 0; i < foodCount; i++) foods.push(createFood(true));
 
             bots = [];
             if (!isMultiplayerArena) {
-                let totalBots = config.difficulty === 'Hard' ? 25 : (config.difficulty === 'Easy' ? 12 : 18);
+                let totalBots = config.difficulty === 'Hard' ? 22 : (config.difficulty === 'Easy' ? 10 : 15);
                 for (let i = 0; i < totalBots; i++) {
                     bots.push(createBot());
                 }
@@ -564,7 +560,6 @@
             snake.x += Math.cos(snake.angle) * currentSpeed;
             snake.y += Math.sin(snake.angle) * currentSpeed;
 
-            // Enforce 4000px Radius Barrier on Player
             enforceBarrier(snake);
 
             let head = {x: snake.x, y: snake.y};
@@ -590,7 +585,7 @@
                 snake.body.pop();
             }
 
-            // Sync Full Size Attributes to Server in Multiplayer
+            // Sync Multi Player Position & Equal Speed Properties
             if (isMultiplayerArena) {
                 socket.emit('updatePlayer', {
                     x: snake.x, 
@@ -602,7 +597,7 @@
                 });
             }
 
-            // --- AI BOTS LOGIC (OFFLINE MODE) ---
+            // --- AI BOTS LOGIC ---
             if (!isMultiplayerArena) {
                 for (let bIdx = bots.length - 1; bIdx >= 0; bIdx--) {
                     let b = bots[bIdx];
@@ -626,7 +621,6 @@
                     b.x += Math.cos(b.angle) * b.speed;
                     b.y += Math.sin(b.angle) * b.speed;
 
-                    // Enforce Barrier on Bots
                     enforceBarrier(b);
 
                     b.body[0] = {x: b.x, y: b.y};
@@ -640,7 +634,6 @@
                         }
                     }
 
-                    // Bot eats food
                     for (let fIdx = foods.length - 1; fIdx >= 0; fIdx--) {
                         let f = foods[fIdx];
                         let dist = Math.sqrt(Math.pow(b.x - f.x, 2) + Math.pow(b.y - f.y, 2));
@@ -651,7 +644,7 @@
                         }
                     }
 
-                    // Player Head Hits Bot Body -> Player Dies
+                    // Player Head Hits Bot Body -> Player Dies & Drops Food
                     for (let j = 2; j < b.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(snake.x - b.body[j].x, 2) + Math.pow(snake.y - b.body[j].y, 2));
                         if (dist < snake.currentRadius + 10) {
@@ -661,7 +654,7 @@
                         }
                     }
 
-                    // Bot Head Hits Player Body -> Bot Dies
+                    // Bot Head Hits Player Body -> Bot Dies & Drops Food
                     let botDied = false;
                     for (let j = 2; j < snake.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(b.x - snake.body[j].x, 2) + Math.pow(b.y - snake.body[j].y, 2));
@@ -677,7 +670,7 @@
                 }
             }
 
-            // --- MULTIPLAYER OPPONENTS LOGIC (ACCURATE SIZE SYNC) ---
+            // --- MULTIPLAYER COLLISION & DEATH FOOD DROP LOGIC ---
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
                     let p = networkPlayers[id];
@@ -699,11 +692,12 @@
                         }
                     }
 
-                    // Player Head Hits Opponent Body
+                    // Local Player Collides with Multi-Player Body -> Local Player Dies
                     for (let j = 2; j < p.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(snake.x - p.body[j].x, 2) + Math.pow(snake.y - p.body[j].y, 2));
                         if (dist < snake.currentRadius + 10) {
                             convertBodyToFood(snake.body);
+                            socket.emit('playerDied');
                             triggerGameOver();
                             return;
                         }
@@ -711,13 +705,13 @@
                 }
             }
 
-            // Player Food Collection (5 Foods = 1 Segment)
+            // Food Collection
             for (let i = foods.length - 1; i >= 0; i--) {
                 let f = foods[i];
                 let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));
                 if (dist < snake.currentRadius + 8) {
                     snake.score += f.value;
-                    snake.targetLength += 0.2; // 5 foods = 1 segment
+                    snake.targetLength += 0.2;
                     foods[i] = createFood(false);
                 }
             }
@@ -729,27 +723,43 @@
             ctx.scale(cameraScale, cameraScale);
             ctx.translate(-snake.x, -snake.y);
 
+            // FPS OPTIMIZATION: Only render objects visible in screen view frustum
+            let margin = 100;
+            let vLeft = snake.x - canvas.width / 2 - margin;
+            let vRight = snake.x + canvas.width / 2 + margin;
+            let vTop = snake.y - canvas.height / 2 - margin;
+            let vBottom = snake.y + canvas.height / 2 + margin;
+
+            // Render Visible Foods
             foods.forEach(f => {
-                ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x, f.y, f.maxRadius, 0, Math.PI*2); ctx.fill();
+                if (f.x >= vLeft && f.x <= vRight && f.y >= vTop && f.y <= vBottom) {
+                    ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x, f.y, f.maxRadius, 0, Math.PI*2); ctx.fill();
+                }
             });
 
             // Draw Offline Bots
             if (!isMultiplayerArena) {
                 bots.forEach(b => {
                     for (let j = b.body.length - 1; j >= 0; j--) {
-                        drawSlitherSkin(ctx, b.body[j].x, b.body[j].y, b.currentRadius, j, b.skin, j === 0, b.angle + Math.PI/2, false, config.effect);
+                        let bx = b.body[j].x, by = b.body[j].y;
+                        if (bx >= vLeft && bx <= vRight && by >= vTop && by <= vBottom) {
+                            drawSlitherSkin(ctx, bx, by, b.currentRadius, j, b.skin, j === 0, b.angle + Math.PI/2, false, config.effect);
+                        }
                     }
                 });
             }
 
-            // Draw Multiplayer Opponents (Synced Radius & Length)
+            // Draw Multiplayer Opponents
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
                     let p = networkPlayers[id];
                     if (p.body && p.body.length > 0) {
                         let drawRadius = p.radius || 15;
                         for (let j = p.body.length - 1; j >= 0; j--) {
-                            drawSlitherSkin(ctx, p.body[j].x, p.body[j].y, drawRadius, j, p.skin, j === 0, p.angle + Math.PI/2, false, config.effect);
+                            let px = p.body[j].x, py = p.body[j].y;
+                            if (px >= vLeft && px <= vRight && py >= vTop && py <= vBottom) {
+                                drawSlitherSkin(ctx, px, py, drawRadius, j, p.skin, j === 0, p.angle + Math.PI/2, false, config.effect);
+                            }
                         }
                     }
                 }

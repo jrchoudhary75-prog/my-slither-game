@@ -7,7 +7,7 @@ const fs = require('fs');
 const app = express();
 const server = http.createServer(app);
 
-// Socket.io initialization with high-performance real-time flags
+// Low-latency socket initialization
 const io = new Server(server, {
     cors: { 
         origin: "*", 
@@ -20,12 +20,12 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3000;
 const publicPath = path.join(__dirname, 'public');
 
-// Serve static assets from 'public' directory if it exists
+// Static files server setup
 if (fs.existsSync(publicPath)) {
     app.use(express.static(publicPath));
 }
 
-// Serve index.html as the primary entry point
+// Default route to load index.html
 app.get('/', (req, res) => {
     const htmlInPublic = path.join(publicPath, 'index.html');
     const htmlInRoot = path.join(__dirname, 'index.html');
@@ -42,15 +42,15 @@ app.get('/', (req, res) => {
 const MAP_RADIUS = 4000;
 const players = {};
 
-// Socket.io Connection & Event Handling
+// Socket events for Multiplayer Mode
 io.on('connection', (socket) => {
 
-    // Ping-Pong handler for ping measurement
+    // Ping test response
     socket.on('pingTest', () => {
         socket.emit('pongTest');
     });
 
-    // Handle Player Joining Multiplayer Session
+    // Multiplayer Join Handler
     socket.on('joinMultiplayer', (data) => {
         const randomAngle = Math.random() * Math.PI * 2;
         const randomDist = Math.random() * (MAP_RADIUS - 400);
@@ -70,13 +70,13 @@ io.on('connection', (socket) => {
         };
     });
 
-    // Handle Real-Time Position & Movement Sync
+    // Real-Time Position & Movement Synchronization
     socket.on('updatePlayer', (data) => {
         if (players[socket.id]) {
             let newX = data.x;
             let newY = data.y;
 
-            // Strict Server-Side Map Barrier Check
+            // Server-side boundary validation
             const distFromCenter = Math.hypot(newX, newY);
             if (distFromCenter > MAP_RADIUS - 15) {
                 const angle = Math.atan2(newY, newX);
@@ -94,7 +94,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Handle Player Elimination / Disconnects
+    // Handle Player Death / Disconnects
     socket.on('playerDied', () => {
         if (players[socket.id]) {
             delete players[socket.id];
@@ -106,15 +106,15 @@ io.on('connection', (socket) => {
     });
 });
 
-// Broadcast Real-time Game State Updates to all clients (30 Updates per Second)
+// Broadcast state updates at 30 FPS to all connected clients
 setInterval(() => {
     io.volatile.emit('gameStateUpdate', { players: players });
 }, 1000 / 30);
 
-// Start the Slither Server Engine
+// Start server
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`====================================================`);
-    console.log(`🚀 Slither Engine Server Active on Port: ${PORT}`);
-    console.log(`🌐 Local Web Interface: http://localhost:${PORT}`);
+    console.log(`🔥 GOD MODE Slither Server Live on Port: ${PORT}`);
+    console.log(`🌐 Play in Browser: http://localhost:${PORT}`);
     console.log(`====================================================`);
 });

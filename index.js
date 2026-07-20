@@ -7,7 +7,7 @@ const fs = require('fs');
 const app = express();
 const server = http.createServer(app);
 
-// Socket.io with CORS & Transports (Render production ke liye safe)
+// CORS and WebSockets optimization
 const io = new Server(server, {
     cors: {
         origin: "*",
@@ -16,18 +16,14 @@ const io = new Server(server, {
     transports: ['websocket', 'polling']
 });
 
-// Render dynamic port provide karta hai process.env.PORT se
 const PORT = process.env.PORT || 3000;
-
-// Path Setup: Static files ke liye
 const publicPath = path.join(__dirname, 'public');
 
-// Static files serve karein agar 'public' folder ho
+// Static assets serve logic
 if (fs.existsSync(publicPath)) {
     app.use(express.static(publicPath));
 }
 
-// Main route handler: Chahe HTML file root par ho ya 'public/' folder mein, auto-detect kar lega
 app.get('/', (req, res) => {
     const htmlInPublic = path.join(publicPath, 'index.html');
     const htmlInRoot = path.join(__dirname, 'index.html');
@@ -37,17 +33,26 @@ app.get('/', (req, res) => {
     } else if (fs.existsSync(htmlInRoot)) {
         res.sendFile(htmlInRoot);
     } else {
-        res.status(404).send('<h1>Error: index.html file nahi mili! Check project folder structure.</h1>');
+        res.status(404).send('<h1>Error: index.html missing! Please check file placement.</h1>');
     }
 });
 
-// Multiplayer players memory store
+// Spatial Hashing Arena Configs
+const MAP_RADIUS = 6000; // 12,000px Arena Size
+const CHUNK_SIZE = 1000; // Spatial Hashing Chunk Size
+
 const players = {};
 
-io.on('connection', (socket) => {
-    console.log(`[+] Player Joined: ${socket.id}`);
+// Helper: Get Chunk Key via X, Y position
+function getChunkKey(x, y) {
+    const chunkX = Math.floor((x + MAP_RADIUS) / CHUNK_SIZE);
+    const chunkY = Math.floor((y + MAP_RADIUS) / CHUNK_SIZE);
+    return `${chunkX}_${chunkY}`;
+}
 
-    // Jab player multiplayer mode select karke enter kare
+io.on('connection', (socket) => {
+    console.log(`[+] New Connection: ${socket.id}`);
+
     socket.on('joinMultiplayer', (data) => {
         players[socket.id] = {
             id: socket.id,
@@ -57,38 +62,65 @@ io.on('connection', (socket) => {
             y: 0,
             angle: 0,
             score: 100,
-            body: []
+            body: [],
+            chunkKey: getChunkKey(0, 0)
         };
-        console.log(`[+] Arena Active: ${players[socket.id].name} (${socket.id})`);
+        console.log(`[+] Arena Joined: ${players[socket.id].name} (${socket.id})`);
     });
 
-    // Player Movement & Body Sync Update
     socket.on('updatePlayer', (data) => {
-        if (players[socket.id]) {
-            players[socket.id].x = data.x;
-            players[socket.id].y = data.y;
-            players[socket.id].angle = data.angle;
-            players[socket.id].body = data.body;
-            players[socket.id].score = data.score;
+        const p = players[socket.id];
+        if (p) {
+            p.x = data.x;
+            p.y = data.y;
+            p.angle = data.angle;
+            p.body = data.body;
+            p.score = data.score;
+            p.chunkKey = getChunkKey(data.x, data.y);
         }
     });
 
-    // Handle Disconnect
     socket.on('disconnect', () => {
-        console.log(`[-] Player Left: ${socket.id}`);
+        console.log(`[-] Disconnected: ${socket.id}`);
         delete players[socket.id];
     });
 });
 
-// Game State Broadcast Loop (30 FPS Sync)
+// High-Performance Chunk Broadcast Loop (30 FPS)
 setInterval(() => {
-    io.emit('gameStateUpdate', players);
+    const socketIds = Object.keys(players);
+
+    socketIds.forEach(id => {
+        const p = players[id];
+        const clientSocket = io.sockets.sockets.get(id);
+        if (!clientSocket) return;
+
+        // Player ke current chunk ke aaspas ke 9 grid chunks filter karein
+        const pChunkX = Math.floor((p.x + MAP_RADIUS) / CHUNK_SIZE);
+        const pChunkY = Math.floor((p.y + MAP_RADIUS) / CHUNK_SIZE);
+
+        const visiblePlayers = {};
+
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                const targetChunk = `${pChunkX + dx}_${pChunkY + dy}`;
+                
+                for (let otherId in players) {
+                    if (players[otherId].chunkKey === targetChunk) {
+                        visiblePlayers[otherId] = players[otherId];
+                    }
+                }
+            }
+        }
+
+        // Send optimized viewport data to individual client
+        clientSocket.emit('gameStateUpdate', visiblePlayers);
+    });
 }, 1000 / 30);
 
-// Host on 0.0.0.0 (Important for Render hosting)
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`=================================`);
-    console.log(`🚀 Slither Pro Server is Live!`);
-    console.log(`🌐 Running on Port: ${PORT}`);
+    console.log(`🚀 Slither Pro Engine Running!`);
+    console.log(`🌐 Port: ${PORT}`);
     console.log(`=================================`);
 });

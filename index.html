@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Multiplayer Arena Edition</title>
+    <title>Slither.io Pro - Spatial Chunked Arena Edition</title>
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; }
         canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
@@ -61,35 +61,29 @@
         .lb-row { display: flex; justify-content: space-between; margin: 4px 0; color: #cbd5e1; }
         .lb-row.active-player { color: #00ffaa; font-weight: bold; }
         
-        #killfeed { position: absolute; top: 260px; right: 20px; z-index: 5; width: 250px; pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
-        
         .name-input { padding: 12px; width: 315px; border-radius: 12px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1.1rem; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <!-- 1. SPLASH SCREEN -->
     <div id="screen-splash" class="ui-screen">
         <h1>SLITHER PRO</h1>
         <div class="loader-container"><div id="loader" class="loader-bar"></div></div>
         <p style="color: #4b5563; font-size: 0.9rem; margin-top: 15px; letter-spacing: 2px;">SYNCING ARENA CONTEXT...</p>
     </div>
 
-    <!-- 2. MAIN MENU SCREEN -->
     <div id="screen-main" class="ui-screen hidden">
         <h1>SLITHER PRO</h1>
         <div class="btn" onclick="openCustomization('offline')">Play Offline</div>
         <div class="btn" onclick="openCustomization('multiplayer')">Multiplayer Mode</div>
     </div>
 
-    <!-- MULTIPLAYER SYNCING TERMINAL -->
     <div id="screen-multiplayer-load" class="ui-screen hidden">
-        <h2 style="color: #00bfff;">Connecting To Global Clusters</h2>
+        <h2 style="color: #00bfff;">Connecting To Spatial Grid Node</h2>
         <div id="server-console-box"></div>
         <div class="loader-container" style="width: 450px;"><div id="mp-loader" class="loader-bar" style="background:linear-gradient(90deg, #00bfff, #ff00aa)"></div></div>
     </div>
 
-    <!-- 3. CONFIGURATION ARENA SETUP -->
     <div id="screen-offline" class="ui-screen hidden">
         <h2 id="setup-title">Snake Customization</h2>
         <input type="text" id="player-nick" class="name-input" placeholder="Enter Nickname" value="Player_1">
@@ -132,7 +126,6 @@
         </div>
     </div>
 
-    <!-- 4. GAME OVER PANEL -->
     <div id="screen-gameover" class="ui-screen hidden">
         <h1 id="gameover-title" style="background: linear-gradient(45deg, #ff3333, #ff7700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 4.5rem;">GAME OVER</h1>
         <p id="final-score-display" style="font-size: 1.6rem; color: #cbd5e1; margin: 0 0 25px 0;">Final Score: 0</p>
@@ -140,7 +133,6 @@
         <div class="btn" style="background: #241414; border-color: #4a2929;" onclick="showScreen('screen-main')">Main Menu</div>
     </div>
 
-    <!-- HUD & LEADERBOARD PANELS -->
     <div id="hud">
         <div id="hud-score" style="font-size: 24px; font-weight: 800; color: #00ffaa;">Score: 0</div>
         <div id="hud-length" style="color: #94a3b8; font-size: 14px; margin-top: 2px;">Length: 45 segments</div>
@@ -150,8 +142,6 @@
         <div class="lb-title">Global Top 10</div>
         <div id="lb-content"></div>
     </div>
-
-    <div id="killfeed"></div>
 
     <canvas id="game"></canvas>
 
@@ -167,7 +157,10 @@
         let isMultiplayerArena = false;
         let networkPlayers = {};
 
-        const socket = io();
+        // Ultra-low latency socket configuration
+        const socket = io({
+            transports: ['websocket', 'polling']
+        });
 
         socket.on('gameStateUpdate', (players) => {
             networkPlayers = players;
@@ -188,12 +181,11 @@
         }
 
         const consoleLogs = [
-            "> Initializing sockets architecture...",
-            "> Pinging multi-region nodes [Local-Node-3000]...",
-            "> Server responded in 4ms. Connected.",
-            "> Allocating arena allocation slots...",
-            "> Fetching global leaderboard configurations...",
-            "> Handshake acknowledged! Preparing gateway entry..."
+            "> Initializing Spatial Grid system...",
+            "> Allocation Chunk Bounds [12,000 x 12,000 px]...",
+            "> Pinging multi-region WebSocket node...",
+            "> Spatial Hashing Handler active.",
+            "> Connecting client to nearest grid neighbor..."
         ];
 
         function launchSelectedMode() {
@@ -208,7 +200,7 @@
                         consoleBox.innerHTML += consoleLogs[logIndex] + "<br/>";
                         logIndex++;
                     }
-                }, 2000 / consoleLogs.length);
+                }, 1500 / consoleLogs.length);
 
                 let progress = 0;
                 let mpLoader = document.getElementById('mp-loader');
@@ -220,10 +212,10 @@
                         setTimeout(() => {
                             socket.emit('joinMultiplayer', { name: document.getElementById('player-nick').value, skin: config.skin });
                             startGame(true); 
-                        }, 200);
+                        }, 150);
                     }
                     mpLoader.style.width = progress + '%';
-                }, 50);
+                }, 40);
             } else {
                 startGame(false);
             }
@@ -231,13 +223,13 @@
 
         let loadProgress = 0;
         const loaderInterval = setInterval(() => {
-            loadProgress += 4;
+            loadProgress += 5;
             if (loadProgress >= 100) {
                 clearInterval(loaderInterval);
-                setTimeout(() => showScreen('screen-main'), 300);
+                setTimeout(() => showScreen('screen-main'), 200);
             }
             document.getElementById('loader').style.width = loadProgress + '%';
-        }, 30);
+        }, 20);
 
         function changeSetting(type) {
             if(type === 'difficulty') {
@@ -255,7 +247,6 @@
             }
         }
 
-        // --- SKIN DRAWING RENDERS ---
         function drawSlitherSkin(ctx, x, y, radius, index, skinName, isHead, angle = 0, auraActive = false, auraType = 'Plasma Glow') {
             ctx.save();
             ctx.translate(x, y);
@@ -310,7 +301,6 @@
             ctx.restore();
         }
 
-        // --- PARTICLE SYSTEM ---
         let particles = []; let previewParticles = [];
 
         function spawnFullBodyVisualAura(bodyArray, radius, type, isPreview = false) {
@@ -378,7 +368,6 @@
             ctx.restore();
         }
 
-        // --- PREVIEW WINDOW SYSTEM ---
         let previewCanvas, previewCtx, previewAnimId;
         let previewSnake = { angle: 0, body: [], isBoosting: false };
 
@@ -423,7 +412,6 @@
             }
         }
 
-        // --- GAME PLAY ARENA ENGINE ---
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d");
         
@@ -442,7 +430,7 @@
         function initGameData(multiplayerFlag) {
             isMultiplayerArena = multiplayerFlag;
             
-            // MAP SIZE ADJUSTMENT FOR MULTIPLAYER MODE (12000 pixels wide / 6000 radius)
+            // MAP RADIUS SETTING (12000px Width Arena = 6000 Radius)
             MAP_RADIUS = isMultiplayerArena ? 6000 : 3000;
 
             snake = { 
@@ -456,7 +444,6 @@
             
             cameraScale = 1.0; foods = [];
             
-            // Food count adjusted for large map size
             let foodCount = isMultiplayerArena ? 2500 : 800;
             for (let i = 0; i < foodCount; i++) foods.push(createFood(true));
 
@@ -551,7 +538,6 @@
             if (!isGameRunning) return;
             gameLoopId = requestAnimationFrame(runGameLoop);
 
-            // Player Boost logic
             if (isBoosting) {
                 if (snake.score > 20) {
                     snake.score -= 0.35; 
@@ -563,7 +549,6 @@
                 }
             }
 
-            // --- SMOOTH LENGTH GROWTH MECHANISM ---
             if (snake.length < snake.targetLength) {
                 snake.length += 0.15; 
                 if (snake.length > snake.targetLength) snake.length = snake.targetLength;
@@ -612,7 +597,6 @@
                 });
             }
 
-            // --- PLAYER EATING FOOD (+1 SEGMENT PER FOOD) ---
             for (let i = foods.length - 1; i >= 0; i--) {
                 let f = foods[i];
                 let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));
@@ -623,7 +607,6 @@
                 }
             }
 
-            // --- INTEL BOTS CONTROL ---
             if (!isMultiplayerArena) {
                 bots.forEach(b => {
                     if (b.length < b.targetLength) {
@@ -682,7 +665,6 @@
                     while(b.body.length < bIntLength) b.body.push({x: b.body[b.body.length-1].x, y: b.body[b.body.length-1].y});
                     while(b.body.length > bIntLength) b.body.pop();
 
-                    // --- BOTS EATING FOOD ---
                     for (let i = foods.length - 1; i >= 0; i--) {
                         let f = foods[i];
                         let dist = Math.sqrt(Math.pow(b.x - f.x, 2) + Math.pow(b.y - f.y, 2));
@@ -694,13 +676,11 @@
                     }
                 });
 
-                // --- DETAILED COLLISION DETECTOR ---
                 let deadBotIndices = [];
 
                 for (let i = 0; i < bots.length; i++) {
                     let b = bots[i];
 
-                    // 1. Player colliding with Bot's Body
                     for (let j = 2; j < b.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(snake.x - b.body[j].x, 2) + Math.pow(snake.y - b.body[j].y, 2));
                         if (dist < snake.currentRadius + b.currentRadius - 4) {
@@ -709,7 +689,6 @@
                         }
                     }
 
-                    // 2. Bot colliding with Player's Body
                     let hitPlayer = false;
                     for (let j = 2; j < snake.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(b.x - snake.body[j].x, 2) + Math.pow(b.y - snake.body[j].y, 2));
@@ -724,7 +703,6 @@
                         continue;
                     }
 
-                    // 3. Bot colliding with OTHER Bot's Body
                     for (let k = 0; k < bots.length; k++) {
                         if (i === k) continue; 
                         let otherBot = bots[k];

@@ -7,7 +7,7 @@ const fs = require('fs');
 const app = express();
 const server = http.createServer(app);
 
-// Socket.io configuration with low latency settings
+// Socket.io initialization with high-performance real-time flags
 const io = new Server(server, {
     cors: { 
         origin: "*", 
@@ -20,12 +20,12 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3000;
 const publicPath = path.join(__dirname, 'public');
 
-// Serve static assets from 'public' directory
+// Serve static assets from 'public' directory if it exists
 if (fs.existsSync(publicPath)) {
     app.use(express.static(publicPath));
 }
 
-// Serve main entry point
+// Serve index.html as the primary entry point
 app.get('/', (req, res) => {
     const htmlInPublic = path.join(publicPath, 'index.html');
     const htmlInRoot = path.join(__dirname, 'index.html');
@@ -42,18 +42,18 @@ app.get('/', (req, res) => {
 const MAP_RADIUS = 4000;
 const players = {};
 
-// Socket.io event handling
+// Socket.io Connection & Event Handling
 io.on('connection', (socket) => {
-    
-    // Latency Ping-Pong Handler
+
+    // Ping-Pong handler for ping measurement
     socket.on('pingTest', () => {
         socket.emit('pongTest');
     });
 
-    // Handle Multiplayer Join Request
+    // Handle Player Joining Multiplayer Session
     socket.on('joinMultiplayer', (data) => {
         const randomAngle = Math.random() * Math.PI * 2;
-        const randomDist = Math.random() * (MAP_RADIUS - 300);
+        const randomDist = Math.random() * (MAP_RADIUS - 400);
 
         players[socket.id] = {
             id: socket.id,
@@ -70,13 +70,13 @@ io.on('connection', (socket) => {
         };
     });
 
-    // Handle Real-time Player Update
+    // Handle Real-Time Position & Movement Sync
     socket.on('updatePlayer', (data) => {
         if (players[socket.id]) {
             let newX = data.x;
             let newY = data.y;
 
-            // Server-side boundary validation
+            // Strict Server-Side Map Barrier Check
             const distFromCenter = Math.hypot(newX, newY);
             if (distFromCenter > MAP_RADIUS - 15) {
                 const angle = Math.atan2(newY, newX);
@@ -94,28 +94,27 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Handle Player Death
+    // Handle Player Elimination / Disconnects
     socket.on('playerDied', () => {
         if (players[socket.id]) {
             delete players[socket.id];
         }
     });
 
-    // Handle Disconnection
     socket.on('disconnect', () => {
         delete players[socket.id];
     });
 });
 
-// Broadcast game updates to clients (30 Tick rate)
+// Broadcast Real-time Game State Updates to all clients (30 Updates per Second)
 setInterval(() => {
     io.volatile.emit('gameStateUpdate', { players: players });
 }, 1000 / 30);
 
-// Start server
+// Start the Slither Server Engine
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`====================================================`);
-    console.log(`🚀 Slither Engine Running on Port: ${PORT}`);
-    console.log(`🌐 Local Server Link: http://localhost:${PORT}`);
+    console.log(`🚀 Slither Engine Server Active on Port: ${PORT}`);
+    console.log(`🌐 Local Web Interface: http://localhost:${PORT}`);
     console.log(`====================================================`);
 });

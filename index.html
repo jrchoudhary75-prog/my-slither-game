@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Smart AI Edition</title>
+    <title>Slither.io Pro - Ultra Smart AI Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
@@ -78,7 +78,7 @@
 
         #server-console-box { width: 90%; max-width: 400px; height: 140px; background: #020207; border: 1px solid #1e1e38; border-radius: 12px; font-family: monospace; padding: 12px; color: #00ffaa; overflow-y: hidden; text-align: left; font-size: 0.8rem; line-height: 1.4; margin-bottom: 15px; }
 
-        /* Transparent & Responsive HUD (Score board) */
+        /* Transparent & Responsive HUD */
         #hud { 
             position: absolute; top: 15px; left: 15px; z-index: 5; pointer-events: none; 
             background: rgba(3, 3, 15, 0.45); padding: 10px 16px; border-radius: 12px; 
@@ -95,7 +95,6 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
-        /* Mobile specific HUD & Leaderboard layout (Prevents Overlapping) */
         @media (max-width: 768px) {
             #hud { top: 10px; left: 10px; padding: 8px 12px; background: rgba(3, 3, 15, 0.35); }
             #hud-score { font-size: 15px !important; }
@@ -119,7 +118,7 @@
     <div id="screen-splash" class="ui-screen">
         <h1>SLITHER PRO</h1>
         <div class="loader-container"><div id="loader" class="loader-bar"></div></div>
-        <p style="color: #4b5563; font-size: 0.8rem; margin-top: 15px; letter-spacing: 2px;">INITIALIZING SMART AI ENGINE...</p>
+        <p style="color: #4b5563; font-size: 0.8rem; margin-top: 15px; letter-spacing: 2px;">LOADING SMART TACTICAL AI...</p>
     </div>
 
     <div id="screen-main" class="ui-screen hidden">
@@ -383,7 +382,7 @@
                 const consoleLogs = [
                     `> Routing connection to ${config.server}...`,
                     "> Allocating Low Latency Socket Channel...",
-                    "> Speed Synchronization Applied (1:1 Ratio)...",
+                    "> Speed Synchronization Applied...",
                     "> Touch Control Mapping Ready!"
                 ];
                 
@@ -665,8 +664,8 @@
             let rx = Math.cos(rAngle) * rDist;
             let ry = Math.sin(rAngle) * rDist;
 
-            let bScore = 100;
-            let bLength = 45;
+            let bScore = Math.floor(Math.random() * 200) + 120;
+            let bLength = Math.floor(bScore / 2.2);
             let botBody = [];
             for(let k=0; k<bLength; k++) botBody.push({x: rx, y: ry});
 
@@ -674,12 +673,12 @@
                 id: "bot_" + Math.random().toString(36).substr(2, 9),
                 x: rx, y: ry, angle: Math.random() * Math.PI * 2,
                 targetAngle: Math.random() * Math.PI * 2,
-                maxTurnSpeed: config.difficulty === 'Hard' ? 0.09 : (config.difficulty === 'Easy' ? 0.05 : 0.07),
+                maxTurnSpeed: config.difficulty === 'Hard' ? 0.11 : (config.difficulty === 'Easy' ? 0.06 : 0.085),
                 skin: skins[Math.floor(Math.random() * skins.length)],
                 name: "AI_" + Math.floor(Math.random()*900), 
                 score: bScore, length: bLength, targetLength: bLength,
                 body: botBody, currentRadius: 15, 
-                speed: 3.5, boostSpeed: 7.0, isBoosting: false, changeDirTimer: 0
+                speed: 3.8, boostSpeed: 7.5, isBoosting: false, changeDirTimer: 0
             };
         }
 
@@ -695,12 +694,10 @@
             }
         }
 
-        /* FEATURE 1: SLIGHTLY SCATTERED FOOD (NOT UNIFORM) */
         function generateScatteredFood() {
             foods = [];
             const totalFood = 1800;
             
-            // 1. Natural clusters
             for (let c = 0; c < 30; c++) {
                 const cx = (Math.random() - 0.5) * (MAP_RADIUS * 1.6);
                 const cy = (Math.random() - 0.5) * (MAP_RADIUS * 1.6);
@@ -725,7 +722,6 @@
                 }
             }
 
-            // 2. Natural bikhra hua scatter
             while (foods.length < totalFood) {
                 const rx = (Math.random() - 0.5) * MAP_RADIUS * 1.8;
                 const ry = (Math.random() - 0.5) * MAP_RADIUS * 1.8;
@@ -770,13 +766,12 @@
             };
             for(let i=0; i < snake.length; i++) snake.body.push({x: snake.x, y: snake.y});
             
-            /* FEATURE 2: MOBILE CAMERA ZOOM OUT FOR BIGGER VIEWPORT */
             cameraScale = isMobile ? 0.65 : 1.0; 
             generateScatteredFood();
 
             bots = [];
             if (!isMultiplayerArena) {
-                let totalBots = config.difficulty === 'Hard' ? 20 : (config.difficulty === 'Easy' ? 10 : 15);
+                let totalBots = config.difficulty === 'Hard' ? 22 : (config.difficulty === 'Easy' ? 12 : 16);
                 for (let i = 0; i < totalBots; i++) bots.push(createBot());
             }
         }
@@ -886,7 +881,6 @@
                 });
             }
 
-            // MULTIPLAYER MODE LOGIC
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
                     let p = networkPlayers[id];
@@ -924,7 +918,7 @@
                 }
             }
 
-            /* FEATURE 3: ADVANCED AI WITH PROACTIVE BODY AVOIDANCE & INTERCEPT TRAPPING */
+            /* PRO HIGH-LEVEL AI ENGINE (INTELLIGENT, AGGRESSIVE & SURVIVAL PRIORITIZED) */
             if (!isMultiplayerArena) {
                 let deadBotIndices = [];
 
@@ -936,84 +930,106 @@
                     let distToPlayer = Math.hypot(snake.x - b.x, snake.y - b.y);
 
                     let dangerDetected = false;
-                    let avoidAngle = b.angle;
+                    let bestEscapeAngle = b.angle;
+                    let minDangerDist = 9999;
 
-                    // Sensor setup in front of bot
-                    let lookAhead = b.isBoosting ? 180 : 130;
-                    let futureX = b.x + Math.cos(b.angle) * lookAhead;
-                    let futureY = b.y + Math.sin(b.angle) * lookAhead;
+                    // Sensor Raycast Radar Ahead
+                    let probeDistance = b.isBoosting ? 220 : 160;
+                    let futureX = b.x + Math.cos(b.angle) * probeDistance;
+                    let futureY = b.y + Math.sin(b.angle) * probeDistance;
 
-                    // 1. Boundary Avoidance
-                    if (Math.hypot(futureX, futureY) > MAP_RADIUS - 200) {
-                        avoidAngle = Math.atan2(-b.y, -b.x);
+                    // 1. Boundary Safety Check
+                    if (Math.hypot(futureX, futureY) > MAP_RADIUS - 180) {
+                        bestEscapeAngle = Math.atan2(-b.y, -b.x);
                         dangerDetected = true;
                     }
 
-                    // 2. Strict Body Avoidance (Dodges player & bot bodies to prevent dying)
-                    if (!dangerDetected) {
-                        // Avoid Player Body
-                        for (let j = 1; j < snake.body.length; j += 2) {
-                            let seg = snake.body[j];
-                            let distToProbe = Math.hypot(futureX - seg.x, futureY - seg.y);
-                            let distToHead = Math.hypot(b.x - seg.x, b.y - seg.y);
-
-                            if (distToProbe < b.currentRadius + 40 || distToHead < b.currentRadius + 45) {
-                                avoidAngle = Math.atan2(b.y - seg.y, b.x - seg.x);
-                                dangerDetected = true;
-                                break;
-                            }
+                    // 2. High-Precision Anti-Collision Radar (For Player & ALL Other Bots)
+                    let checkEntities = [snake];
+                    for (let oIdx = 0; oIdx < bots.length; oIdx++) {
+                        if (oIdx !== bIdx && !deadBotIndices.includes(oIdx)) {
+                            checkEntities.push(bots[oIdx]);
                         }
                     }
 
-                    if (!dangerDetected) {
-                        // Avoid Other Bots' Bodies
-                        for (let oIdx = 0; oIdx < bots.length; oIdx++) {
-                            if (oIdx === bIdx || deadBotIndices.includes(oIdx)) continue;
-                            let ob = bots[oIdx];
-                            for (let j = 1; j < ob.body.length; j += 2) {
-                                let seg = ob.body[j];
-                                let distToProbe = Math.hypot(futureX - seg.x, futureY - seg.y);
-                                if (distToProbe < b.currentRadius + 40) {
-                                    avoidAngle = Math.atan2(b.y - seg.y, b.x - seg.x);
+                    for (let entity of checkEntities) {
+                        for (let j = 0; j < entity.body.length; j += 2) {
+                            let seg = entity.body[j];
+                            
+                            // Skip bot's own head/neck
+                            if (entity === b && j < 6) continue;
+
+                            let distToSegment = Math.hypot(b.x - seg.x, b.y - seg.y);
+                            let distToProbe = Math.hypot(futureX - seg.x, futureY - seg.y);
+
+                            if (distToSegment < 200 || distToProbe < 80) {
+                                if (distToSegment < minDangerDist) {
+                                    minDangerDist = distToSegment;
                                     dangerDetected = true;
-                                    break;
+                                    // Turn sharply away from the segment
+                                    let normalAngle = Math.atan2(b.y - seg.y, b.x - seg.x);
+                                    bestEscapeAngle = normalAngle + (Math.random() < 0.5 ? 0.3 : -0.3);
                                 }
                             }
-                            if (dangerDetected) break;
                         }
                     }
 
-                    // 3. Execution Logic
+                    // 3. Execution Phase
                     if (dangerDetected) {
-                        b.targetAngle = avoidAngle;
-                        b.isBoosting = true; // Emergency boost to get away safely
+                        b.targetAngle = bestEscapeAngle;
+                        if (minDangerDist < 80) {
+                            b.isBoosting = true; // Emergency boost to dodge
+                        }
                     } else {
-                        // Smart Aggressive Intercept / Cutoff Strategy
-                        if (distToPlayer < 380 && b.score > 80) {
-                            // Predict where player head is going
-                            let predictX = snake.x + Math.cos(snake.angle) * 110;
-                            let predictY = snake.y + Math.sin(snake.angle) * 110;
+                        // AGGRESSIVE TACTICS (Only triggered when path is 100% safe)
+                        let isAttackingPlayer = false;
+
+                        if (distToPlayer < 450) {
+                            // Predict player trajectory
+                            let playerSpeedEstimate = isBoosting ? 7.0 : 3.5;
+                            let predictX = snake.x + Math.cos(snake.angle) * (playerSpeedEstimate * 22);
+                            let predictY = snake.y + Math.sin(snake.angle) * (playerSpeedEstimate * 22);
                             
-                            // Angle to cut in front of player head
-                            b.targetAngle = Math.atan2(predictY - b.y, predictX - b.x);
+                            let interceptAngle = Math.atan2(predictY - b.y, predictX - b.x);
                             
-                            if (distToPlayer < 220) {
-                                b.isBoosting = true; // Boost in front of player
+                            // Surround & Pinch Trap Technique
+                            if (distToPlayer < 250 && b.length > 50) {
+                                interceptAngle += (bIdx % 2 === 0 ? 0.45 : -0.45); // Wrap around side
                             }
-                        } 
-                        else if (config.difficulty === 'Medium' && distToPlayer < 250) {
-                            b.targetAngle = Math.atan2(snake.y - b.y, snake.x - b.x);
-                        } 
-                        else {
-                            b.changeDirTimer--;
-                            if (b.changeDirTimer <= 0) {
-                                b.changeDirTimer = Math.floor(Math.random() * 50) + 30;
-                                b.targetAngle = Math.random() * Math.PI * 2;
+
+                            b.targetAngle = interceptAngle;
+                            isAttackingPlayer = true;
+
+                            if (distToPlayer < 300 && b.score > 60) {
+                                b.isBoosting = true; // Sprint to cut off player
+                            }
+                        }
+
+                        // Food Foraging (If not attacking player)
+                        if (!isAttackingPlayer) {
+                            let nearestFood = null;
+                            let minFoodDist = 300;
+                            for (let f of foods) {
+                                let fDist = Math.hypot(b.x - f.x, b.y - f.y);
+                                if (fDist < minFoodDist) {
+                                    minFoodDist = fDist;
+                                    nearestFood = f;
+                                }
+                            }
+
+                            if (nearestFood) {
+                                b.targetAngle = Math.atan2(nearestFood.y - b.y, nearestFood.x - b.x);
+                            } else {
+                                b.changeDirTimer--;
+                                if (b.changeDirTimer <= 0) {
+                                    b.changeDirTimer = Math.floor(Math.random() * 60) + 40;
+                                    b.targetAngle = Math.random() * Math.PI * 2;
+                                }
                             }
                         }
                     }
 
-                    // Rotate Bot
+                    // Rotate Bot smoothly
                     let bAngleDiff = b.targetAngle - b.angle;
                     while (bAngleDiff < -Math.PI) bAngleDiff += Math.PI * 2;
                     while (bAngleDiff > Math.PI) bAngleDiff -= Math.PI * 2;
@@ -1024,7 +1040,7 @@
                     b.x += Math.cos(b.angle) * bCurrentSpeed;
                     b.y += Math.sin(b.angle) * bCurrentSpeed;
 
-                    if (b.isBoosting && b.score > 20) b.score -= 0.2 * dt;
+                    if (b.isBoosting && b.score > 20) b.score -= 0.22 * dt;
 
                     enforceBarrier(b);
 
@@ -1089,7 +1105,7 @@
                     }
                 }
 
-                // Clean Dead Bots
+                // Clean Dead Bots & Respawn
                 if (deadBotIndices.length > 0) {
                     deadBotIndices.sort((a, b) => b - a).forEach(idx => {
                         convertBodyToFood(bots[idx].body);

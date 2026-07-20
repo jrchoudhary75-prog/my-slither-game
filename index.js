@@ -7,7 +7,7 @@ const fs = require('fs');
 const app = express();
 const server = http.createServer(app);
 
-// Low-latency Socket.io setup
+// Socket.io configuration with low latency settings
 const io = new Server(server, {
     cors: { 
         origin: "*", 
@@ -20,12 +20,12 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3000;
 const publicPath = path.join(__dirname, 'public');
 
-// Serve static files from public directory
+// Serve static assets from 'public' directory
 if (fs.existsSync(publicPath)) {
     app.use(express.static(publicPath));
 }
 
-// Route for main entry point
+// Serve main entry point
 app.get('/', (req, res) => {
     const htmlInPublic = path.join(publicPath, 'index.html');
     const htmlInRoot = path.join(__dirname, 'index.html');
@@ -42,45 +42,46 @@ app.get('/', (req, res) => {
 const MAP_RADIUS = 4000;
 const players = {};
 
-// Real-time WebSockets logic
+// Socket.io event handling
 io.on('connection', (socket) => {
     
-    // Ping/Latency Test Handler
+    // Latency Ping-Pong Handler
     socket.on('pingTest', () => {
         socket.emit('pongTest');
     });
 
-    // Handle Player Joining Multiplayer Mode
+    // Handle Multiplayer Join Request
     socket.on('joinMultiplayer', (data) => {
         const randomAngle = Math.random() * Math.PI * 2;
-        const randomDist = Math.random() * (MAP_RADIUS - 500);
+        const randomDist = Math.random() * (MAP_RADIUS - 300);
 
         players[socket.id] = {
             id: socket.id,
-            name: data.name || 'ProPlayer',
-            skin: data.skin || 'Neon',
+            name: data.name || 'Player',
+            skin: data.skin || 'Neon Stripe',
+            region: data.region || 'Asia / India',
             x: Math.cos(randomAngle) * randomDist,
             y: Math.sin(randomAngle) * randomDist,
             angle: 0,
             score: data.score || 100,
-            length: data.length || 40,
-            radius: data.radius || 14,
+            length: data.length || 45,
+            radius: data.radius || 15,
             isBoosting: false
         };
     });
 
-    // Real-time Movement & Angle Sync Engine
+    // Handle Real-time Player Update
     socket.on('updatePlayer', (data) => {
         if (players[socket.id]) {
             let newX = data.x;
             let newY = data.y;
 
-            // Boundary Constraint Check (Server-Side Safety)
+            // Server-side boundary validation
             const distFromCenter = Math.hypot(newX, newY);
-            if (distFromCenter > MAP_RADIUS - 20) {
+            if (distFromCenter > MAP_RADIUS - 15) {
                 const angle = Math.atan2(newY, newX);
-                newX = Math.cos(angle) * (MAP_RADIUS - 20);
-                newY = Math.sin(angle) * (MAP_RADIUS - 20);
+                newX = Math.cos(angle) * (MAP_RADIUS - 15);
+                newY = Math.sin(angle) * (MAP_RADIUS - 15);
             }
 
             players[socket.id].x = newX;
@@ -88,32 +89,33 @@ io.on('connection', (socket) => {
             players[socket.id].angle = data.angle;
             players[socket.id].score = data.score;
             players[socket.id].length = data.length || players[socket.id].length;
+            players[socket.id].radius = data.radius || players[socket.id].radius;
             players[socket.id].isBoosting = data.isBoosting || false;
         }
     });
 
-    // Death / Collision Cleanup Event
+    // Handle Player Death
     socket.on('playerDied', () => {
         if (players[socket.id]) {
             delete players[socket.id];
         }
     });
 
-    // Disconnect Event Handler
+    // Handle Disconnection
     socket.on('disconnect', () => {
         delete players[socket.id];
     });
 });
 
-// Broadcast game state to connected clients (30 updates per second)
+// Broadcast game updates to clients (30 Tick rate)
 setInterval(() => {
     io.volatile.emit('gameStateUpdate', { players: players });
 }, 1000 / 30);
 
-// Start High-Performance HTTP & Socket Server
+// Start server
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`====================================================`);
     console.log(`🚀 Slither Engine Running on Port: ${PORT}`);
-    console.log(`🌐 Local Link: http://localhost:${PORT}`);
+    console.log(`🌐 Local Server Link: http://localhost:${PORT}`);
     console.log(`====================================================`);
 });

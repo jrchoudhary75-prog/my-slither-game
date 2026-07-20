@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Server Select Edition</title>
+    <title>Slither.io Pro - Touch Controls & Demo Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
@@ -42,6 +42,42 @@
         .option-label { font-size: 0.9rem; color: #94a3b8; font-weight: 500; }
         .select-btn { background: #131324; border: 1px solid #363659; color: #fff; padding: 6px 12px; border-radius: 8px; cursor: pointer; min-width: 120px; font-size: 0.85rem; font-weight: 600; text-align: center; }
 
+        /* CONTROLS DEMO MODAL SCENE */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 3, 12, 0.9); z-index: 20; backdrop-filter: blur(12px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .demo-card-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 90%; margin-top: 15px; }
+        .demo-card {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px; padding: 15px; width: 260px; text-align: center; display: flex; flex-direction: column; align-items: center;
+        }
+        .demo-card h3 { margin: 0 0 10px 0; color: #00ffaa; font-size: 1.1rem; }
+        .demo-canvas { width: 180px; height: 140px; background: #050512; border-radius: 10px; border: 1px solid #222244; margin-bottom: 10px; }
+        .demo-desc { font-size: 0.8rem; color: #94a3b8; line-height: 1.3; }
+
+        /* IN-GAME MOBILE UI CONTROLS */
+        #mobileControls { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; display: none; }
+        #joystickBase {
+            position: absolute; width: 110px; height: 110px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(0, 255, 170, 0.4);
+            transform: translate(-50%, -50%); display: none; pointer-events: none;
+        }
+        #joystickStick {
+            position: absolute; width: 45px; height: 45px; border-radius: 50%;
+            background: radial-gradient(circle, #00ffaa, #0088cc); box-shadow: 0 0 15px #00ffaa;
+            transform: translate(-50%, -50%); display: none; pointer-events: none;
+        }
+        #mobileBoostBtn {
+            position: absolute; bottom: 35px; right: 35px; width: 75px; height: 75px;
+            border-radius: 50%; background: radial-gradient(circle, #ff0055, #880022);
+            border: 3px solid #ff6699; box-shadow: 0 0 20px rgba(ff, 0, 85, 0.6);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.8rem; pointer-events: auto; touch-action: manipulation;
+        }
+        #mobileBoostBtn:active { transform: scale(0.92); background: radial-gradient(circle, #ff5500, #ff0055); }
+
         #server-console-box { width: 90%; max-width: 400px; height: 140px; background: #020207; border: 1px solid #1e1e38; border-radius: 12px; font-family: monospace; padding: 12px; color: #00ffaa; overflow-y: hidden; text-align: left; font-size: 0.8rem; line-height: 1.4; margin-bottom: 15px; }
 
         #hud { position: absolute; top: 15px; left: 15px; z-index: 5; pointer-events: none; background: rgba(3,3,10,0.8); padding: 12px 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); display: none; backdrop-filter: blur(8px); }
@@ -60,7 +96,7 @@
     <div id="screen-splash" class="ui-screen">
         <h1>SLITHER PRO</h1>
         <div class="loader-container"><div id="loader" class="loader-bar"></div></div>
-        <p style="color: #4b5563; font-size: 0.8rem; margin-top: 15px; letter-spacing: 2px;">INITIALIZING SERVER CLUSTER...</p>
+        <p style="color: #4b5563; font-size: 0.8rem; margin-top: 15px; letter-spacing: 2px;">INITIALIZING CONTROL ENGINE...</p>
     </div>
 
     <div id="screen-main" class="ui-screen hidden">
@@ -101,6 +137,11 @@
                     <div class="option-label">Arena Style</div>
                     <button class="select-btn" id="btn-map" onclick="changeSetting('map')">Standard Grid</button>
                 </div>
+                <!-- CONTROLS DEMO BUTTON (ADDED FOR BOTH MODES) -->
+                <div class="option-row" style="border-color: rgba(0,255,170,0.3); background: rgba(0,255,170,0.05);">
+                    <div class="option-label" style="color: #00ffaa; font-weight: bold;">How to Play</div>
+                    <button class="select-btn" style="background: linear-gradient(45deg, #00ffaa, #00bfff); color: #000;" onclick="openControlsDemoModal()">Game Controls</button>
+                </div>
             </div>
 
             <div class="preview-box" id="previewBox">
@@ -113,6 +154,33 @@
             <div class="btn" onclick="launchSelectedMode()">SPAWN INTO ARENA</div>
             <div class="btn" style="background: #090912; border-color: #222;" onclick="showScreen('screen-main')">Back</div>
         </div>
+    </div>
+
+    <!-- CONTROLS DEMO MODAL SCENE -->
+    <div id="screen-controls-demo" class="modal-overlay hidden">
+        <h2>HOW TO CONTROL</h2>
+        
+        <div class="demo-card-container">
+            <div class="demo-card">
+                <h3>🖥️ PC / Computer</h3>
+                <canvas id="pcDemoCanvas" class="demo-canvas"></canvas>
+                <div class="demo-desc">
+                    <b>Move:</b> Move Mouse Pointer<br/>
+                    <b>Boost:</b> Hold Left Mouse Click
+                </div>
+            </div>
+
+            <div class="demo-card">
+                <h3>📱 Mobile / Touch</h3>
+                <canvas id="mobileDemoCanvas" class="demo-canvas"></canvas>
+                <div class="demo-desc">
+                    <b>Steer:</b> Touch & Drag Virtual Joystick<br/>
+                    <b>Boost:</b> Press & Hold 🔥 Rocket Button
+                </div>
+            </div>
+        </div>
+
+        <div class="btn" style="margin-top: 25px; min-width: 140px;" onclick="closeControlsDemoModal()">GOT IT!</div>
     </div>
 
     <div id="screen-gameover" class="ui-screen hidden">
@@ -133,6 +201,13 @@
     </div>
 
     <div id="pingBadge" class="ping-badge" style="display:none;">Ping: 0 ms</div>
+
+    <!-- IN-GAME TOUCH CONTROLS LAYER -->
+    <div id="mobileControls">
+        <div id="joystickBase"></div>
+        <div id="joystickStick"></div>
+        <div id="mobileBoostBtn">🔥</div>
+    </div>
 
     <canvas id="game"></canvas>
 
@@ -171,7 +246,6 @@
             badge.style.color = latency < 80 ? '#00ffaa' : (latency < 180 ? '#facc15' : '#ff3333');
         });
 
-        // FAST EXTENDED INTERPOLATION ENGINE (EQUALIZES PLAYER SPEEDS COMPLETELY)
         socket.on('gameStateUpdate', (data) => {
             if (!isMultiplayerArena) return;
             let serverPlayers = data.players || data;
@@ -225,6 +299,70 @@
             showScreen('screen-offline');
         }
 
+        // CONTROLS DEMO SCENE LOGIC
+        let pcDemoAnimId, mobileDemoAnimId;
+        function openControlsDemoModal() {
+            document.getElementById('screen-controls-demo').classList.remove('hidden');
+            initControlsDemos();
+        }
+
+        function closeControlsDemoModal() {
+            document.getElementById('screen-controls-demo').classList.add('hidden');
+            cancelAnimationFrame(pcDemoAnimId);
+            cancelAnimationFrame(mobileDemoAnimId);
+        }
+
+        function initControlsDemos() {
+            let pcCanvas = document.getElementById('pcDemoCanvas');
+            let pcCtx = pcCanvas.getContext('2d');
+            pcCanvas.width = 180; pcCanvas.height = 140;
+
+            let mobCanvas = document.getElementById('mobileDemoCanvas');
+            let mobCtx = mobCanvas.getContext('2d');
+            mobCanvas.width = 180; mobCanvas.height = 140;
+
+            let frame = 0;
+            function runDemoLoop() {
+                frame += 0.05;
+                
+                // PC Demo Drawing
+                pcCtx.clearRect(0, 0, 180, 140);
+                let curX = 90 + Math.cos(frame) * 40;
+                let curY = 70 + Math.sin(frame) * 25;
+                let isBoostingDemo = Math.sin(frame*2) > 0.5;
+
+                pcCtx.strokeStyle = 'rgba(255,255,255,0.1)'; pcCtx.strokeRect(5, 5, 170, 130);
+                pcCtx.fillStyle = isBoostingDemo ? '#ff0055' : '#00ffaa';
+                pcCtx.beginPath(); pcCtx.arc(curX, curY, isBoostingDemo ? 12 : 8, 0, Math.PI*2); pcCtx.fill();
+                
+                // Cursor Icon
+                pcCtx.fillStyle = '#ffffff';
+                pcCtx.beginPath(); pcCtx.arc(curX + 25, curY + 15, 4, 0, Math.PI*2); pcCtx.fill();
+                pcCtx.strokeStyle = '#00ffaa'; pcCtx.beginPath(); pcCtx.moveTo(curX, curY); pcCtx.lineTo(curX + 25, curY + 15); pcCtx.stroke();
+
+                // Mobile Demo Drawing
+                mobCtx.clearRect(0, 0, 180, 140);
+                mobCtx.strokeStyle = 'rgba(255,255,255,0.1)'; mobCtx.strokeRect(5, 5, 170, 130);
+
+                // Animated Joystick
+                let joyX = 45 + Math.cos(frame) * 15;
+                let joyY = 85 + Math.sin(frame) * 15;
+                mobCtx.strokeStyle = 'rgba(0, 255, 170, 0.4)'; mobCtx.lineWidth = 2;
+                mobCtx.beginPath(); mobCtx.arc(45, 85, 25, 0, Math.PI*2); mobCtx.stroke();
+                mobCtx.fillStyle = '#00ffaa'; mobCtx.beginPath(); mobCtx.arc(joyX, joyY, 10, 0, Math.PI*2); mobCtx.fill();
+
+                // Animated Boost Button
+                let boostPressed = Math.sin(frame*3) > 0;
+                mobCtx.fillStyle = boostPressed ? '#ff0055' : '#441122';
+                mobCtx.strokeStyle = '#ff6699';
+                mobCtx.beginPath(); mobCtx.arc(140, 85, 18, 0, Math.PI*2); mobCtx.fill(); mobCtx.stroke();
+                mobCtx.fillStyle = '#fff'; mobCtx.font = '12px sans-serif'; mobCtx.fillText('🔥', 134, 89);
+
+                pcDemoAnimId = requestAnimationFrame(runDemoLoop);
+            }
+            runDemoLoop();
+        }
+
         function launchSelectedMode() {
             if (chosenMode === 'multiplayer') {
                 showScreen('screen-multiplayer-load');
@@ -235,7 +373,7 @@
                     `> Routing connection to ${config.server}...`,
                     "> Allocating Low Latency Socket Channel...",
                     "> Speed Synchronization Applied (1:1 Ratio)...",
-                    "> Region Matchmaking Ready!"
+                    "> Touch Control Mapping Ready!"
                 ];
                 
                 let logIndex = 0;
@@ -422,22 +560,93 @@
         let lastPacketTime = 0;
         let lastFrameTime = performance.now();
 
-        window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
-        window.addEventListener("mousedown", () => { if(isGameRunning && snake.score > 20) isBoosting = true; });
-        window.addEventListener("mouseup", () => { isBoosting = false; });
+        // DESKTOP CONTROLS
+        window.addEventListener("mousemove", (e) => { 
+            if(!isMobile) { mouse.x = e.clientX; mouse.y = e.clientY; }
+        });
+        window.addEventListener("mousedown", (e) => { 
+            if(!isMobile && isGameRunning && snake.score > 20) isBoosting = true; 
+        });
+        window.addEventListener("mouseup", () => { if(!isMobile) isBoosting = false; });
 
-        window.addEventListener("touchmove", (e) => {
-            if (e.touches.length > 0) {
-                mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY;
+        // MOBILE JOYSTICK & TOUCH LOGIC
+        let touchJoystick = { active: false, startX: 0, startY: 0, currentX: 0, currentY: 0, touchId: null };
+        const joyBase = document.getElementById('joystickBase');
+        const joyStick = document.getElementById('joystickStick');
+        const boostBtn = document.getElementById('mobileBoostBtn');
+
+        boostBtn.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+            if(isGameRunning && snake.score > 20) isBoosting = true;
+        });
+        boostBtn.addEventListener('touchend', (e) => {
+            e.stopPropagation();
+            isBoosting = false;
+        });
+
+        window.addEventListener("touchstart", (e) => {
+            if (!isGameRunning || !isMobile) return;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                let t = e.changedTouches[i];
+                if (t.target === boostBtn) continue;
+
+                if (!touchJoystick.active && t.clientX < window.innerWidth * 0.75) {
+                    touchJoystick.active = true;
+                    touchJoystick.touchId = t.identifier;
+                    touchJoystick.startX = t.clientX;
+                    touchJoystick.startY = t.clientY;
+                    touchJoystick.currentX = t.clientX;
+                    touchJoystick.currentY = t.clientY;
+
+                    joyBase.style.left = touchJoystick.startX + 'px';
+                    joyBase.style.top = touchJoystick.startY + 'px';
+                    joyStick.style.left = touchJoystick.startX + 'px';
+                    joyStick.style.top = touchJoystick.startY + 'px';
+                    joyBase.style.display = 'block';
+                    joyStick.style.display = 'block';
+                }
             }
         }, { passive: true });
-        window.addEventListener("touchstart", (e) => {
-            if (e.touches.length > 0) {
-                mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY;
+
+        window.addEventListener("touchmove", (e) => {
+            if (!isGameRunning || !touchJoystick.active || !isMobile) return;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                let t = e.changedTouches[i];
+                if (t.identifier === touchJoystick.touchId) {
+                    let dx = t.clientX - touchJoystick.startX;
+                    let dy = t.clientY - touchJoystick.startY;
+                    let dist = Math.hypot(dx, dy);
+                    let maxRadius = 45;
+
+                    if (dist > maxRadius) {
+                        dx = (dx / dist) * maxRadius;
+                        dy = (dy / dist) * maxRadius;
+                    }
+
+                    joyStick.style.left = (touchJoystick.startX + dx) + 'px';
+                    joyStick.style.top = (touchJoystick.startY + dy) + 'px';
+
+                    mouse.x = canvas.width / 2 + dx * 5;
+                    mouse.y = canvas.height / 2 + dy * 5;
+                }
             }
-            if (isGameRunning && snake.score > 20) isBoosting = true;
+        }, { passive: true });
+
+        function resetJoystick() {
+            touchJoystick.active = false;
+            touchJoystick.touchId = null;
+            joyBase.style.display = 'none';
+            joyStick.style.display = 'none';
+        }
+
+        window.addEventListener("touchend", (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === touchJoystick.touchId) {
+                    resetJoystick();
+                }
+            }
         });
-        window.addEventListener("touchend", () => { isBoosting = false; });
+        window.addEventListener("touchcancel", resetJoystick);
 
         let snake, foods, bots, cameraScale;
 
@@ -484,7 +693,6 @@
             let startX = Math.cos(startAngle) * startDist;
             let startY = Math.sin(startAngle) * startDist;
 
-            // ABSOLUTE UNIFORM SPEED SETUP
             snake = { 
                 id: "player", name: document.getElementById('player-nick').value || "You", x: startX, y: startY, angle: -Math.PI / 2,
                 currentRadius: 15, 
@@ -513,6 +721,7 @@
             document.getElementById('hud').style.display = 'block';
             document.getElementById('leaderboard').style.display = 'block';
             document.getElementById('pingBadge').style.display = multiplayerFlag ? 'block' : 'none';
+            document.getElementById('mobileControls').style.display = isMobile ? 'block' : 'none';
             
             isGameRunning = true;
             lastFrameTime = performance.now();
@@ -525,6 +734,7 @@
             document.getElementById('hud').style.display = 'none';
             document.getElementById('leaderboard').style.display = 'none';
             document.getElementById('pingBadge').style.display = 'none';
+            document.getElementById('mobileControls').style.display = 'none';
             document.getElementById('final-score-display').innerText = "Final Score: " + Math.floor(snake.score);
             showScreen('screen-gameover');
         }
@@ -543,7 +753,7 @@
             gameLoopId = requestAnimationFrame(runGameLoop);
 
             let now = performance.now();
-            let dt = Math.min((now - lastFrameTime) / (1000 / 60), 2.0); // Exact 60 FPS Delta Normalization
+            let dt = Math.min((now - lastFrameTime) / (1000 / 60), 2.0); 
             lastFrameTime = now;
 
             if (isBoosting) {
@@ -599,7 +809,6 @@
                 snake.body.pop();
             }
 
-            // High Frequency State Send (30ms Limit)
             let currentTimestamp = Date.now();
             if (isMultiplayerArena && (currentTimestamp - lastPacketTime > 30)) {
                 lastPacketTime = currentTimestamp;
@@ -610,12 +819,9 @@
                 });
             }
 
-            // EQUAL VELOCITY SPEED MATCHING FOR MULTIPLAYER ENEMIES
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
                     let p = networkPlayers[id];
-                    
-                    // Exact match of local speed calculation
                     let pSpeed = (p.isBoosting ? 7.0 : 3.5) * dt;
                     p.targetX += Math.cos(p.angle) * pSpeed * 0.5;
                     p.targetY += Math.sin(p.angle) * pSpeed * 0.5;
@@ -638,7 +844,6 @@
                         }
                     }
 
-                    // Collision Detection
                     for (let j = 2; j < p.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(snake.x - p.body[j].x, 2) + Math.pow(snake.y - p.body[j].y, 2));
                         if (dist < snake.currentRadius + 10) {
@@ -651,7 +856,6 @@
                 }
             }
 
-            // AI BOTS LOGIC (Offline)
             if (!isMultiplayerArena) {
                 for (let bIdx = bots.length - 1; bIdx >= 0; bIdx--) {
                     let b = bots[bIdx];
@@ -716,7 +920,6 @@
                 }
             }
 
-            // Food Collection
             for (let i = foods.length - 1; i >= 0; i--) {
                 let f = foods[i];
                 let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));

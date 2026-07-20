@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Smart AI Bots + Multiplayer Edition</title>
+    <title>Slither.io Pro - Fixed Mechanics Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
@@ -385,7 +385,7 @@
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d");
         
-        let MAP_RADIUS = 3000; 
+        let MAP_RADIUS = 4000; // Fixed 4000px Map
         let isGameRunning = false;
         let mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
         let isBoosting = false;
@@ -413,13 +413,18 @@
         let snake, foods, bots, cameraScale;
 
         function createBot() {
-            let rx = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
-            let ry = (Math.random() - 0.5) * MAP_RADIUS * 1.5;
+            let rx = (Math.random() - 0.5) * MAP_RADIUS * 1.8;
+            let ry = (Math.random() - 0.5) * MAP_RADIUS * 1.8;
             let bScore = Math.floor(Math.random()*300) + 50;
             let bLength = Math.floor(bScore / 2) + 30;
             
             let botBody = [];
             for(let k=0; k<bLength; k++) botBody.push({x: rx, y: ry});
+
+            // Speeds tuned per difficulty without boost
+            let botSpeed = 3.5;
+            if (config.difficulty === 'Easy') botSpeed = 2.5;
+            if (config.difficulty === 'Hard') botSpeed = 5.0;
 
             return {
                 id: "bot_" + Math.random().toString(36).substr(2, 9),
@@ -429,14 +434,26 @@
                 name: "AI_" + Math.floor(Math.random()*900), 
                 score: bScore, length: bLength, targetLength: bLength,
                 body: botBody, currentRadius: 15, 
-                speed: config.difficulty === 'Hard' ? 4.0 : 3.0,
-                isBoosting: false, changeDirTimer: 0
+                speed: botSpeed,
+                changeDirTimer: 0
             };
+        }
+
+        // Drop Food on Snake Death (Slither.io style)
+        function convertBodyToFood(body) {
+            for (let i = 0; i < body.length; i += 2) {
+                foods.push({
+                    x: body[i].x + (Math.random() - 0.5) * 10,
+                    y: body[i].y + (Math.random() - 0.5) * 10,
+                    color: `hsl(${Math.random()*360}, 100%, 75%)`,
+                    maxRadius: Math.random() * 3 + 6,
+                    value: 2
+                });
+            }
         }
 
         function initGameData(multiplayerFlag) {
             isMultiplayerArena = multiplayerFlag;
-            MAP_RADIUS = isMultiplayerArena ? 4000 : 3000;
 
             let startX = (Math.random() - 0.5) * 1500;
             let startY = (Math.random() - 0.5) * 1500;
@@ -452,7 +469,8 @@
             
             cameraScale = 1.0; foods = [];
             
-            let foodCount = isMultiplayerArena ? 1000 : 800;
+            // High Density Food
+            let foodCount = 2200;
             for (let i = 0; i < foodCount; i++) foods.push(createFood(true));
 
             // Generate Offline AI Bots
@@ -492,7 +510,7 @@
             if (isBoosting) {
                 if (snake.score > 20) {
                     snake.score -= 0.35; 
-                    if (snake.targetLength > 20 && Math.random() < 0.1) snake.targetLength -= 1;
+                    if (snake.targetLength > 20 && Math.random() < 0.1) snake.targetLength -= 0.2;
                 } else {
                     isBoosting = false; 
                 }
@@ -547,29 +565,19 @@
                 });
             }
 
-            // --- AI BOTS LOGIC (OFFLINE MODE) ---
+            // --- AI BOTS LOGIC (NO BOOST + COLLISION DEATH) ---
             if (!isMultiplayerArena) {
-                for (let b of bots) {
+                for (let bIdx = bots.length - 1; bIdx >= 0; bIdx--) {
+                    let b = bots[bIdx];
                     b.changeDirTimer--;
                     if (b.changeDirTimer <= 0) {
                         b.changeDirTimer = Math.floor(Math.random() * 40) + 20;
-                        
-                        // Hard AI targets Player or nearest food aggressively
                         if (config.difficulty === 'Hard' && Math.random() < 0.6) {
-                            let distToPlayer = Math.sqrt(Math.pow(snake.x - b.x, 2) + Math.pow(snake.y - b.y, 2));
-                            if (distToPlayer < 600) {
-                                // Cut-throat intercept angle
-                                let interceptX = snake.x + Math.cos(snake.angle) * 60;
-                                let interceptY = snake.y + Math.sin(snake.angle) * 60;
-                                b.targetAngle = Math.atan2(interceptY - b.y, interceptX - b.x);
-                                b.isBoosting = b.score > 30;
-                            } else {
-                                b.targetAngle = Math.random() * Math.PI * 2;
-                                b.isBoosting = false;
-                            }
+                            let interceptX = snake.x + Math.cos(snake.angle) * 60;
+                            let interceptY = snake.y + Math.sin(snake.angle) * 60;
+                            b.targetAngle = Math.atan2(interceptY - b.y, interceptX - b.x);
                         } else {
                             b.targetAngle = Math.random() * Math.PI * 2;
-                            b.isBoosting = false;
                         }
                     }
 
@@ -578,9 +586,8 @@
                     while (bAngleDiff > Math.PI) bAngleDiff -= Math.PI * 2;
                     b.angle += Math.max(-b.maxTurnSpeed, Math.min(b.maxTurnSpeed, bAngleDiff));
 
-                    let bSpeed = b.isBoosting ? 6.0 : b.speed;
-                    b.x += Math.cos(b.angle) * bSpeed;
-                    b.y += Math.sin(b.angle) * bSpeed;
+                    b.x += Math.cos(b.angle) * b.speed;
+                    b.y += Math.sin(b.angle) * b.speed;
 
                     b.body[0] = {x: b.x, y: b.y};
                     for (let j = 1; j < b.body.length; j++) {
@@ -593,25 +600,40 @@
                         }
                     }
 
-                    // Bot food consumption
+                    // Bot eats food
                     for (let fIdx = foods.length - 1; fIdx >= 0; fIdx--) {
                         let f = foods[fIdx];
                         let dist = Math.sqrt(Math.pow(b.x - f.x, 2) + Math.pow(b.y - f.y, 2));
                         if (dist < b.currentRadius + 6) {
                             b.score += f.value;
-                            b.targetLength += 1;
+                            b.targetLength += 0.2; // 5 foods = 1 segment
                             foods[fIdx] = createFood(false);
                         }
                     }
 
-                    // Collision: Player hits Bot
+                    // 1. Player Head Hits Bot Body -> Player Dies
                     for (let j = 2; j < b.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(snake.x - b.body[j].x, 2) + Math.pow(snake.y - b.body[j].y, 2));
                         if (dist < snake.currentRadius + 10) {
+                            convertBodyToFood(snake.body);
                             triggerGameOver();
                             return;
                         }
                     }
+
+                    // 2. Bot Head Hits Player Body -> BOT DIES & DROPS FOOD!
+                    let botDied = false;
+                    for (let j = 2; j < snake.body.length; j++) {
+                        let dist = Math.sqrt(Math.pow(b.x - snake.body[j].x, 2) + Math.pow(b.y - snake.body[j].y, 2));
+                        if (dist < b.currentRadius + 10) {
+                            convertBodyToFood(b.body);
+                            bots.splice(bIdx, 1);
+                            bots.push(createBot()); // Respawn new bot
+                            botDied = true;
+                            break;
+                        }
+                    }
+                    if (botDied) continue;
                 }
             }
 
@@ -637,10 +659,11 @@
                         }
                     }
 
-                    // Player hits Multiplayer Opponent
+                    // Player hits Opponent Body
                     for (let j = 2; j < p.body.length; j++) {
                         let dist = Math.sqrt(Math.pow(snake.x - p.body[j].x, 2) + Math.pow(snake.y - p.body[j].y, 2));
                         if (dist < snake.currentRadius + 10) {
+                            convertBodyToFood(snake.body);
                             triggerGameOver();
                             return;
                         }
@@ -648,13 +671,13 @@
                 }
             }
 
-            // Food collision for Player
+            // Player Food Collection (5 Foods = 1 Segment)
             for (let i = foods.length - 1; i >= 0; i--) {
                 let f = foods[i];
                 let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));
-                if (dist < snake.currentRadius + 6) {
+                if (dist < snake.currentRadius + 8) {
                     snake.score += f.value;
-                    snake.targetLength += 1; 
+                    snake.targetLength += 0.2; // Exactly 5 foods = 1 Segment
                     foods[i] = createFood(false);
                 }
             }
@@ -674,7 +697,7 @@
             if (!isMultiplayerArena) {
                 bots.forEach(b => {
                     for (let j = b.body.length - 1; j >= 0; j--) {
-                        drawSlitherSkin(ctx, b.body[j].x, b.body[j].y, 15, j, b.skin, j === 0, b.angle + Math.PI/2, b.isBoosting, config.effect);
+                        drawSlitherSkin(ctx, b.body[j].x, b.body[j].y, 15, j, b.skin, j === 0, b.angle + Math.PI/2, false, config.effect);
                     }
                 });
             }
@@ -699,7 +722,7 @@
             ctx.restore();
 
             document.getElementById('hud-score').innerText = "Score: " + Math.floor(snake.score);
-            document.getElementById('hud-length').innerText = "Length: " + snake.body.length + " segments";
+            document.getElementById('hud-length').innerText = "Length: " + Math.floor(snake.length) + " segments";
 
             // Live Leaderboard Update
             let sortedScores = [];
@@ -725,7 +748,7 @@
 
         function createFood(isInitial = false) {
             let maxRadius = Math.random() * 2 + 4;
-            let range = isInitial ? MAP_RADIUS * 1.8 : MAP_RADIUS * 1.6;
+            let range = isInitial ? MAP_RADIUS * 1.8 : MAP_RADIUS * 1.8;
             return {
                 x: (Math.random() - 0.5) * range,
                 y: (Math.random() - 0.5) * range,

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Touch Controls & Demo Edition</title>
+    <title>Slither.io Pro - Smart AI Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
@@ -42,7 +42,6 @@
         .option-label { font-size: 0.9rem; color: #94a3b8; font-weight: 500; }
         .select-btn { background: #131324; border: 1px solid #363659; color: #fff; padding: 6px 12px; border-radius: 8px; cursor: pointer; min-width: 120px; font-size: 0.85rem; font-weight: 600; text-align: center; }
 
-        /* CONTROLS DEMO MODAL SCENE */
         .modal-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(3, 3, 12, 0.9); z-index: 20; backdrop-filter: blur(12px);
@@ -57,7 +56,6 @@
         .demo-canvas { width: 180px; height: 140px; background: #050512; border-radius: 10px; border: 1px solid #222244; margin-bottom: 10px; }
         .demo-desc { font-size: 0.8rem; color: #94a3b8; line-height: 1.3; }
 
-        /* IN-GAME MOBILE UI CONTROLS */
         #mobileControls { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; display: none; }
         #joystickBase {
             position: absolute; width: 110px; height: 110px; border-radius: 50%;
@@ -96,7 +94,7 @@
     <div id="screen-splash" class="ui-screen">
         <h1>SLITHER PRO</h1>
         <div class="loader-container"><div id="loader" class="loader-bar"></div></div>
-        <p style="color: #4b5563; font-size: 0.8rem; margin-top: 15px; letter-spacing: 2px;">INITIALIZING CONTROL ENGINE...</p>
+        <p style="color: #4b5563; font-size: 0.8rem; margin-top: 15px; letter-spacing: 2px;">INITIALIZING SMART AI ENGINE...</p>
     </div>
 
     <div id="screen-main" class="ui-screen hidden">
@@ -137,7 +135,6 @@
                     <div class="option-label">Arena Style</div>
                     <button class="select-btn" id="btn-map" onclick="changeSetting('map')">Standard Grid</button>
                 </div>
-                <!-- CONTROLS DEMO BUTTON (ADDED FOR BOTH MODES) -->
                 <div class="option-row" style="border-color: rgba(0,255,170,0.3); background: rgba(0,255,170,0.05);">
                     <div class="option-label" style="color: #00ffaa; font-weight: bold;">How to Play</div>
                     <button class="select-btn" style="background: linear-gradient(45deg, #00ffaa, #00bfff); color: #000;" onclick="openControlsDemoModal()">Game Controls</button>
@@ -156,10 +153,8 @@
         </div>
     </div>
 
-    <!-- CONTROLS DEMO MODAL SCENE -->
     <div id="screen-controls-demo" class="modal-overlay hidden">
         <h2>HOW TO CONTROL</h2>
-        
         <div class="demo-card-container">
             <div class="demo-card">
                 <h3>🖥️ PC / Computer</h3>
@@ -169,7 +164,6 @@
                     <b>Boost:</b> Hold Left Mouse Click
                 </div>
             </div>
-
             <div class="demo-card">
                 <h3>📱 Mobile / Touch</h3>
                 <canvas id="mobileDemoCanvas" class="demo-canvas"></canvas>
@@ -179,7 +173,6 @@
                 </div>
             </div>
         </div>
-
         <div class="btn" style="margin-top: 25px; min-width: 140px;" onclick="closeControlsDemoModal()">GOT IT!</div>
     </div>
 
@@ -202,7 +195,6 @@
 
     <div id="pingBadge" class="ping-badge" style="display:none;">Ping: 0 ms</div>
 
-    <!-- IN-GAME TOUCH CONTROLS LAYER -->
     <div id="mobileControls">
         <div id="joystickBase"></div>
         <div id="joystickStick"></div>
@@ -299,7 +291,6 @@
             showScreen('screen-offline');
         }
 
-        // CONTROLS DEMO SCENE LOGIC
         let pcDemoAnimId, mobileDemoAnimId;
         function openControlsDemoModal() {
             document.getElementById('screen-controls-demo').classList.remove('hidden');
@@ -325,7 +316,6 @@
             function runDemoLoop() {
                 frame += 0.05;
                 
-                // PC Demo Drawing
                 pcCtx.clearRect(0, 0, 180, 140);
                 let curX = 90 + Math.cos(frame) * 40;
                 let curY = 70 + Math.sin(frame) * 25;
@@ -335,23 +325,19 @@
                 pcCtx.fillStyle = isBoostingDemo ? '#ff0055' : '#00ffaa';
                 pcCtx.beginPath(); pcCtx.arc(curX, curY, isBoostingDemo ? 12 : 8, 0, Math.PI*2); pcCtx.fill();
                 
-                // Cursor Icon
                 pcCtx.fillStyle = '#ffffff';
                 pcCtx.beginPath(); pcCtx.arc(curX + 25, curY + 15, 4, 0, Math.PI*2); pcCtx.fill();
                 pcCtx.strokeStyle = '#00ffaa'; pcCtx.beginPath(); pcCtx.moveTo(curX, curY); pcCtx.lineTo(curX + 25, curY + 15); pcCtx.stroke();
 
-                // Mobile Demo Drawing
                 mobCtx.clearRect(0, 0, 180, 140);
                 mobCtx.strokeStyle = 'rgba(255,255,255,0.1)'; mobCtx.strokeRect(5, 5, 170, 130);
 
-                // Animated Joystick
                 let joyX = 45 + Math.cos(frame) * 15;
                 let joyY = 85 + Math.sin(frame) * 15;
                 mobCtx.strokeStyle = 'rgba(0, 255, 170, 0.4)'; mobCtx.lineWidth = 2;
                 mobCtx.beginPath(); mobCtx.arc(45, 85, 25, 0, Math.PI*2); mobCtx.stroke();
                 mobCtx.fillStyle = '#00ffaa'; mobCtx.beginPath(); mobCtx.arc(joyX, joyY, 10, 0, Math.PI*2); mobCtx.fill();
 
-                // Animated Boost Button
                 let boostPressed = Math.sin(frame*3) > 0;
                 mobCtx.fillStyle = boostPressed ? '#ff0055' : '#441122';
                 mobCtx.strokeStyle = '#ff6699';
@@ -560,7 +546,6 @@
         let lastPacketTime = 0;
         let lastFrameTime = performance.now();
 
-        // DESKTOP CONTROLS
         window.addEventListener("mousemove", (e) => { 
             if(!isMobile) { mouse.x = e.clientX; mouse.y = e.clientY; }
         });
@@ -569,7 +554,6 @@
         });
         window.addEventListener("mouseup", () => { if(!isMobile) isBoosting = false; });
 
-        // MOBILE JOYSTICK & TOUCH LOGIC
         let touchJoystick = { active: false, startX: 0, startY: 0, currentX: 0, currentY: 0, touchId: null };
         const joyBase = document.getElementById('joystickBase');
         const joyStick = document.getElementById('joystickStick');
@@ -650,26 +634,28 @@
 
         let snake, foods, bots, cameraScale;
 
+        // FEATURE 1: AI BOTS DEFAULT LENGTH IS EQUAL TO PLAYER (100 SCORE, 45 SEGMENTS)
         function createBot() {
             let rAngle = Math.random() * Math.PI * 2;
             let rDist = Math.random() * (MAP_RADIUS - 300);
             let rx = Math.cos(rAngle) * rDist;
             let ry = Math.sin(rAngle) * rDist;
 
-            let bScore = Math.floor(Math.random()*300) + 50;
-            let bLength = Math.floor(bScore / 2) + 30;
+            let bScore = 100; // Player ke barabar score
+            let bLength = 45;  // Player ke barabar default length
             let botBody = [];
             for(let k=0; k<bLength; k++) botBody.push({x: rx, y: ry});
 
             return {
                 id: "bot_" + Math.random().toString(36).substr(2, 9),
                 x: rx, y: ry, angle: Math.random() * Math.PI * 2,
+                targetAngle: Math.random() * Math.PI * 2,
                 maxTurnSpeed: config.difficulty === 'Hard' ? 0.09 : (config.difficulty === 'Easy' ? 0.05 : 0.07),
                 skin: skins[Math.floor(Math.random() * skins.length)],
                 name: "AI_" + Math.floor(Math.random()*900), 
                 score: bScore, length: bLength, targetLength: bLength,
                 body: botBody, currentRadius: 15, 
-                speed: 3.5, changeDirTimer: 0
+                speed: 3.5, boostSpeed: 7.0, isBoosting: false, changeDirTimer: 0
             };
         }
 
@@ -683,6 +669,35 @@
                     maxRadius: Math.random() * 3 + 6, value: 2
                 });
             }
+        }
+
+        // FEATURE 2: UNIFORM GRID-BASED FOOD SPREADING
+        function generateUniformFoodGrid() {
+            foods = [];
+            let spacing = isMobile ? 120 : 90; // Food grid spacing
+            for (let x = -MAP_RADIUS + 100; x < MAP_RADIUS - 100; x += spacing) {
+                for (let y = -MAP_RADIUS + 100; y < MAP_RADIUS - 100; y += spacing) {
+                    if (Math.hypot(x, y) < MAP_RADIUS - 100) {
+                        foods.push({
+                            x: x + (Math.random() - 0.5) * 40,
+                            y: y + (Math.random() - 0.5) * 40,
+                            color: `hsl(${Math.random()*360}, 100%, 65%)`,
+                            maxRadius: Math.random() * 2 + 4,
+                            value: 2
+                        });
+                    }
+                }
+            }
+        }
+
+        function createFood(xPos, yPos) {
+            let maxRadius = Math.random() * 2 + 4;
+            return {
+                x: xPos,
+                y: yPos,
+                color: `hsl(${Math.random()*360},100%, 65%)`,
+                maxRadius: maxRadius, value: Math.floor(maxRadius * 2)
+            };
         }
 
         function initGameData(multiplayerFlag) {
@@ -703,9 +718,8 @@
             };
             for(let i=0; i < snake.length; i++) snake.body.push({x: snake.x, y: snake.y});
             
-            cameraScale = 1.0; foods = [];
-            let foodCount = isMobile ? 800 : 1500;
-            for (let i = 0; i < foodCount; i++) foods.push(createFood(true));
+            cameraScale = 1.0; 
+            generateUniformFoodGrid();
 
             bots = [];
             if (!isMultiplayerArena) {
@@ -819,6 +833,7 @@
                 });
             }
 
+            // MULTIPLAYER MODE LOGIC
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
                     let p = networkPlayers[id];
@@ -856,25 +871,100 @@
                 }
             }
 
+            // FEATURE 4: SMART AI SKILLS & DYNAMIC DIFFICULTY LOGIC
             if (!isMultiplayerArena) {
-                for (let bIdx = bots.length - 1; bIdx >= 0; bIdx--) {
+                let deadBotIndices = [];
+
+                for (let bIdx = 0; bIdx < bots.length; bIdx++) {
                     let b = bots[bIdx];
-                    b.changeDirTimer--;
-                    if (b.changeDirTimer <= 0) {
-                        b.changeDirTimer = Math.floor(Math.random() * 40) + 20;
-                        b.targetAngle = Math.random() * Math.PI * 2;
+                    if (deadBotIndices.includes(bIdx)) continue;
+
+                    b.isBoosting = false;
+                    let distToPlayer = Math.hypot(snake.x - b.x, snake.y - b.y);
+
+                    // 1. ADVANCED SKILL: COLLISION AVOIDANCE & PLAYER ATTACK BASED ON DIFFICULTY
+                    let dangerDetected = false;
+                    let avoidAngle = b.angle;
+
+                    // Sensor setup in front of bot
+                    let sensorDist = 120;
+                    let futureX = b.x + Math.cos(b.angle) * sensorDist;
+                    let futureY = b.y + Math.sin(b.angle) * sensorDist;
+
+                    // Barrier avoidance
+                    if (Math.hypot(futureX, futureY) > MAP_RADIUS - 200) {
+                        avoidAngle = Math.atan2(-b.y, -b.x);
+                        dangerDetected = true;
                     }
 
+                    // Player Body Obstacle Avoidance
+                    if (!dangerDetected) {
+                        for (let j = 1; j < snake.body.length; j += 3) {
+                            if (Math.hypot(futureX - snake.body[j].x, futureY - snake.body[j].y) < 60) {
+                                avoidAngle = b.angle + Math.PI / 2; // Turn sharply away
+                                dangerDetected = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Other Bots Body Obstacle Avoidance
+                    if (!dangerDetected) {
+                        for (let oIdx = 0; oIdx < bots.length; oIdx++) {
+                            if (oIdx === bIdx || deadBotIndices.includes(oIdx)) continue;
+                            let ob = bots[oIdx];
+                            for (let j = 1; j < ob.body.length; j += 3) {
+                                if (Math.hypot(futureX - ob.body[j].x, futureY - ob.body[j].y) < 60) {
+                                    avoidAngle = b.angle - Math.PI / 2;
+                                    dangerDetected = true;
+                                    break;
+                                }
+                            }
+                            if (dangerDetected) break;
+                        }
+                    }
+
+                    if (dangerDetected) {
+                        b.targetAngle = avoidAngle;
+                    } else {
+                        // DIFFICULTY DRIVEN STRATEGY
+                        if (config.difficulty === 'Hard' && distToPlayer < 400) {
+                            // Intercept or Cut off Player Head
+                            let playerHeadX = snake.x + Math.cos(snake.angle) * 80;
+                            let playerHeadY = snake.y + Math.sin(snake.angle) * 80;
+                            b.targetAngle = Math.atan2(playerHeadY - b.y, playerHeadX - b.x);
+                            if (distToPlayer < 250 && b.score > 20) b.isBoosting = true; // Smart Boost
+                        } 
+                        else if (config.difficulty === 'Medium' && distToPlayer < 250) {
+                            // Follow Player loosely
+                            b.targetAngle = Math.atan2(snake.y - b.y, snake.x - b.x);
+                        } 
+                        else {
+                            // Easy mode or Random Wandering
+                            b.changeDirTimer--;
+                            if (b.changeDirTimer <= 0) {
+                                b.changeDirTimer = Math.floor(Math.random() * 50) + 30;
+                                b.targetAngle = Math.random() * Math.PI * 2;
+                            }
+                        }
+                    }
+
+                    // Rotate Bot
                     let bAngleDiff = b.targetAngle - b.angle;
                     while (bAngleDiff < -Math.PI) bAngleDiff += Math.PI * 2;
                     while (bAngleDiff > Math.PI) bAngleDiff -= Math.PI * 2;
                     b.angle += Math.max(-b.maxTurnSpeed * dt, Math.min(b.maxTurnSpeed * dt, bAngleDiff));
 
-                    b.x += Math.cos(b.angle) * b.speed * dt;
-                    b.y += Math.sin(b.angle) * b.speed * dt;
+                    // Move Bot
+                    let bCurrentSpeed = (b.isBoosting ? b.boostSpeed : b.speed) * dt;
+                    b.x += Math.cos(b.angle) * bCurrentSpeed;
+                    b.y += Math.sin(b.angle) * bCurrentSpeed;
+
+                    if (b.isBoosting && b.score > 20) b.score -= 0.2 * dt;
 
                     enforceBarrier(b);
 
+                    // Update Body
                     b.body[0] = {x: b.x, y: b.y};
                     for (let j = 1; j < b.body.length; j++) {
                         let dx = b.body[j].x - b.body[j-1].x;
@@ -886,47 +976,74 @@
                         }
                     }
 
+                    // Bot Eats Food
                     for (let fIdx = foods.length - 1; fIdx >= 0; fIdx--) {
                         let f = foods[fIdx];
-                        let dist = Math.sqrt(Math.pow(b.x - f.x, 2) + Math.pow(b.y - f.y, 2));
+                        let dist = Math.hypot(b.x - f.x, b.y - f.y);
                         if (dist < b.currentRadius + 6) {
                             b.score += f.value;
                             b.targetLength += 0.2;
-                            foods[fIdx] = createFood(false);
+                            foods[fIdx] = createFood(f.x, f.y); // Regenerate in-place
                         }
                     }
 
-                    for (let j = 2; j < b.body.length; j++) {
-                        let dist = Math.sqrt(Math.pow(snake.x - b.body[j].x, 2) + Math.pow(snake.y - b.body[j].y, 2));
-                        if (dist < snake.currentRadius + 10) {
-                            convertBodyToFood(snake.body);
-                            triggerGameOver();
-                            return;
-                        }
-                    }
-
-                    let botDied = false;
+                    // Bot Hits Player Body -> Bot Dies
                     for (let j = 2; j < snake.body.length; j++) {
-                        let dist = Math.sqrt(Math.pow(b.x - snake.body[j].x, 2) + Math.pow(b.y - snake.body[j].y, 2));
+                        let dist = Math.hypot(b.x - snake.body[j].x, b.y - snake.body[j].y);
                         if (dist < b.currentRadius + 10) {
-                            convertBodyToFood(b.body);
-                            bots.splice(bIdx, 1);
-                            bots.push(createBot());
-                            botDied = true;
+                            deadBotIndices.push(bIdx);
                             break;
                         }
                     }
-                    if (botDied) continue;
+
+                    // Player Hits Bot Body -> Player Dies
+                    if (!deadBotIndices.includes(bIdx)) {
+                        for (let j = 2; j < b.body.length; j++) {
+                            let dist = Math.hypot(snake.x - b.body[j].x, snake.y - b.body[j].y);
+                            if (dist < snake.currentRadius + 10) {
+                                convertBodyToFood(snake.body);
+                                triggerGameOver();
+                                return;
+                            }
+                        }
+                    }
+
+                    // FEATURE 3: BOT-VS-BOT COLLISION (Bots die if they collide with other bots)
+                    if (!deadBotIndices.includes(bIdx)) {
+                        for (let oIdx = 0; oIdx < bots.length; oIdx++) {
+                            if (oIdx === bIdx || deadBotIndices.includes(oIdx)) continue;
+                            let otherBot = bots[oIdx];
+                            for (let j = 2; j < otherBot.body.length; j++) {
+                                let dist = Math.hypot(b.x - otherBot.body[j].x, b.y - otherBot.body[j].y);
+                                if (dist < b.currentRadius + 10) {
+                                    deadBotIndices.push(bIdx);
+                                    break;
+                                }
+                            }
+                            if (deadBotIndices.includes(bIdx)) break;
+                        }
+                    }
+                }
+
+                // Clean Dead Bots & Respawn new ones
+                if (deadBotIndices.length > 0) {
+                    // Sort descending so splicing doesn't mess up indices
+                    deadBotIndices.sort((a, b) => b - a).forEach(idx => {
+                        convertBodyToFood(bots[idx].body);
+                        bots.splice(idx, 1);
+                        bots.push(createBot());
+                    });
                 }
             }
 
+            // Player Collect Food
             for (let i = foods.length - 1; i >= 0; i--) {
                 let f = foods[i];
-                let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));
+                let dist = Math.hypot(snake.x - f.x, snake.y - f.y);
                 if (dist < snake.currentRadius + 8) {
                     snake.score += f.value;
                     snake.targetLength += 0.2;
-                    foods[i] = createFood(false);
+                    foods[i] = createFood(f.x, f.y); // Regenerate in-place grid spot
                 }
             }
 
@@ -943,23 +1060,26 @@
             let vTop = snake.y - canvas.height / 2 - margin;
             let vBottom = snake.y + canvas.height / 2 + margin;
 
+            // Render Foods
             foods.forEach(f => {
                 if (f.x >= vLeft && f.x <= vRight && f.y >= vTop && f.y <= vBottom) {
                     ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x, f.y, f.maxRadius, 0, Math.PI*2); ctx.fill();
                 }
             });
 
+            // Render Bots
             if (!isMultiplayerArena) {
                 bots.forEach(b => {
                     for (let j = b.body.length - 1; j >= 0; j--) {
                         let bx = b.body[j].x, by = b.body[j].y;
                         if (bx >= vLeft && bx <= vRight && by >= vTop && by <= vBottom) {
-                            drawSlitherSkin(ctx, bx, by, b.currentRadius, j, b.skin, j === 0, b.angle + Math.PI/2, false, config.effect);
+                            drawSlitherSkin(ctx, bx, by, b.currentRadius, j, b.skin, j === 0, b.angle + Math.PI/2, b.isBoosting, config.effect);
                         }
                     }
                 });
             }
 
+            // Render Network Players
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
                     let p = networkPlayers[id];
@@ -975,6 +1095,7 @@
                 }
             }
 
+            // Render Player
             for (let i = snake.body.length - 1; i >= 0; i--) {
                 drawSlitherSkin(ctx, snake.body[i].x, snake.body[i].y, snake.currentRadius, i, config.skin, i === 0, snake.angle + Math.PI/2, isBoosting, config.effect);
             }
@@ -1003,18 +1124,6 @@
                 </div>`;
             });
             document.getElementById('lb-content').innerHTML = lbContent;
-        }
-
-        function createFood(isInitial = false) {
-            let maxRadius = Math.random() * 2 + 4;
-            let rAngle = Math.random() * Math.PI * 2;
-            let rDist = Math.random() * (MAP_RADIUS - 100);
-            return {
-                x: Math.cos(rAngle) * rDist,
-                y: Math.sin(rAngle) * rDist,
-                color: `hsl(${Math.random()*360},100%, 65%)`,
-                maxRadius: maxRadius, value: Math.floor(maxRadius * 2)
-            };
         }
     </script>
 </body>

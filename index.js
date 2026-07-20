@@ -50,7 +50,7 @@ io.on('connection', (socket) => {
         socket.emit('pongTest');
     });
 
-    // Multiplayer Join Handler
+    // Multiplayer Join Handler (Initial Spawn Score: 100, Length: 45)
     socket.on('joinMultiplayer', (data) => {
         const randomAngle = Math.random() * Math.PI * 2;
         const randomDist = Math.random() * (MAP_RADIUS - 300);
@@ -70,13 +70,13 @@ io.on('connection', (socket) => {
         };
     });
 
-    // Player State Sync Handler (Coordinates, Steering Angle & Boost)
+    // Player State Sync Handler (Position, Angle, Boost & Length)
     socket.on('updatePlayer', (data) => {
         if (players[socket.id]) {
             let newX = data.x;
             let newY = data.y;
 
-            // Enforce Server-Side Boundary Check
+            // Server-Side Boundary Constraint Enforcement
             const distFromCenter = Math.hypot(newX, newY);
             if (distFromCenter > MAP_RADIUS - 15) {
                 const angle = Math.atan2(newY, newX);
@@ -94,7 +94,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Handle Player Elimination
+    // Handle Player Elimination Event
     socket.on('playerDied', () => {
         if (players[socket.id]) {
             delete players[socket.id];
@@ -107,15 +107,15 @@ io.on('connection', (socket) => {
     });
 });
 
-// Broadcast Game State Update to all Clients (30 Tick Rate / FPS Sync)
+// High-frequency Broadcast Game State Update (30 Tick Rate / FPS Sync)
 setInterval(() => {
     io.volatile.emit('gameStateUpdate', { players: players });
 }, 1000 / 30);
 
-// Start High Performance HTTP/WS Server
+// Start Server Listen Process
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`====================================================`);
-    console.log(`🚀 Slither Pro Multi-Region & Touch Engine Active!`);
-    console.log(`🌐 Server listening on http://localhost:${PORT}`);
+    console.log(`🚀 Slither Pro Multi-Region & Smart AI Engine Active!`);
+    console.log(`🌐 Server running at: http://localhost:${PORT}`);
     console.log(`====================================================`);
 });

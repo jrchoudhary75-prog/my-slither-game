@@ -28,11 +28,10 @@ app.get('/', (req, res) => {
     else res.status(404).send('<h1>Error: index.html missing!</h1>');
 });
 
-// Multiplayer memory store
 const players = {};
 
 io.on('connection', (socket) => {
-    console.log(`[+] Player Connected: ${socket.id}`);
+    console.log(`[+] Connected: ${socket.id}`);
 
     socket.on('joinMultiplayer', (data) => {
         players[socket.id] = {
@@ -45,7 +44,7 @@ io.on('connection', (socket) => {
             score: 100,
             body: []
         };
-        console.log(`[+] Joined Arena: ${players[socket.id].name} (${socket.id})`);
+        console.log(`[+] Arena Joined: ${players[socket.id].name} (${socket.id})`);
     });
 
     socket.on('updatePlayer', (data) => {
@@ -64,14 +63,14 @@ io.on('connection', (socket) => {
     });
 });
 
-// Broadcast ALL connected players to everyone continuously (30 FPS)
+// Broadcast state continuously (30 Ticks/sec)
 setInterval(() => {
     io.emit('gameStateUpdate', players);
 }, 1000 / 30);
 
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`=================================`);
-    console.log(`🚀 Slither Pro Fixed Backend Live!`);
+    console.log(`🚀 Slither Pro Smooth Cluster Live!`);
     console.log(`🌐 Port: ${PORT}`);
     console.log(`=================================`);
 });

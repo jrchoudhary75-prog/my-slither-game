@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Perfect Sync Edition</title>
+    <title>Slither.io Pro - Ultimate Butter-Smooth Sync</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
@@ -146,8 +146,27 @@
             transports: ['websocket', 'polling']
         });
 
-        socket.on('gameStateUpdate', (players) => {
-            networkPlayers = players;
+        // Smart LERP Interpolation for Buttery Smooth Multiplayer Physics
+        socket.on('gameStateUpdate', (serverPlayers) => {
+            for (let id in serverPlayers) {
+                if (id !== socket.id) {
+                    if (!networkPlayers[id]) {
+                        networkPlayers[id] = serverPlayers[id];
+                    } else {
+                        // Smoothly lerp position instead of snapping instantly
+                        networkPlayers[id].x += (serverPlayers[id].x - networkPlayers[id].x) * 0.4;
+                        networkPlayers[id].y += (serverPlayers[id].y - networkPlayers[id].y) * 0.4;
+                        networkPlayers[id].angle = serverPlayers[id].angle;
+                        networkPlayers[id].body = serverPlayers[id].body;
+                        networkPlayers[id].score = serverPlayers[id].score;
+                        networkPlayers[id].skin = serverPlayers[id].skin;
+                    }
+                }
+            }
+            // Clean up disconnected players
+            for (let id in networkPlayers) {
+                if (!serverPlayers[id]) delete networkPlayers[id];
+            }
         });
 
         function showScreen(screenId) {
@@ -389,9 +408,8 @@
 
         function initGameData(multiplayerFlag) {
             isMultiplayerArena = multiplayerFlag;
-            MAP_RADIUS = isMultiplayerArena ? 4000 : 3000; // Optimal map radius
+            MAP_RADIUS = isMultiplayerArena ? 4000 : 3000;
 
-            // Random initial spawn location so players don't immediately stack at 0,0
             let startX = (Math.random() - 0.5) * 1500;
             let startY = (Math.random() - 0.5) * 1500;
 
@@ -504,14 +522,12 @@
                 snake.body.pop();
             }
 
-            // Realtime Sync to Server
             if (isMultiplayerArena) {
                 socket.emit('updatePlayer', {
                     x: snake.x, y: snake.y, angle: snake.angle, body: snake.body, score: snake.score
                 });
             }
 
-            // Food collision
             for (let i = foods.length - 1; i >= 0; i--) {
                 let f = foods[i];
                 let dist = Math.sqrt(Math.pow(snake.x - f.x, 2) + Math.pow(snake.y - f.y, 2));
@@ -533,7 +549,6 @@
                 ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x, f.y, f.maxRadius, 0, Math.PI*2); ctx.fill();
             });
 
-            // Draw Opponent Realtime Players
             if (isMultiplayerArena) {
                 for (let id in networkPlayers) {
                     if (id !== socket.id) {
@@ -547,7 +562,6 @@
                 }
             }
 
-            // Draw Local Player
             for (let i = snake.body.length - 1; i >= 0; i--) {
                 drawSlitherSkin(ctx, snake.body[i].x, snake.body[i].y, snake.currentRadius, i, config.skin, i === 0, snake.angle + Math.PI/2, isBoosting, config.effect);
             }
@@ -557,7 +571,6 @@
             document.getElementById('hud-score').innerText = "Score: " + Math.floor(snake.score);
             document.getElementById('hud-length').innerText = "Length: " + snake.body.length + " segments";
 
-            // Live Leaderboard Update
             let sortedScores = [];
             sortedScores.push({name: snake.name, score: snake.score, isLocal: true});
             if (isMultiplayerArena) {

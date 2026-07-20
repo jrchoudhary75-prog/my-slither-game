@@ -7,10 +7,12 @@ const fs = require('fs');
 const app = express();
 const server = http.createServer(app);
 
-// Socket.io initialization with WebSockets & Polling
+// Low Latency WebSocket Direct Driver (No HTTP Polling Delay)
 const io = new Server(server, {
     cors: { origin: "*", methods: ["GET", "POST"] },
-    transports: ['websocket', 'polling']
+    transports: ['websocket'],
+    pingTimeout: 10000,
+    pingInterval: 5000
 });
 
 const PORT = process.env.PORT || 3000;
@@ -29,16 +31,16 @@ app.get('/', (req, res) => {
     else res.status(404).send('<h1>Error: index.html missing!</h1>');
 });
 
-// MAP CONSTANTS
 const MAP_RADIUS = 4000;
-
-// Connected Players Database
 const players = {};
 
 io.on('connection', (socket) => {
     console.log(`[+] Client Connected: ${socket.id}`);
 
-    // Handle Player Join with Equal Base Properties
+    socket.on('pingTest', () => {
+        socket.emit('pongTest');
+    });
+
     socket.on('joinMultiplayer', (data) => {
         const randomAngle = Math.random() * Math.PI * 2;
         const randomDist = Math.random() * (MAP_RADIUS - 300);
@@ -54,17 +56,13 @@ io.on('connection', (socket) => {
             length: data.length || 45,
             radius: data.radius || 15
         };
-
-        console.log(`[+] Arena Joined: ${players[socket.id].name} (${socket.id})`);
     });
 
-    // Handle Realtime Movement and Position Sync
     socket.on('updatePlayer', (data) => {
         if (players[socket.id]) {
             let newX = data.x;
             let newY = data.y;
 
-            // 4000px Boundary Clamp
             const distFromCenter = Math.hypot(newX, newY);
             if (distFromCenter > MAP_RADIUS - 15) {
                 const angle = Math.atan2(newY, newX);
@@ -81,29 +79,25 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Handle Explicit Death Notification
     socket.on('playerDied', () => {
         if (players[socket.id]) {
-            console.log(`[-] Player Died in Arena: ${players[socket.id].name}`);
             delete players[socket.id];
         }
     });
 
     socket.on('disconnect', () => {
-        console.log(`[-] Client Disconnected: ${socket.id}`);
         delete players[socket.id];
     });
 });
 
-// Broadcast game state at optimized 30 FPS
+// Broadcast game state using volatile packet emission (Eliminates High Ping Lag)
 setInterval(() => {
-    io.emit('gameStateUpdate', { players: players });
+    io.volatile.emit('gameStateUpdate', { players: players });
 }, 1000 / 30);
 
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`=================================`);
-    console.log(`🚀 Slither Pro Server Live!`);
-    console.log(`🌐 Running on Port: ${PORT}`);
-    console.log(`🗺️ Map Boundary: ${MAP_RADIUS}px Radius`);
+    console.log(`🚀 Slither Pro Ultra Low Ping Cluster Live!`);
+    console.log(`🌐 Port: ${PORT}`);
     console.log(`=================================`);
 });

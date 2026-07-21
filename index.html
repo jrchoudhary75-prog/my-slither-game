@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Ultra Instict AI Edition</title>
+    <title>Slither.io Pro - Aggressive Cut-In AI Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
@@ -116,7 +116,7 @@
     <div id="screen-splash" class="ui-screen">
         <h1>SLITHER PRO</h1>
         <div class="loader-container"><div id="loader" class="loader-bar"></div></div>
-        <p style="color: #ff3366; font-size: 0.85rem; font-weight: bold; margin-top: 15px; letter-spacing: 2px;">LOADING GOD MODE AI BOT ENGINE...</p>
+        <p style="color: #ff3366; font-size: 0.85rem; font-weight: bold; margin-top: 15px; letter-spacing: 2px;">LOADING CUT-IN AGGRESSIVE AI ENGINE...</p>
     </div>
 
     <div id="screen-main" class="ui-screen hidden">
@@ -143,7 +143,7 @@
                 </div>
                 <div class="option-row" id="diff-row">
                     <div class="option-label">Difficulty</div>
-                    <button class="select-btn" id="btn-difficulty" onclick="changeSetting('difficulty')">Insane Pro</button>
+                    <button class="select-btn" id="btn-difficulty" onclick="changeSetting('difficulty')">Insane Cut-In</button>
                 </div>
                 <div class="option-row">
                     <div class="option-label">Snake Skin</div>
@@ -230,12 +230,12 @@
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
         const servers = ['Asia / India', 'Singapore (Low Ping)', 'Europe Central', 'US East'];
-        const difficulties = ['Insane Pro', 'Hard Core', 'God Mode'];
+        const difficulties = ['Insane Cut-In', 'Hard Core', 'God Mode'];
         const skins = ['Neon Stripe', 'Cosmic Polka', 'Magma Flow', 'Cyber Grid', 'Glow Phantom', 'Void Nebula', 'Rainbow Pulse'];
         const effects = ['Plasma Glow', 'Fire Storm', 'Neon Shockwave'];
         const maps = ['Standard Grid', 'Deep Space Void', 'Tech Hexagon'];
         
-        let config = { server: 'Asia / India', difficulty: 'Insane Pro', skin: 'Neon Stripe', effect: 'Plasma Glow', map: 'Standard Grid' };
+        let config = { server: 'Asia / India', difficulty: 'Insane Cut-In', skin: 'Neon Stripe', effect: 'Plasma Glow', map: 'Standard Grid' };
         let chosenMode = 'offline'; 
         let isMultiplayerArena = false;
         let networkPlayers = {};
@@ -656,14 +656,12 @@
 
         let snake, foods, bots, cameraScale;
 
-        /* PRO FEATURE 1: BOT LENGTH MATCHES PLAYER EXACTLY */
         function createBot() {
             let rAngle = Math.random() * Math.PI * 2;
             let rDist = Math.random() * (MAP_RADIUS - 300);
             let rx = Math.cos(rAngle) * rDist;
             let ry = Math.sin(rAngle) * rDist;
 
-            // Target Length initialized to Player Length or 45
             let initialLength = snake ? Math.floor(snake.length) : 45;
             let botBody = [];
             for(let k=0; k<initialLength; k++) botBody.push({x: rx, y: ry});
@@ -672,14 +670,14 @@
                 id: "bot_" + Math.random().toString(36).substr(2, 9),
                 x: rx, y: ry, angle: Math.random() * Math.PI * 2,
                 targetAngle: Math.random() * Math.PI * 2,
-                maxTurnSpeed: 0.12, // Lightning fast turn response
+                maxTurnSpeed: 0.15, // Extremely sharp turning speed for rapid cut-ins
                 skin: skins[Math.floor(Math.random() * skins.length)],
-                name: "PRO_AI_" + Math.floor(Math.random()*900), 
+                name: "CUT_IN_AI_" + Math.floor(Math.random()*900), 
                 score: initialLength * 2.2, 
                 length: initialLength, 
                 targetLength: initialLength,
                 body: botBody, currentRadius: 15, 
-                speed: 4.2, boostSpeed: 8.5, isBoosting: false, changeDirTimer: 0
+                speed: 4.5, boostSpeed: 9.0, isBoosting: false, changeDirTimer: 0
             };
         }
 
@@ -919,7 +917,7 @@
                 }
             }
 
-            /* PRO FEATURE 2: "O BHAIII" INSANE PRO AI ENGINE */
+            /* PRO FEATURE: RELENTLESS REPEATED CUT-IN AI ENGINE */
             if (!isMultiplayerArena) {
                 let deadBotIndices = [];
 
@@ -927,7 +925,7 @@
                     let b = bots[bIdx];
                     if (deadBotIndices.includes(bIdx)) continue;
 
-                    // CONTINUOUSLY SYNC BOT LENGTH TO PLAYER LENGTH
+                    // SYNC BOT LENGTH TO PLAYER
                     b.targetLength = Math.max(45, snake.length);
                     b.score = b.targetLength * 2.2;
 
@@ -941,18 +939,18 @@
                     let bestEscapeAngle = b.angle;
                     let minDangerDist = 9999;
 
-                    // Ultra Radar Probe (Scans long range)
-                    let probeDistance = b.isBoosting ? 260 : 190;
+                    // Sensor Probe
+                    let probeDistance = b.isBoosting ? 240 : 170;
                     let futureX = b.x + Math.cos(b.angle) * probeDistance;
                     let futureY = b.y + Math.sin(b.angle) * probeDistance;
 
-                    // 1. Arena Border Check
+                    // 1. Arena Barrier Check
                     if (Math.hypot(futureX, futureY) > MAP_RADIUS - 180) {
                         bestEscapeAngle = Math.atan2(-b.y, -b.x);
                         dangerDetected = true;
                     }
 
-                    // 2. Flawless Reflex Collision Radar (Player Body & Other Bots)
+                    // 2. Self-Preservation Check (Only dodge if collision is imminent)
                     let checkEntities = [snake];
                     for (let oIdx = 0; oIdx < bots.length; oIdx++) {
                         if (oIdx !== bIdx && !deadBotIndices.includes(oIdx)) {
@@ -968,7 +966,7 @@
                             let distToSegment = Math.hypot(b.x - seg.x, b.y - seg.y);
                             let distToProbe = Math.hypot(futureX - seg.x, futureY - seg.y);
 
-                            if (distToSegment < 220 || distToProbe < 90) {
+                            if (distToSegment < 180 || distToProbe < 70) {
                                 if (distToSegment < minDangerDist) {
                                     minDangerDist = distToSegment;
                                     dangerDetected = true;
@@ -979,54 +977,33 @@
                         }
                     }
 
-                    // 3. Execution Phase
+                    // 3. AGGRESSIVE CUT-IN LOGIC
                     if (dangerDetected) {
                         b.targetAngle = bestEscapeAngle;
-                        if (minDangerDist < 90) b.isBoosting = true;
+                        if (minDangerDist < 75) b.isBoosting = true;
                     } else {
-                        // EXTREME PRO AGGRESSION LOGIC
-                        if (distToPlayer < 600) {
+                        // REPEATED PLAYER CUT-IN TACTIC
+                        if (distToPlayer < 900) {
                             let playerSpeedEstimate = isBoosting ? 7.0 : 3.5;
                             
-                            // Instant Head-Cut Prediction Vector
-                            let predictX = snake.x + Math.cos(snake.angle) * (playerSpeedEstimate * 30);
-                            let predictY = snake.y + Math.sin(snake.angle) * (playerSpeedEstimate * 30);
+                            // Predict point right in front of player's head to block
+                            let cutLeadDistance = Math.min(distToPlayer * 0.85, playerSpeedEstimate * 35);
+                            let cutX = snake.x + Math.cos(snake.angle) * cutLeadDistance;
+                            let cutY = snake.y + Math.sin(snake.angle) * cutLeadDistance;
                             
-                            let interceptAngle = Math.atan2(predictY - b.y, predictX - b.x);
-                            
-                            // Pincher / Trap Ring Tactic (Flank Left/Right)
-                            if (distToPlayer < 350) {
-                                let flankOffset = (bIdx % 2 === 0 ? 0.35 : -0.35);
-                                interceptAngle += flankOffset;
-                                b.isBoosting = true; // Aggressive SPRINT Choke-point
-                            }
+                            b.targetAngle = Math.atan2(cutY - b.y, cutX - b.x);
 
-                            b.targetAngle = interceptAngle;
+                            // Always boost when performing the cut-in maneuver
+                            if (distToPlayer < 450) {
+                                b.isBoosting = true; 
+                            }
                         } else {
-                            // High Speed Food Collection & Patrol
-                            let nearestFood = null;
-                            let minFoodDist = 350;
-                            for (let f of foods) {
-                                let fDist = Math.hypot(b.x - f.x, b.y - f.y);
-                                if (fDist < minFoodDist) {
-                                    minFoodDist = fDist;
-                                    nearestFood = f;
-                                }
-                            }
-
-                            if (nearestFood) {
-                                b.targetAngle = Math.atan2(nearestFood.y - b.y, nearestFood.x - b.x);
-                            } else {
-                                b.changeDirTimer--;
-                                if (b.changeDirTimer <= 0) {
-                                    b.changeDirTimer = Math.floor(Math.random() * 40) + 20;
-                                    b.targetAngle = Math.random() * Math.PI * 2;
-                                }
-                            }
+                            // If far away, move rapidly toward player location
+                            b.targetAngle = Math.atan2(snake.y - b.y, snake.x - b.x);
                         }
                     }
 
-                    // Turn Bot
+                    // Turn Bot Quickly
                     let bAngleDiff = b.targetAngle - b.angle;
                     while (bAngleDiff < -Math.PI) bAngleDiff += Math.PI * 2;
                     while (bAngleDiff > Math.PI) bAngleDiff -= Math.PI * 2;
@@ -1039,7 +1016,7 @@
 
                     enforceBarrier(b);
 
-                    // Sync Bot Body Segments
+                    // Sync Bot Body
                     b.body[0] = {x: b.x, y: b.y};
                     let bCurrentIntLen = Math.floor(b.length);
                     while(b.body.length < bCurrentIntLen) {

@@ -51,15 +51,18 @@
         .vip-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 3, 12, 0.95); z-index: 100; backdrop-filter: blur(15px); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; box-sizing: border-box; overflow-y: auto; }
         .vip-header { text-align: center; margin-bottom: 20px; }
         .vip-header h2 { font-size: 2.2rem; margin: 0; background: linear-gradient(45deg, #ffd700, #ff0077); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
-        .vip-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 1000px; width: 100%; }
-        .vip-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 18px; padding: 18px; width: 280px; text-align: center; display: flex; flex-direction: column; align-items: center; position: relative; transition: transform 0.3s ease, border-color 0.3s ease; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
+        .vip-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 1050px; width: 100%; }
+        .vip-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 18px; padding: 18px; width: 220px; text-align: center; display: flex; flex-direction: column; align-items: center; position: relative; transition: transform 0.3s ease, border-color 0.3s ease; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
         .vip-card:hover { transform: translateY(-5px); border-color: #ffd700; box-shadow: 0 12px 30px rgba(255, 215, 0, 0.2); }
-        .vip-tag { position: absolute; top: -10px; right: 15px; background: linear-gradient(90deg, #ff0077, #ffaa00); color: #fff; font-size: 0.7rem; font-weight: 800; padding: 3px 10px; border-radius: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        .vip-icon { font-size: 3rem; margin: 10px 0; }
-        .vip-title { font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 5px; }
-        .vip-perk { font-size: 0.9rem; font-weight: 700; color: #00ffaa; background: rgba(0, 255, 170, 0.1); border: 1px solid rgba(0, 255, 170, 0.3); padding: 4px 10px; border-radius: 8px; margin: 8px 0; display: inline-block; }
-        .vip-price { font-size: 1.1rem; color: #ffd700; font-weight: 800; margin: 10px 0; }
-        .buy-btn { background: linear-gradient(135deg, #ffd700 0%, #ff8800 100%); color: #000; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 800; cursor: pointer; width: 100%; transition: opacity 0.2s; }
+        .vip-tag { position: absolute; top: -10px; right: 10px; background: linear-gradient(90deg, #ff0077, #ffaa00); color: #fff; font-size: 0.65rem; font-weight: 800; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        /* LIVE CANVASES FOR PREVIEWS */
+        .vip-preview-canvas { width: 100%; height: 110px; background: #050512; border-radius: 12px; border: 1px solid rgba(255,215,0,0.2); margin: 10px 0; }
+
+        .vip-title { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 3px; }
+        .vip-perk { font-size: 0.8rem; font-weight: 700; color: #00ffaa; background: rgba(0, 255, 170, 0.1); border: 1px solid rgba(0, 255, 170, 0.3); padding: 3px 8px; border-radius: 6px; margin: 6px 0; display: inline-block; }
+        .vip-price { font-size: 1.1rem; color: #ffd700; font-weight: 800; margin: 8px 0; }
+        .buy-btn { background: linear-gradient(135deg, #ffd700 0%, #ff8800 100%); color: #000; border: none; padding: 8px 15px; border-radius: 18px; font-weight: 800; cursor: pointer; width: 100%; transition: opacity 0.2s; font-size: 0.85rem; }
         .buy-btn:hover { opacity: 0.9; }
 
         .setup-container { display: flex; flex-direction: row; align-items: center; gap: 20px; background: rgba(255, 255, 255, 0.02); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(15px); max-width: 90%; flex-wrap: wrap; justify-content: center; }
@@ -71,9 +74,9 @@
         #hud { position: absolute; top: 15px; left: 15px; z-index: 5; pointer-events: none; background: rgba(3, 3, 15, 0.45); padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12); display: none; backdrop-filter: blur(8px); }
         .name-input { padding: 10px; width: 260px; border-radius: 10px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1rem; margin-bottom: 12px; }
 
-        /* RAZORPAY COMPLIANCE FOOTER & MODAL STYLES */
+        /* FOOTER & POLICY MODAL */
         .footer-links { position: absolute; bottom: 12px; width: 100%; text-align: center; font-size: 0.75rem; color: #64748b; z-index: 15; }
-        .footer-links a { color: #00ffaa; text-decoration: none; margin: 0 8px; transition: color 0.2s; }
+        .footer-links a { color: #00ffaa; text-decoration: none; margin: 0 8px; }
         .footer-links a:hover { color: #00bfff; text-decoration: underline; }
 
         .policy-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 200; display: flex; justify-content: center; align-items: center; }
@@ -136,56 +139,56 @@
         </div>
     </div>
 
-    <!-- 5. VIP SKINS STORE SCENE -->
+    <!-- 5. VIP SKINS STORE SCENE WITH LIVE PREVIEWS -->
     <div id="screen-vip-store" class="vip-modal-overlay hidden">
         <div class="vip-header">
             <h2>👑 VIP LEGENDARY STORE</h2>
-            <p style="color: #a0aec0; margin-top: 5px;">Unlock Premium Skins, Trails & Themes with Permanent Perks!</p>
+            <p style="color: #a0aec0; margin-top: 5px;">Live Preview Premium Skins, Boost Trails & Themes!</p>
         </div>
 
         <div class="vip-grid">
+            <!-- SNAKE SKIN -->
             <div class="vip-card">
                 <div class="vip-tag">LEGENDARY SKIN</div>
-                <div class="vip-icon">🐍</div>
-                <div class="vip-title">Golden Dragon Skin</div>
+                <canvas id="previewSnakeCanvas" class="vip-preview-canvas"></canvas>
+                <div class="vip-title">Golden Dragon</div>
                 <div class="vip-perk">⚡ Speed +25%</div>
-                <p style="font-size: 0.8rem; color: #888;">Gives your snake superior agility and maneuverability in battle.</p>
                 <div class="vip-price">₹49</div>
                 <button class="buy-btn" onclick="triggerInAppPurchase('VIP_SNAKE_GOLDEN_DRAGON', 49)">UNLOCK NOW</button>
             </div>
 
+            <!-- BOOST SKIN -->
             <div class="vip-card">
                 <div class="vip-tag">SPECIAL BOOST</div>
-                <div class="vip-icon">🔥</div>
+                <canvas id="previewBoostCanvas" class="vip-preview-canvas"></canvas>
                 <div class="vip-title">Hyper Flame Boost</div>
                 <div class="vip-perk">🚀 Boost Speed +25%</div>
-                <p style="font-size: 0.8rem; color: #888;">Blasts high-speed particle flames with 25% extra boost velocity.</p>
                 <div class="vip-price">₹49</div>
                 <button class="buy-btn" onclick="triggerInAppPurchase('VIP_BOOST_HYPER_FLAME', 49)">UNLOCK NOW</button>
             </div>
 
+            <!-- BACKGROUND SKIN -->
             <div class="vip-card">
                 <div class="vip-tag">NEBULA THEME</div>
-                <div class="vip-icon">🌌</div>
+                <canvas id="previewBgCanvas" class="vip-preview-canvas"></canvas>
                 <div class="vip-title">Galaxy Void Grid</div>
                 <div class="vip-perk">📏 Length Growth +25%</div>
-                <p style="font-size: 0.8rem; color: #888;">Absorb cosmic particles and grow 25% faster with each food item.</p>
                 <div class="vip-price">₹79</div>
                 <button class="buy-btn" onclick="triggerInAppPurchase('VIP_BG_GALAXY_GRID', 79)">UNLOCK NOW</button>
             </div>
 
+            <!-- ALL-IN-ONE BUNDLE -->
             <div class="vip-card" style="border-color: #ff0077; background: rgba(255,0,119,0.05);">
                 <div class="vip-tag" style="background: linear-gradient(90deg, #ff0077, #7700ff);">ULTIMATE BUNDLE</div>
-                <div class="vip-icon">👑</div>
+                <canvas id="previewBundleCanvas" class="vip-preview-canvas"></canvas>
                 <div class="vip-title">VIP Cyber Pass</div>
                 <div class="vip-perk">✨ ALL PERKS COMBINED</div>
-                <p style="font-size: 0.8rem; color: #aaa;">Includes All Skins, Boost Trails + Galaxy Theme + All +25% Perks!</p>
                 <div class="vip-price">₹99</div>
                 <button class="buy-btn" style="background: linear-gradient(135deg, #ff0077 0%, #7700ff 100%); color: white;" onclick="triggerInAppPurchase('VIP_CYBER_PASS_ALL', 99)">GET ULTIMATE PASS</button>
             </div>
         </div>
 
-        <div class="btn" style="margin-top: 30px; background: #111; border-color: #444;" onclick="closeVipStore()">Back to Main Menu</div>
+        <div class="btn" style="margin-top: 25px; background: #111; border-color: #444;" onclick="closeVipStore()">Back to Main Menu</div>
     </div>
 
     <!-- 6. CUSTOMIZATION / SETUP -->
@@ -274,12 +277,70 @@
             }, 50);
         }
 
+        let vipAnimId;
         function openVipStore() {
             document.getElementById('screen-vip-store').classList.remove('hidden');
+            startVipLivePreviews();
         }
 
         function closeVipStore() {
             document.getElementById('screen-vip-store').classList.add('hidden');
+            cancelAnimationFrame(vipAnimId);
+        }
+
+        // 🌟 LIVE ANIMATED PREVIEWS FOR VIP CARDS
+        function startVipLivePreviews() {
+            const sCanvas = document.getElementById('previewSnakeCanvas');
+            const bCanvas = document.getElementById('previewBoostCanvas');
+            const bgCanvas = document.getElementById('previewBgCanvas');
+            const bdCanvas = document.getElementById('previewBundleCanvas');
+
+            [sCanvas, bCanvas, bgCanvas, bdCanvas].forEach(c => { c.width = 180; c.height = 110; });
+
+            const sCtx = sCanvas.getContext('2d');
+            const bCtx = bCanvas.getContext('2d');
+            const bgCtx = bgCanvas.getContext('2d');
+            const bdCtx = bdCanvas.getContext('2d');
+
+            let angle = 0;
+            function renderVipPreviews() {
+                angle += 0.04;
+                vipAnimId = requestAnimationFrame(renderVipPreviews);
+
+                // 1. GOLDEN DRAGON SKIN PREVIEW
+                sCtx.fillStyle = '#050512'; sCtx.fillRect(0,0,180,110);
+                for(let i=12; i>=0; i--) {
+                    let px = 90 + Math.cos(angle - i*0.25) * 40;
+                    let py = 55 + Math.sin(angle - i*0.25) * 25;
+                    sCtx.fillStyle = (i===0) ? '#ffd700' : (i%2===0 ? '#ff8800' : '#ff0055');
+                    sCtx.beginPath(); sCtx.arc(px, py, i===0 ? 10 : 8, 0, Math.PI*2); sCtx.fill();
+                }
+
+                // 2. HYPER FLAME BOOST PREVIEW
+                bCtx.fillStyle = '#050512'; bCtx.fillRect(0,0,180,110);
+                for(let i=0; i<8; i++) {
+                    let fx = 120 - i*10 + (Math.random()-0.5)*5;
+                    let fy = 55 + (Math.random()-0.5)*10;
+                    bCtx.fillStyle = `rgba(255, ${Math.floor(Math.random()*150)}, 0, ${1 - i*0.12})`;
+                    bCtx.beginPath(); bCtx.arc(fx, fy, 12 - i*1.2, 0, Math.PI*2); bCtx.fill();
+                }
+                bCtx.fillStyle = '#00ffaa'; bCtx.beginPath(); bCtx.arc(135, 55, 10, 0, Math.PI*2); bCtx.fill();
+
+                // 3. GALAXY VOID GRID PREVIEW
+                bgCtx.fillStyle = '#02020a'; bgCtx.fillRect(0,0,180,110);
+                bgCtx.strokeStyle = 'rgba(0, 255, 255, 0.15)'; bgCtx.lineWidth = 1;
+                for(let x=0; x<180; x+=20) { bgCtx.beginPath(); bgCtx.moveTo(x,0); bgCtx.lineTo(x,110); bgCtx.stroke(); }
+                for(let y=0; y<110; y+=20) { bgCtx.beginPath(); bgCtx.moveTo(0,y); bgCtx.lineTo(180,y); bgCtx.stroke(); }
+                bgCtx.fillStyle = 'rgba(236, 72, 153, 0.6)';
+                bgCtx.beginPath(); bgCtx.arc(90 + Math.cos(angle)*20, 55 + Math.sin(angle)*15, 6, 0, Math.PI*2); bgCtx.fill();
+
+                // 4. ALL-IN-ONE BUNDLE PREVIEW
+                bdCtx.fillStyle = '#100018'; bdCtx.fillRect(0,0,180,110);
+                bdCtx.fillStyle = `hsl(${angle*50 % 360}, 100%, 60%)`;
+                bdCtx.font = 'bold 28px sans-serif'; bdCtx.textAlign = 'center';
+                bdCtx.fillText('👑 VIP', 90, 65);
+            }
+            renderVipPreviews();
         }
 
         function openCustomization(mode) {

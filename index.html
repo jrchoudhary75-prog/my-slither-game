@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Aggressive Cut-In AI Edition</title>
+    <title>Slither.io Pro - Adaptive AI Modes Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
@@ -88,7 +88,7 @@
         #leaderboard { 
             position: absolute; top: 15px; right: 15px; z-index: 5; 
             background: rgba(3, 3, 15, 0.45); padding: 10px 14px; border-radius: 12px; 
-            border: 1px solid rgba(255, 255, 255, 0.12); width: 170px; display: none; 
+            border: 1px solid rgba(255, 255, 255, 0.12); width: 180px; display: none; 
             font-size: 0.8rem; backdrop-filter: blur(8px); 
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
@@ -98,7 +98,7 @@
             #hud-score { font-size: 15px !important; }
             #hud-length { font-size: 10px !important; }
 
-            #leaderboard { top: 10px; right: 10px; width: 130px; padding: 8px 10px; background: rgba(3, 3, 15, 0.35); font-size: 0.7rem; }
+            #leaderboard { top: 10px; right: 10px; width: 140px; padding: 8px 10px; background: rgba(3, 3, 15, 0.35); font-size: 0.7rem; }
             .lb-title { font-size: 0.75rem; margin-bottom: 4px; }
         }
 
@@ -116,7 +116,7 @@
     <div id="screen-splash" class="ui-screen">
         <h1>SLITHER PRO</h1>
         <div class="loader-container"><div id="loader" class="loader-bar"></div></div>
-        <p style="color: #ff3366; font-size: 0.85rem; font-weight: bold; margin-top: 15px; letter-spacing: 2px;">LOADING CUT-IN AGGRESSIVE AI ENGINE...</p>
+        <p style="color: #ff3366; font-size: 0.85rem; font-weight: bold; margin-top: 15px; letter-spacing: 2px;">LOADING ADAPTIVE AI ENGINE...</p>
     </div>
 
     <div id="screen-main" class="ui-screen hidden">
@@ -142,8 +142,8 @@
                     <button class="select-btn" id="btn-server" onclick="changeSetting('server')">Asia / India</button>
                 </div>
                 <div class="option-row" id="diff-row">
-                    <div class="option-label">Difficulty</div>
-                    <button class="select-btn" id="btn-difficulty" onclick="changeSetting('difficulty')">Insane Cut-In</button>
+                    <div class="option-label">Difficulty Mode</div>
+                    <button class="select-btn" id="btn-difficulty" onclick="changeSetting('difficulty')">Cut in Mode</button>
                 </div>
                 <div class="option-row">
                     <div class="option-label">Snake Skin</div>
@@ -230,12 +230,22 @@
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
         const servers = ['Asia / India', 'Singapore (Low Ping)', 'Europe Central', 'US East'];
-        const difficulties = ['Insane Cut-In', 'Hard Core', 'God Mode'];
+        // UPDATED 3 DIFFICULTY MODES
+        const difficulties = ['Cut in Mode', 'Single Mode', 'Normal Mode'];
         const skins = ['Neon Stripe', 'Cosmic Polka', 'Magma Flow', 'Cyber Grid', 'Glow Phantom', 'Void Nebula', 'Rainbow Pulse'];
         const effects = ['Plasma Glow', 'Fire Storm', 'Neon Shockwave'];
         const maps = ['Standard Grid', 'Deep Space Void', 'Tech Hexagon'];
         
-        let config = { server: 'Asia / India', difficulty: 'Insane Cut-In', skin: 'Neon Stripe', effect: 'Plasma Glow', map: 'Standard Grid' };
+        // UNIQUE BOT NAMES LIST FOR NOTICEABLE LEADERBOARD PRESENCE
+        const botNamePool = [
+            '⚡_VIPER_⚡', '🔥_TITAN_🔥', '👑_KING_COBRA_👑', '☠️_SHADOW_☠️',
+            '🌀_VORTEX_🌀', '🚀_APEX_🚀', '⚡_HYDRA_⚡', '💥_PHANTOM_💥',
+            '✨_AURA_✨', '🛡️_AEGIS_🛡️', '⚔️_BLADE_⚔️', '🐲_DRAGON_🐲',
+            '⚡_ZEUS_⚡', '🔮_MYSTIC_🔮', '💣_CYBORG_💣', '🔥_VENOM_🔥',
+            '🌟_ALPHA_🌟', '🎯_HUNTER_🎯'
+        ];
+
+        let config = { server: 'Asia / India', difficulty: 'Cut in Mode', skin: 'Neon Stripe', effect: 'Plasma Glow', map: 'Standard Grid' };
         let chosenMode = 'offline'; 
         let isMultiplayerArena = false;
         let networkPlayers = {};
@@ -656,28 +666,31 @@
 
         let snake, foods, bots, cameraScale;
 
-        function createBot() {
+        function createBot(assignedIndex) {
             let rAngle = Math.random() * Math.PI * 2;
             let rDist = Math.random() * (MAP_RADIUS - 300);
             let rx = Math.cos(rAngle) * rDist;
             let ry = Math.sin(rAngle) * rDist;
 
-            let initialLength = snake ? Math.floor(snake.length) : 45;
+            let initialLength = snake ? Math.floor(snake.length) : Math.floor(Math.random() * 40) + 40;
             let botBody = [];
             for(let k=0; k<initialLength; k++) botBody.push({x: rx, y: ry});
+
+            // NOTICEABLE NAME ASSIGNMENT FROM POOL
+            let nameChoice = botNamePool[(assignedIndex !== undefined ? assignedIndex : Math.floor(Math.random() * botNamePool.length)) % botNamePool.length];
 
             return {
                 id: "bot_" + Math.random().toString(36).substr(2, 9),
                 x: rx, y: ry, angle: Math.random() * Math.PI * 2,
                 targetAngle: Math.random() * Math.PI * 2,
-                maxTurnSpeed: 0.15, // Extremely sharp turning speed for rapid cut-ins
+                maxTurnSpeed: 0.14,
                 skin: skins[Math.floor(Math.random() * skins.length)],
-                name: "CUT_IN_AI_" + Math.floor(Math.random()*900), 
+                name: nameChoice,
                 score: initialLength * 2.2, 
                 length: initialLength, 
                 targetLength: initialLength,
                 body: botBody, currentRadius: 15, 
-                speed: 4.5, boostSpeed: 9.0, isBoosting: false, changeDirTimer: 0
+                speed: 4.5, boostSpeed: 8.5, isBoosting: false, changeDirTimer: 0
             };
         }
 
@@ -771,7 +784,7 @@
             bots = [];
             if (!isMultiplayerArena) {
                 let totalBots = 18;
-                for (let i = 0; i < totalBots; i++) bots.push(createBot());
+                for (let i = 0; i < totalBots; i++) bots.push(createBot(i));
             }
         }
 
@@ -917,17 +930,13 @@
                 }
             }
 
-            /* PRO FEATURE: RELENTLESS REPEATED CUT-IN AI ENGINE */
+            /* UPDATED MULTI-MODE AI LOGIC (Cut in Mode, Single Mode, Normal Mode) */
             if (!isMultiplayerArena) {
                 let deadBotIndices = [];
 
                 for (let bIdx = 0; bIdx < bots.length; bIdx++) {
                     let b = bots[bIdx];
                     if (deadBotIndices.includes(bIdx)) continue;
-
-                    // SYNC BOT LENGTH TO PLAYER
-                    b.targetLength = Math.max(45, snake.length);
-                    b.score = b.targetLength * 2.2;
 
                     if (b.length < b.targetLength) b.length += 0.3 * dt;
                     else if (b.length > b.targetLength) b.length -= 0.3 * dt;
@@ -939,18 +948,17 @@
                     let bestEscapeAngle = b.angle;
                     let minDangerDist = 9999;
 
-                    // Sensor Probe
                     let probeDistance = b.isBoosting ? 240 : 170;
                     let futureX = b.x + Math.cos(b.angle) * probeDistance;
                     let futureY = b.y + Math.sin(b.angle) * probeDistance;
 
-                    // 1. Arena Barrier Check
+                    // 1. Boundary Protection
                     if (Math.hypot(futureX, futureY) > MAP_RADIUS - 180) {
                         bestEscapeAngle = Math.atan2(-b.y, -b.x);
                         dangerDetected = true;
                     }
 
-                    // 2. Self-Preservation Check (Only dodge if collision is imminent)
+                    // 2. Collision Detection
                     let checkEntities = [snake];
                     for (let oIdx = 0; oIdx < bots.length; oIdx++) {
                         if (oIdx !== bIdx && !deadBotIndices.includes(oIdx)) {
@@ -977,33 +985,74 @@
                         }
                     }
 
-                    // 3. AGGRESSIVE CUT-IN LOGIC
+                    // AI BEHAVIOR PER MODE
                     if (dangerDetected) {
                         b.targetAngle = bestEscapeAngle;
                         if (minDangerDist < 75) b.isBoosting = true;
                     } else {
-                        // REPEATED PLAYER CUT-IN TACTIC
-                        if (distToPlayer < 900) {
-                            let playerSpeedEstimate = isBoosting ? 7.0 : 3.5;
-                            
-                            // Predict point right in front of player's head to block
-                            let cutLeadDistance = Math.min(distToPlayer * 0.85, playerSpeedEstimate * 35);
-                            let cutX = snake.x + Math.cos(snake.angle) * cutLeadDistance;
-                            let cutY = snake.y + Math.sin(snake.angle) * cutLeadDistance;
-                            
-                            b.targetAngle = Math.atan2(cutY - b.y, cutX - b.x);
-
-                            // Always boost when performing the cut-in maneuver
+                        // MODE 1: CUT IN MODE
+                        if (config.difficulty === 'Cut in Mode') {
+                            b.targetLength = Math.max(45, snake.length);
                             if (distToPlayer < 450) {
-                                b.isBoosting = true; 
+                                // Cut in front of player when close
+                                let cutX = snake.x + Math.cos(snake.angle) * 120;
+                                let cutY = snake.y + Math.sin(snake.angle) * 120;
+                                b.targetAngle = Math.atan2(cutY - b.y, cutX - b.x);
+                                b.isBoosting = true;
+                            } else {
+                                // Hunt other bots or food naturally
+                                b.changeDirTimer -= dt;
+                                if (b.changeDirTimer <= 0) {
+                                    b.targetAngle = b.angle + (Math.random() - 0.5) * 1.5;
+                                    b.changeDirTimer = Math.random() * 100 + 50;
+                                }
                             }
-                        } else {
-                            // If far away, move rapidly toward player location
-                            b.targetAngle = Math.atan2(snake.y - b.y, snake.x - b.x);
+                        }
+                        // MODE 2: SINGLE MODE (All Bots Target Player Aggressively)
+                        else if (config.difficulty === 'Single Mode') {
+                            b.targetLength = Math.max(50, snake.length * 1.1);
+                            let leadDist = isBoosting ? 220 : 130;
+                            let interceptX = snake.x + Math.cos(snake.angle) * leadDist;
+                            let interceptY = snake.y + Math.sin(snake.angle) * leadDist;
+                            
+                            b.targetAngle = Math.atan2(interceptY - b.y, interceptX - b.x);
+                            b.isBoosting = true; // Aggressive Non-stop Boost Target
+                        }
+                        // MODE 3: NORMAL MODE (Food Collection + Smart Mixing)
+                        else if (config.difficulty === 'Normal Mode') {
+                            // Find nearest food to climb Leaderboard
+                            let nearestFood = null;
+                            let minFoodDist = 500;
+                            
+                            for(let f of foods) {
+                                let d = Math.hypot(b.x - f.x, b.y - f.y);
+                                if (d < minFoodDist) {
+                                    minFoodDist = d;
+                                    nearestFood = f;
+                                }
+                            }
+
+                            if (distToPlayer < 350) {
+                                // Cut in feature when near player
+                                let cutX = snake.x + Math.cos(snake.angle) * 100;
+                                let cutY = snake.y + Math.sin(snake.angle) * 100;
+                                b.targetAngle = Math.atan2(cutY - b.y, cutX - b.x);
+                                b.isBoosting = true;
+                            } else if (nearestFood) {
+                                // Food collection behavior
+                                b.targetAngle = Math.atan2(nearestFood.y - b.y, nearestFood.x - b.x);
+                            } else {
+                                // Wandering behavior
+                                b.changeDirTimer -= dt;
+                                if (b.changeDirTimer <= 0) {
+                                    b.targetAngle = b.angle + (Math.random() - 0.5) * 2;
+                                    b.changeDirTimer = Math.random() * 120 + 60;
+                                }
+                            }
                         }
                     }
 
-                    // Turn Bot Quickly
+                    // Turn Bot
                     let bAngleDiff = b.targetAngle - b.angle;
                     while (bAngleDiff < -Math.PI) bAngleDiff += Math.PI * 2;
                     while (bAngleDiff > Math.PI) bAngleDiff -= Math.PI * 2;
@@ -1037,10 +1086,12 @@
                         }
                     }
 
-                    // Bot Collects Food
+                    // Bot Collects Food & Increases Score
                     for (let fIdx = foods.length - 1; fIdx >= 0; fIdx--) {
                         let f = foods[fIdx];
                         if (Math.hypot(b.x - f.x, b.y - f.y) < b.currentRadius + 6) {
+                            b.score += f.value * 2;
+                            b.targetLength += 0.2;
                             foods[fIdx] = createFood((Math.random() - 0.5) * MAP_RADIUS * 1.8, (Math.random() - 0.5) * MAP_RADIUS * 1.8);
                         }
                     }
@@ -1080,12 +1131,12 @@
                     }
                 }
 
-                // Clean Dead Bots
+                // Clean Dead Bots & Respawn
                 if (deadBotIndices.length > 0) {
                     deadBotIndices.sort((a, b) => b - a).forEach(idx => {
                         convertBodyToFood(bots[idx].body);
                         bots.splice(idx, 1);
-                        bots.push(createBot());
+                        bots.push(createBot(Math.floor(Math.random() * botNamePool.length)));
                     });
                 }
             }

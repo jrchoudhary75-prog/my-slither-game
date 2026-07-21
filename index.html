@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- 💳 RAZORPAY PAYMENT SDK -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <!-- 📢 MONETAG / AD NETWORK SDK PLACEHOLDER -->
+    <script>
+        function showRewardedAdNetwork(onSuccess, onFailure) {
+            console.log("Ad Request Sent...");
+            let userWatchedAd = confirm("[DEMO REWARDED AD] Watch full ad to Revive your Snake?");
+            if (userWatchedAd) {
+                onSuccess();
+            } else {
+                onFailure();
+            }
+        }
+    </script>
+
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
         canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
@@ -47,17 +61,28 @@
         .btn-vip { background: linear-gradient(135deg, #ff0077 0%, #7700ff 100%); border-color: #ff00aa; box-shadow: 0 0 15px rgba(255,0,119,0.5); }
         .btn-vip:hover { background: linear-gradient(135deg, #ff3399 0%, #a64dff 100%); color: #fff; }
 
+        .btn-ad-revive {
+            background: linear-gradient(135deg, #00ffaa 0%, #00bfff 100%);
+            color: #000; font-weight: 800; border: none;
+            box-shadow: 0 0 20px rgba(0, 255, 170, 0.6);
+            animation: pulseBtn 1.5s infinite;
+        }
+        @keyframes pulseBtn {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
         /* VIP STORE SCENE STYLES */
         .vip-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 3, 12, 0.95); z-index: 100; backdrop-filter: blur(15px); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; box-sizing: border-box; overflow-y: auto; }
         .vip-header { text-align: center; margin-bottom: 20px; }
-        .vip-header h2 { font-size: 2.2rem; margin: 0; background: linear-gradient(45deg, #ffd700, #ff0077); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
+        .vip-header h2 { font-size: 2.2rem; margin: 0; background: linear-gradient(45deg, #ffd700, #ff0077, #00ffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
         .vip-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 1050px; width: 100%; }
-        .vip-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 18px; padding: 18px; width: 220px; text-align: center; display: flex; flex-direction: column; align-items: center; position: relative; transition: transform 0.3s ease, border-color 0.3s ease; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
-        .vip-card:hover { transform: translateY(-5px); border-color: #ffd700; box-shadow: 0 12px 30px rgba(255, 215, 0, 0.2); }
+        .vip-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 18px; padding: 18px; width: 220px; text-align: center; display: flex; flex-direction: column; align-items: center; position: relative; transition: transform 0.3s ease, border-color 0.3s ease; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
+        .vip-card:hover { transform: translateY(-5px); border-color: #ffd700; box-shadow: 0 12px 35px rgba(255, 215, 0, 0.3); }
         .vip-tag { position: absolute; top: -10px; right: 10px; background: linear-gradient(90deg, #ff0077, #ffaa00); color: #fff; font-size: 0.65rem; font-weight: 800; padding: 3px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* LIVE CANVASES FOR PREVIEWS */
-        .vip-preview-canvas { width: 100%; height: 110px; background: #050512; border-radius: 12px; border: 1px solid rgba(255,215,0,0.2); margin: 10px 0; }
+        .vip-preview-canvas { width: 100%; height: 110px; background: #03030d; border-radius: 12px; border: 1px solid rgba(255,215,0,0.3); margin: 10px 0; box-shadow: inset 0 0 15px rgba(0,0,0,0.8); }
 
         .vip-title { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 3px; }
         .vip-perk { font-size: 0.8rem; font-weight: 700; color: #00ffaa; background: rgba(0, 255, 170, 0.1); border: 1px solid rgba(0, 255, 170, 0.3); padding: 3px 8px; border-radius: 6px; margin: 6px 0; display: inline-block; }
@@ -73,6 +98,61 @@
 
         #hud { position: absolute; top: 15px; left: 15px; z-index: 5; pointer-events: none; background: rgba(3, 3, 15, 0.45); padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12); display: none; backdrop-filter: blur(8px); }
         .name-input { padding: 10px; width: 260px; border-radius: 10px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1rem; margin-bottom: 12px; }
+
+        /* ⏸️ MIDDLE RIGHT PAUSE BUTTON (OFFLINE MODE) */
+        #btn-pause-game {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            z-index: 50;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: rgba(15, 15, 36, 0.75);
+            border: 2px solid #00ffaa;
+            color: #00ffaa;
+            font-size: 1.4rem;
+            cursor: pointer;
+            display: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(0, 255, 170, 0.3);
+            transition: all 0.2s ease;
+        }
+        #btn-pause-game:hover {
+            scale: 1.1;
+            background: #00ffaa;
+            color: #000;
+        }
+
+        /* 💀 GAME OVER MODAL / PANEL */
+        #game-over-modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 3, 12, 0.88);
+            z-index: 90;
+            backdrop-filter: blur(12px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .game-over-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 51, 102, 0.3);
+            border-radius: 25px;
+            padding: 35px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255, 51, 102, 0.2);
+            max-width: 380px; width: 85%;
+        }
+
+        /* ⏸️ PAUSE MODAL OVERLAY */
+        #pause-modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 3, 12, 0.85);
+            z-index: 90;
+            backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
 
         /* FOOTER & POLICY MODAL */
         .footer-links { position: absolute; bottom: 12px; width: 100%; text-align: center; font-size: 0.75rem; color: #64748b; z-index: 15; }
@@ -139,52 +219,48 @@
         </div>
     </div>
 
-    <!-- 5. VIP SKINS STORE SCENE WITH LIVE PREVIEWS -->
+    <!-- 5. VIP SKINS STORE SCENE WITH LEGENDARY PREVIEWS -->
     <div id="screen-vip-store" class="vip-modal-overlay hidden">
         <div class="vip-header">
-            <h2>👑 VIP LEGENDARY STORE</h2>
-            <p style="color: #a0aec0; margin-top: 5px;">Live Preview Premium Skins, Boost Trails & Themes!</p>
+            <h2>👑 LEGENDARY VIP STORE</h2>
+            <p style="color: #a0aec0; margin-top: 5px;">Unlock Mythic Rainbow Skins, Solar Plasma Boosts & Holographic Arenas!</p>
         </div>
 
         <div class="vip-grid">
-            <!-- SNAKE SKIN -->
-            <div class="vip-card">
-                <div class="vip-tag">LEGENDARY SKIN</div>
+            <div class="vip-card" style="border-color: #00ffff;">
+                <div class="vip-tag" style="background: linear-gradient(90deg, #00ffff, #7700ff);">MYTHIC SKIN</div>
                 <canvas id="previewSnakeCanvas" class="vip-preview-canvas"></canvas>
-                <div class="vip-title">Golden Dragon</div>
-                <div class="vip-perk">⚡ Speed +25%</div>
+                <div class="vip-title">Cyber Dragon RGB</div>
+                <div class="vip-perk">⚡ Rainbow Glow & Speed +30%</div>
                 <div class="vip-price">₹49</div>
-                <button class="buy-btn" onclick="triggerInAppPurchase('VIP_SNAKE_GOLDEN_DRAGON', 49)">UNLOCK NOW</button>
+                <button class="buy-btn" style="background: linear-gradient(135deg, #00ffff 0%, #7700ff 100%); color: #fff;" onclick="triggerInAppPurchase('VIP_SNAKE_CYBER_RGB', 49)">UNLOCK NOW</button>
             </div>
 
-            <!-- BOOST SKIN -->
-            <div class="vip-card">
-                <div class="vip-tag">SPECIAL BOOST</div>
+            <div class="vip-card" style="border-color: #ff3300;">
+                <div class="vip-tag" style="background: linear-gradient(90deg, #ff0055, #ffaa00);">PLASMA TRAIL</div>
                 <canvas id="previewBoostCanvas" class="vip-preview-canvas"></canvas>
-                <div class="vip-title">Hyper Flame Boost</div>
-                <div class="vip-perk">🚀 Boost Speed +25%</div>
+                <div class="vip-title">Cosmic Plasma Boost</div>
+                <div class="vip-perk">🔥 Solar Flare Trail +30%</div>
                 <div class="vip-price">₹49</div>
-                <button class="buy-btn" onclick="triggerInAppPurchase('VIP_BOOST_HYPER_FLAME', 49)">UNLOCK NOW</button>
+                <button class="buy-btn" style="background: linear-gradient(135deg, #ff3300 0%, #ffaa00 100%); color: #000;" onclick="triggerInAppPurchase('VIP_BOOST_COSMIC_PLASMA', 49)">UNLOCK NOW</button>
             </div>
 
-            <!-- BACKGROUND SKIN -->
-            <div class="vip-card">
-                <div class="vip-tag">NEBULA THEME</div>
+            <div class="vip-card" style="border-color: #00ffaa;">
+                <div class="vip-tag" style="background: linear-gradient(90deg, #00ffaa, #00bfff);">HOLO ARENA</div>
                 <canvas id="previewBgCanvas" class="vip-preview-canvas"></canvas>
-                <div class="vip-title">Galaxy Void Grid</div>
-                <div class="vip-perk">📏 Length Growth +25%</div>
+                <div class="vip-title">Void Matrix Grid</div>
+                <div class="vip-perk">🌌 Dark Energy Field +30%</div>
                 <div class="vip-price">₹79</div>
-                <button class="buy-btn" onclick="triggerInAppPurchase('VIP_BG_GALAXY_GRID', 79)">UNLOCK NOW</button>
+                <button class="buy-btn" style="background: linear-gradient(135deg, #00ffaa 0%, #00bfff 100%); color: #000;" onclick="triggerInAppPurchase('VIP_BG_VOID_MATRIX', 79)">UNLOCK NOW</button>
             </div>
 
-            <!-- ALL-IN-ONE BUNDLE -->
-            <div class="vip-card" style="border-color: #ff0077; background: rgba(255,0,119,0.05);">
-                <div class="vip-tag" style="background: linear-gradient(90deg, #ff0077, #7700ff);">ULTIMATE BUNDLE</div>
+            <div class="vip-card" style="border-color: #ffd700; background: rgba(255,215,0,0.05); box-shadow: 0 0 25px rgba(255,215,0,0.2);">
+                <div class="vip-tag" style="background: linear-gradient(90deg, #ffd700, #ff0077);">GOD PASS</div>
                 <canvas id="previewBundleCanvas" class="vip-preview-canvas"></canvas>
-                <div class="vip-title">VIP Cyber Pass</div>
-                <div class="vip-perk">✨ ALL PERKS COMBINED</div>
+                <div class="vip-title">Cyberpunk God Pass</div>
+                <div class="vip-perk">👑 UNLOCK ALL LEGENDARY ITEMS</div>
                 <div class="vip-price">₹99</div>
-                <button class="buy-btn" style="background: linear-gradient(135deg, #ff0077 0%, #7700ff 100%); color: white;" onclick="triggerInAppPurchase('VIP_CYBER_PASS_ALL', 99)">GET ULTIMATE PASS</button>
+                <button class="buy-btn" style="background: linear-gradient(135deg, #ffd700 0%, #ff0077 100%); color: white;" onclick="triggerInAppPurchase('VIP_CYBERPUNK_GOD_PASS', 99)">GET GOD PASS</button>
             </div>
         </div>
 
@@ -215,10 +291,38 @@
         </div>
     </div>
 
+    <!-- 7. 💀 GAME OVER MODAL (WATCH AD TO REVIVE) -->
+    <div id="game-over-modal" class="hidden">
+        <div class="game-over-card">
+            <h2 style="color: #ff0055; margin-bottom: 5px;">YOU DIED!</h2>
+            <p id="final-score" style="color: #a0aec0; font-size: 1.1rem; margin-bottom: 20px;">Score: 0</p>
+            
+            <div id="revive-btn-container">
+                <button class="btn btn-ad-revive" onclick="handleWatchAdToRevive()">🎬 WATCH AD TO REVIVE</button>
+                <p style="font-size: 0.75rem; color: #00ffaa; margin-top: 5px;">Revive instantly with 100% Score!</p>
+            </div>
+
+            <div class="btn" style="margin-top: 15px;" onclick="restartGame()">Play Again</div>
+            <div class="btn" style="background: #090912; border-color: #222;" onclick="returnToMainMenu()">Main Menu</div>
+        </div>
+    </div>
+
+    <!-- 8. ⏸️ PAUSE MODAL -->
+    <div id="pause-modal" class="hidden">
+        <div class="game-over-card" style="border-color: #00ffaa;">
+            <h2 style="color: #00ffaa; margin-bottom: 15px;">GAME PAUSED</h2>
+            <div class="btn" onclick="resumeGame()">Resume Game</div>
+            <div class="btn" style="background: #090912; border-color: #222;" onclick="returnToMainMenu()">Exit to Main Menu</div>
+        </div>
+    </div>
+
     <!-- HUD -->
     <div id="hud">
         <div id="hud-score" style="font-size: 20px; font-weight: 800; color: #00ffaa;">Score: 0</div>
     </div>
+
+    <!-- ⏸️ MIDDLE RIGHT PAUSE BUTTON -->
+    <button id="btn-pause-game" onclick="pauseGame()">⏸️</button>
 
     <canvas id="game"></canvas>
 
@@ -288,7 +392,6 @@
             cancelAnimationFrame(vipAnimId);
         }
 
-        // 🌟 LIVE ANIMATED PREVIEWS FOR VIP CARDS
         function startVipLivePreviews() {
             const sCanvas = document.getElementById('previewSnakeCanvas');
             const bCanvas = document.getElementById('previewBoostCanvas');
@@ -304,46 +407,55 @@
 
             let angle = 0;
             function renderVipPreviews() {
-                angle += 0.04;
+                angle += 0.05;
                 vipAnimId = requestAnimationFrame(renderVipPreviews);
 
-                // 1. GOLDEN DRAGON SKIN PREVIEW
-                sCtx.fillStyle = '#050512'; sCtx.fillRect(0,0,180,110);
-                for(let i=12; i>=0; i--) {
-                    let px = 90 + Math.cos(angle - i*0.25) * 40;
-                    let py = 55 + Math.sin(angle - i*0.25) * 25;
-                    sCtx.fillStyle = (i===0) ? '#ffd700' : (i%2===0 ? '#ff8800' : '#ff0055');
-                    sCtx.beginPath(); sCtx.arc(px, py, i===0 ? 10 : 8, 0, Math.PI*2); sCtx.fill();
+                sCtx.fillStyle = '#020208'; sCtx.fillRect(0,0,180,110);
+                for(let i=14; i>=0; i--) {
+                    let px = 90 + Math.cos(angle - i*0.22) * 45;
+                    let py = 55 + Math.sin(angle - i*0.22) * 25;
+                    let hue = (angle * 100 + i * 20) % 360;
+                    sCtx.fillStyle = `hsl(${hue}, 100%, 60%)`;
+                    sCtx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+                    sCtx.shadowBlur = i === 0 ? 15 : 6;
+                    sCtx.beginPath(); sCtx.arc(px, py, i===0 ? 11 : 8.5, 0, Math.PI*2); sCtx.fill();
                 }
+                sCtx.shadowBlur = 0;
 
-                // 2. HYPER FLAME BOOST PREVIEW
-                bCtx.fillStyle = '#050512'; bCtx.fillRect(0,0,180,110);
-                for(let i=0; i<8; i++) {
-                    let fx = 120 - i*10 + (Math.random()-0.5)*5;
-                    let fy = 55 + (Math.random()-0.5)*10;
-                    bCtx.fillStyle = `rgba(255, ${Math.floor(Math.random()*150)}, 0, ${1 - i*0.12})`;
-                    bCtx.beginPath(); bCtx.arc(fx, fy, 12 - i*1.2, 0, Math.PI*2); bCtx.fill();
+                bCtx.fillStyle = '#020208'; bCtx.fillRect(0,0,180,110);
+                for(let i=0; i<12; i++) {
+                    let fx = 135 - i*8 + (Math.random()-0.5)*8;
+                    let fy = 55 + (Math.random()-0.5)*12;
+                    bCtx.fillStyle = `rgba(255, ${Math.floor(Math.random()*180)}, 0, ${1 - i*0.08})`;
+                    bCtx.shadowColor = '#ff3300';
+                    bCtx.shadowBlur = 10;
+                    bCtx.beginPath(); bCtx.arc(fx, fy, 14 - i*1.0, 0, Math.PI*2); bCtx.fill();
                 }
-                bCtx.fillStyle = '#00ffaa'; bCtx.beginPath(); bCtx.arc(135, 55, 10, 0, Math.PI*2); bCtx.fill();
+                bCtx.fillStyle = '#ffffff'; bCtx.beginPath(); bCtx.arc(142, 55, 9, 0, Math.PI*2); bCtx.fill();
+                bCtx.shadowBlur = 0;
 
-                // 3. GALAXY VOID GRID PREVIEW
-                bgCtx.fillStyle = '#02020a'; bgCtx.fillRect(0,0,180,110);
-                bgCtx.strokeStyle = 'rgba(0, 255, 255, 0.15)'; bgCtx.lineWidth = 1;
-                for(let x=0; x<180; x+=20) { bgCtx.beginPath(); bgCtx.moveTo(x,0); bgCtx.lineTo(x,110); bgCtx.stroke(); }
-                for(let y=0; y<110; y+=20) { bgCtx.beginPath(); bgCtx.moveTo(0,y); bgCtx.lineTo(180,y); bgCtx.stroke(); }
-                bgCtx.fillStyle = 'rgba(236, 72, 153, 0.6)';
-                bgCtx.beginPath(); bgCtx.arc(90 + Math.cos(angle)*20, 55 + Math.sin(angle)*15, 6, 0, Math.PI*2); bgCtx.fill();
+                bgCtx.fillStyle = '#010105'; bgCtx.fillRect(0,0,180,110);
+                bgCtx.strokeStyle = `rgba(0, 255, 170, ${0.15 + Math.sin(angle*2)*0.1})`; bgCtx.lineWidth = 1;
+                for(let x=0; x<180; x+=18) { bgCtx.beginPath(); bgCtx.moveTo(x,0); bgCtx.lineTo(x,110); bgCtx.stroke(); }
+                for(let y=0; y<110; y+=18) { bgCtx.beginPath(); bgCtx.moveTo(0,y); bgCtx.lineTo(180,y); bgCtx.stroke(); }
+                bgCtx.fillStyle = '#00ffaa'; bgCtx.shadowColor = '#00ffaa'; bgCtx.shadowBlur = 15;
+                bgCtx.beginPath(); bgCtx.arc(90 + Math.cos(angle)*30, 55 + Math.sin(angle)*18, 7, 0, Math.PI*2); bgCtx.fill();
+                bgCtx.shadowBlur = 0;
 
-                // 4. ALL-IN-ONE BUNDLE PREVIEW
-                bdCtx.fillStyle = '#100018'; bdCtx.fillRect(0,0,180,110);
-                bdCtx.fillStyle = `hsl(${angle*50 % 360}, 100%, 60%)`;
-                bdCtx.font = 'bold 28px sans-serif'; bdCtx.textAlign = 'center';
-                bdCtx.fillText('👑 VIP', 90, 65);
+                bdCtx.fillStyle = '#080010'; bdCtx.fillRect(0,0,180,110);
+                bdCtx.strokeStyle = '#ffd700'; bdCtx.lineWidth = 2; bdCtx.shadowColor = '#ffd700'; bdCtx.shadowBlur = 12;
+                bdCtx.beginPath(); bdCtx.arc(90, 55, 35 + Math.sin(angle*3)*3, 0, Math.PI*2); bdCtx.stroke();
+                bdCtx.fillStyle = '#ffffff';
+                bdCtx.font = '900 22px sans-serif'; bdCtx.textAlign = 'center';
+                bdCtx.fillText('👑 GOD', 90, 62);
+                bdCtx.shadowBlur = 0;
             }
             renderVipPreviews();
         }
 
+        let currentGameMode = 'offline';
         function openCustomization(mode) {
+            currentGameMode = mode;
             showScreen('screen-offline');
         }
 
@@ -384,21 +496,104 @@
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d");
         let isGameRunning = false;
+        let isGamePaused = false;
+        let playerScore = 0;
+        let hasRevivedInCurrentGame = false;
 
         function launchSelectedMode() {
             canvas.width = window.innerWidth; 
             canvas.height = window.innerHeight;
             document.querySelectorAll('.ui-screen, .vip-modal-overlay').forEach(s => s.classList.add('hidden'));
             document.getElementById('hud').style.display = 'block';
+            
+            if (currentGameMode === 'offline') {
+                document.getElementById('btn-pause-game').style.display = 'block';
+            } else {
+                document.getElementById('btn-pause-game').style.display = 'none';
+            }
+
+            hasRevivedInCurrentGame = false;
+            playerScore = 0;
+            document.getElementById('hud-score').innerText = 'Score: ' + playerScore;
+
             isGameRunning = true;
+            isGamePaused = false;
             runGameLoop();
         }
 
         function runGameLoop() {
-            if (!isGameRunning) return;
+            if (!isGameRunning || isGamePaused) return;
             requestAnimationFrame(runGameLoop);
+            
             ctx.fillStyle = '#0a0a1f';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function pauseGame() {
+            if (!isGameRunning || currentGameMode !== 'offline') return;
+            isGamePaused = true;
+            document.getElementById('pause-modal').classList.remove('hidden');
+        }
+
+        function resumeGame() {
+            isGamePaused = false;
+            document.getElementById('pause-modal').classList.add('hidden');
+            runGameLoop();
+        }
+
+        function triggerPlayerDeath() {
+            isGameRunning = false;
+            document.getElementById('btn-pause-game').style.display = 'none';
+            document.getElementById('final-score').innerText = 'Score: ' + playerScore;
+            
+            const reviveContainer = document.getElementById('revive-btn-container');
+            if (hasRevivedInCurrentGame) {
+                reviveContainer.style.display = 'none';
+            } else {
+                reviveContainer.style.display = 'block';
+            }
+
+            document.getElementById('game-over-modal').classList.remove('hidden');
+        }
+
+        function handleWatchAdToRevive() {
+            showRewardedAdNetwork(
+                function onAdSuccess() {
+                    alert("🎉 Ad Finished! You have been Revived!");
+                    revivePlayer();
+                },
+                function onAdFailed() {
+                    alert("⚠️ Ad was not completed. Revive failed!");
+                }
+            );
+        }
+
+        function revivePlayer() {
+            hasRevivedInCurrentGame = true;
+            document.getElementById('game-over-modal').classList.add('hidden');
+            
+            if (currentGameMode === 'offline') {
+                document.getElementById('btn-pause-game').style.display = 'block';
+            }
+            
+            isGameRunning = true;
+            isGamePaused = false;
+            runGameLoop();
+        }
+
+        function restartGame() {
+            document.getElementById('game-over-modal').classList.add('hidden');
+            launchSelectedMode();
+        }
+
+        function returnToMainMenu() {
+            isGameRunning = false;
+            isGamePaused = false;
+            document.getElementById('game-over-modal').classList.add('hidden');
+            document.getElementById('pause-modal').classList.add('hidden');
+            document.getElementById('hud').style.display = 'none';
+            document.getElementById('btn-pause-game').style.display = 'none';
+            showScreen('screen-main');
         }
     </script>
 </body>

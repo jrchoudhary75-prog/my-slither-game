@@ -111,6 +111,29 @@
         .ping-badge { position: absolute; bottom: 15px; right: 15px; z-index: 5; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; color: #00ffaa; border: 1px solid rgba(0,255,170,0.2); }
 
         .name-input { padding: 10px; width: 260px; border-radius: 10px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1rem; margin-bottom: 12px; }
+
+        /* 🌐 FOOTER LINKS STYLING FOR MAIN MENU */
+        .footer-links {
+            position: absolute;
+            bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #64748b;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 0 15px;
+        }
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover {
+            color: #00ffaa;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -127,6 +150,17 @@
         <div class="btn" onclick="openCustomization('multiplayer')">Multiplayer Mode</div>
         <!-- 🛒 IN APP PURCHASE BUTTON -->
         <div class="btn" style="background: linear-gradient(135deg, #ff0077 0%, #7700ff 100%);" onclick="triggerInAppPurchase('VIP_NEON_PASS', 49)">👑 Buy VIP Skin (₹49)</div>
+
+        <!-- 📄 FOOTER LINKS (NEWLY ADDED) -->
+        <div class="footer-links">
+            <a href="#" onclick="showPolicy('Terms & Conditions', 'Game Terms: Play fair, respect players, and enjoy the arena!')">Terms & Conditions</a>
+            <span>•</span>
+            <a href="#" onclick="showPolicy('Privacy Policy', 'Privacy Policy: Your data is 100% secure and never shared with third parties.')">Privacy Policy</a>
+            <span>•</span>
+            <a href="#" onclick="showPolicy('Refund Policy', 'Refund Policy: Contact support for any purchase refund requests within 48 hours.')">Refund</a>
+            <span>•</span>
+            <a href="#" onclick="showPolicy('Help & Support', 'Help & Support: Need assistance? Email us at support@slitherpro.com')">Help & Support</a>
+        </div>
     </div>
 
     <div id="screen-multiplayer-load" class="ui-screen hidden">
@@ -202,9 +236,11 @@
         <div class="btn" style="margin-top: 25px; min-width: 140px;" onclick="closeControlsDemoModal()">GOT IT!</div>
     </div>
 
+    <!-- 💀 GAME OVER SCREEN (WITH WATCH AD TO REVIVE BUTTON) -->
     <div id="screen-gameover" class="ui-screen hidden">
         <h1 style="background: linear-gradient(45deg, #ff3333, #ff7700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 3.5rem;">GAME OVER</h1>
         <p id="final-score-display" style="font-size: 1.4rem; color: #cbd5e1; margin: 0 0 20px 0;">Final Score: 0</p>
+        <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold;" onclick="watchAdToRevive()">📺 Watch Ad to Revive</div>
         <div class="btn" onclick="launchSelectedMode()">Play Again</div>
         <div class="btn" style="background: #241414; border-color: #4a2929;" onclick="showScreen('screen-main')">Main Menu</div>
     </div>
@@ -231,6 +267,29 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        // 📺 WATCH AD TO REVIVE FUNCTION
+        function watchAdToRevive() {
+            alert("🎬 Showing Ad... Please wait!");
+            setTimeout(() => {
+                alert("🎉 Ad completed! You are revived!");
+                document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
+                document.getElementById('hud').style.display = 'block';
+                document.getElementById('leaderboard').style.display = 'block';
+                if (isMobile) document.getElementById('mobileControls').style.display = 'block';
+                if (isMultiplayerArena) document.getElementById('pingBadge').style.display = 'block';
+
+                snake.isDead = false;
+                isGameRunning = true;
+                lastFrameTime = performance.now();
+                runGameLoop();
+            }, 1000);
+        }
+
+        // 📄 FOOTER DIALOG DISPLAY FUNCTION
+        function showPolicy(title, content) {
+            alert(`--- ${title} ---\n\n${content}`);
+        }
+
         // 💳 IN APP PURCHASE FUNCTION
         async function triggerInAppPurchase(itemId, priceInINR) {
             try {

@@ -6,13 +6,22 @@
     <!-- 💳 RAZORPAY PAYMENT SDK -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
+    <!-- 📢 REWARDED AD NETWORK SDK PLACEHOLDER -->
+    <script>
+        function showRewardedAdNetwork(onSuccess, onFailure) {
+            let userWatchedAd = confirm("[DEMO REWARDED AD] Watch full ad to Revive your Snake?");
+            if (userWatchedAd) onSuccess();
+            else onFailure();
+        }
+    </script>
+
     <style>
         body { margin: 0; background: #030308; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; color: #fff; touch-action: none; }
         canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
         .ui-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(circle at center, #0f0f24 0%, #03030a 100%); z-index: 10; transition: opacity 0.5s ease, visibility 0.5s; }
         .hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-        /* STUDIO SPLASH SCREEN STYLES */
+        /* 1. STUDIO SPLASH SCREEN STYLES */
         #screen-studio-splash { z-index: 100; background: #020206; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .studio-card { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(0, 255, 170, 0.15); border-radius: 30px; box-shadow: 0 0 50px rgba(0, 255, 170, 0.1); backdrop-filter: blur(10px); transform: scale(0.9); animation: studioPulse 2.5s infinite ease-in-out; }
         .studio-logo { width: 110px; height: 110px; margin-bottom: 20px; filter: drop-shadow(0 0 15px #00ffaa); }
@@ -35,7 +44,7 @@
         .btn-vip { background: linear-gradient(135deg, #ff0077 0%, #7700ff 100%); border-color: #ff00aa; box-shadow: 0 0 15px rgba(255,0,119,0.5); }
         .btn-vip:hover { background: linear-gradient(135deg, #ff3399 0%, #a64dff 100%); color: #fff; }
 
-        /* VIP STORE SCENE STYLES */
+        /* 2. VIP STORE SCENE STYLES */
         .vip-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 3, 12, 0.95); z-index: 100; backdrop-filter: blur(15px); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; box-sizing: border-box; overflow-y: auto; }
         .vip-header { text-align: center; margin-bottom: 20px; }
         .vip-header h2 { font-size: 2.2rem; margin: 0; background: linear-gradient(45deg, #ffd700, #ff0077); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
@@ -50,16 +59,19 @@
         .buy-btn { background: linear-gradient(135deg, #ffd700 0%, #ff8800 100%); color: #000; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 800; cursor: pointer; width: 100%; transition: opacity 0.2s; }
         .buy-btn:hover { opacity: 0.9; }
 
+        /* 3. SETUP CONTAINER STYLES */
         .setup-container { display: flex; flex-direction: row; align-items: center; gap: 20px; background: rgba(255, 255, 255, 0.02); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(15px); max-width: 90%; flex-wrap: wrap; justify-content: center; }
         .controls-side { display: flex; flex-direction: column; gap: 10px; }
         .option-row { display: flex; align-items: center; justify-content: space-between; width: 280px; background: rgba(255,255,255,0.01); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03); }
         .option-label { font-size: 0.9rem; color: #94a3b8; font-weight: 500; }
         .select-btn { background: #131324; border: 1px solid #363659; color: #fff; padding: 6px 12px; border-radius: 8px; cursor: pointer; min-width: 120px; font-size: 0.85rem; font-weight: 600; text-align: center; }
         
+        #skinPreviewCanvas { width: 170px; height: 170px; background: #050512; border-radius: 16px; border: 2px solid #00ffaa; box-shadow: 0 0 20px rgba(0, 255, 170, 0.2); }
+
         #hud { position: absolute; top: 15px; left: 15px; z-index: 5; pointer-events: none; background: rgba(3, 3, 15, 0.45); padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12); display: none; backdrop-filter: blur(8px); }
         .name-input { padding: 10px; width: 260px; border-radius: 10px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1rem; margin-bottom: 12px; }
 
-        /* ⏸️ PAUSE BUTTON FOR OFFLINE MODE */
+        /* PAUSE BUTTON & MODALS */
         #btn-pause-game {
             position: absolute; top: 50%; right: 20px; transform: translateY(-50%); z-index: 50;
             width: 55px; height: 55px; border-radius: 50%; background: rgba(15, 15, 36, 0.75);
@@ -68,7 +80,6 @@
         }
         #btn-pause-game:hover { scale: 1.1; background: #00ffaa; color: #000; }
 
-        /* MODALS */
         #game-over-modal, #pause-modal {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(3, 3, 12, 0.88); z-index: 90; backdrop-filter: blur(12px);
@@ -79,6 +90,9 @@
             border-radius: 25px; padding: 35px; text-align: center; box-shadow: 0 0 50px rgba(255, 51, 102, 0.2);
             max-width: 380px; width: 85%;
         }
+
+        .footer-links { position: absolute; bottom: 12px; width: 100%; text-align: center; font-size: 0.75rem; color: #64748b; z-index: 15; }
+        .footer-links a { color: #00ffaa; text-decoration: none; margin: 0 8px; }
     </style>
 </head>
 <body>
@@ -115,6 +129,12 @@
         <div class="btn" onclick="openCustomization('offline')">Play Offline</div>
         <div class="btn" onclick="openCustomization('multiplayer')">Multiplayer Mode</div>
         <div class="btn btn-vip" onclick="openVipStore()">👑 VIP SKINS</div>
+
+        <div class="footer-links">
+            <a href="javascript:void(0)">Terms & Conditions</a> |
+            <a href="javascript:void(0)">Privacy Policy</a> |
+            <a href="javascript:void(0)">Contact Us</a>
+        </div>
     </div>
 
     <!-- 4. VIP SKINS STORE SCENE -->
@@ -199,6 +219,8 @@
                     <button class="select-btn" id="btn-server" onclick="cycleServer()">Asia-South ⚡</button>
                 </div>
             </div>
+
+            <canvas id="skinPreviewCanvas"></canvas>
         </div>
 
         <div style="margin-top: 20px; display: flex;">
@@ -242,6 +264,7 @@
             document.getElementById(screenId).classList.remove('hidden');
         }
 
+        // EXACT 2.5 SECOND STUDIO SPLASH AUTO SEQUENCE
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 showScreen('screen-splash');
@@ -272,7 +295,7 @@
         const servers = ['Asia-South ⚡', 'US-East 🚀', 'Europe 🌍', 'Global Pro 👑'];
 
         let selectedSkinIdx = 0, selectedEffectIdx = 0, selectedBgIdx = 0, selectedDiffIdx = 3, selectedServerIdx = 0;
-        let currentGameMode = 'offline';
+        let currentGameMode = 'offline', previewAnimId;
 
         function cycleSkin() { selectedSkinIdx = (selectedSkinIdx + 1) % skinsList.length; document.getElementById('btn-skin').innerText = skinsList[selectedSkinIdx]; }
         function cycleEffect() { selectedEffectIdx = (selectedEffectIdx + 1) % effectsList.length; document.getElementById('btn-effect').innerText = effectsList[selectedEffectIdx]; }
@@ -292,6 +315,30 @@
                 document.getElementById('row-ai-diff').classList.add('hidden');
                 document.getElementById('row-server-select').classList.remove('hidden');
             }
+            startSkinPreviewAnimation();
+        }
+
+        function startSkinPreviewAnimation() {
+            const pCanvas = document.getElementById('skinPreviewCanvas');
+            pCanvas.width = 170; pCanvas.height = 170;
+            const pCtx = pCanvas.getContext('2d');
+            let previewAngle = 0;
+
+            function drawPreview() {
+                previewAngle += 0.04;
+                pCtx.fillStyle = '#050512'; pCtx.fillRect(0, 0, 170, 170);
+
+                const color = skinColors[selectedSkinIdx];
+                for (let i = 10; i >= 0; i--) {
+                    let px = 85 + Math.cos(previewAngle - i * 0.25) * 40;
+                    let py = 85 + Math.sin(previewAngle - i * 0.25) * 25;
+                    pCtx.fillStyle = color; pCtx.shadowColor = color; pCtx.shadowBlur = i === 0 ? 12 : 4;
+                    pCtx.beginPath(); pCtx.arc(px, py, i === 0 ? 9 : 7, 0, Math.PI * 2); pCtx.fill();
+                }
+                previewAnimId = requestAnimationFrame(drawPreview);
+            }
+            cancelAnimationFrame(previewAnimId);
+            drawPreview();
         }
 
         async function triggerInAppPurchase(itemId, priceInINR) {
@@ -322,7 +369,7 @@
             } catch (error) { alert("Payment initiation failed!"); }
         }
 
-        /* 🐍 SLITHER ENGINE PHYSICS & BOT LOGIC */
+        /* 🐍 SLITHER GAMEPLAY ENGINE & BOT PHYSICS */
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d");
         let isGameRunning = false, isGamePaused = false, playerScore = 0, isBoosting = false;
@@ -332,6 +379,7 @@
         let foods = [], aiBots = [];
 
         function launchSelectedMode() {
+            cancelAnimationFrame(previewAnimId);
             canvas.width = window.innerWidth; 
             canvas.height = window.innerHeight;
             document.querySelectorAll('.ui-screen, .vip-modal-overlay').forEach(s => s.classList.add('hidden'));
@@ -364,7 +412,7 @@
                     for(let i=0; i<14; i++) botBody.push({x: bx, y: by + i*5});
                     aiBots.push({
                         x: bx, y: by, angle: Math.random() * Math.PI * 2,
-                        speed: 2.5 + Math.random() * (selectedDiffIdx + 1) * 0.4,
+                        speed: 2.5 + Math.random() * (selectedDiffIdx + 1) * 0.3,
                         color: skinColors[b % skinColors.length], body: botBody
                     });
                 }
@@ -400,7 +448,7 @@
             for (let x = 0; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
             for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
 
-            // SLITHER SMOOTH STEERING PHYSICS
+            // AUTHENTIC SLITHER SMOOTH ANGULAR STEERING
             let dx = mousePos.x - snake.x, dy = mousePos.y - snake.y;
             let targetAngle = Math.atan2(dy, dx);
             let angleDiff = Math.atan2(Math.sin(targetAngle - snake.angle), Math.cos(targetAngle - snake.angle));
@@ -440,7 +488,7 @@
                 }
             }
 
-            // AI BOTS
+            // AI BOTS LOGIC
             aiBots.forEach(bot => {
                 bot.angle += (Math.random() - 0.5) * 0.12;
                 bot.x += Math.cos(bot.angle) * bot.speed;

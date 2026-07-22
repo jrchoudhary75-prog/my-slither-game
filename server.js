@@ -15,12 +15,14 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ⚠️ YAHAN APNA EMAIL AUR APP PASSWORD DABAYEIN ⚠️
+// ⚠️ RENDER TIMEOUT FIX: Port 465 SSL SMTP Connection ⚠️
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
-        user: 'jrchoudhary75@gmail.com',         // <-- Yahan apna real Gmail likhein
-        pass: 'xzuq zrmr uvkc qhyu'           // <-- Yahan 16-digit ka App Password likhein
+        user: 'jrchoudhary75@gmail.com',
+        pass: 'qrhfwdgujlufigmi' // <-- Bina spaces ke 16-digit App Password daalein
     }
 });
 
@@ -44,7 +46,7 @@ io.on('connection', (socket) => {
 
         try {
             await transporter.sendMail({
-                from: '"Slither Pro Game" <YOUR_EMAIL@gmail.com>', // Yahan bhi apna Email likhein
+                from: '"Slither Pro Game" <jrchoudhary75@gmail.com>',
                 to: email,
                 subject: "Your Slither Pro Verification OTP",
                 html: `

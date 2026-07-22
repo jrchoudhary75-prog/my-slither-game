@@ -58,6 +58,58 @@
         .demo-canvas { width: 180px; height: 140px; background: #050512; border-radius: 10px; border: 1px solid #222244; margin-bottom: 10px; }
         .demo-desc { font-size: 0.8rem; color: #94a3b8; line-height: 1.3; }
 
+        /* 📄 POLICY PANEL / MODAL STYLING */
+        .policy-card {
+            background: rgba(15, 15, 30, 0.95);
+            border: 1px solid rgba(0, 255, 170, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            width: 88%;
+            max-width: 500px;
+            max-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .policy-body {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            overflow-y: auto;
+            margin: 15px 0;
+            padding-right: 10px;
+            text-align: left;
+            width: 100%;
+        }
+        .policy-body h4 { color: #00ffaa; margin: 10px 0 5px 0; font-size: 1rem; }
+
+        /* ⏸️ PAUSE BUTTON STYLING */
+        #inGamePauseBtn {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 8;
+            background: rgba(3, 3, 15, 0.6);
+            border: 1px solid rgba(0, 255, 170, 0.4);
+            color: #00ffaa;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            display: none;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        #inGamePauseBtn:hover {
+            background: #00ffaa;
+            color: #000;
+            box-shadow: 0 0 15px #00ffaa;
+        }
+
         #mobileControls { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; display: none; }
         #joystickBase {
             position: absolute; width: 110px; height: 110px; border-radius: 50%;
@@ -102,6 +154,7 @@
 
             #leaderboard { top: 10px; right: 10px; width: 140px; padding: 8px 10px; background: rgba(3, 3, 15, 0.35); font-size: 0.7rem; }
             .lb-title { font-size: 0.75rem; margin-bottom: 4px; }
+            #inGamePauseBtn { top: 10px; font-size: 0.75rem; padding: 6px 12px; }
         }
 
         .lb-title { font-weight: 800; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 6px; color: #38bdf8; }
@@ -112,7 +165,6 @@
 
         .name-input { padding: 10px; width: 260px; border-radius: 10px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1rem; margin-bottom: 12px; }
 
-        /* 🌐 FOOTER LINKS STYLING FOR MAIN MENU */
         .footer-links {
             position: absolute;
             bottom: 20px;
@@ -129,6 +181,7 @@
             color: #94a3b8;
             text-decoration: none;
             transition: color 0.2s;
+            cursor: pointer;
         }
         .footer-links a:hover {
             color: #00ffaa;
@@ -151,16 +204,35 @@
         <!-- 🛒 IN APP PURCHASE BUTTON -->
         <div class="btn" style="background: linear-gradient(135deg, #ff0077 0%, #7700ff 100%);" onclick="triggerInAppPurchase('VIP_NEON_PASS', 49)">👑 Buy VIP Skin (₹49)</div>
 
-        <!-- 📄 FOOTER LINKS (NEWLY ADDED) -->
+        <!-- 📄 FOOTER LINKS -->
         <div class="footer-links">
-            <a href="#" onclick="showPolicy('Terms & Conditions', 'Game Terms: Play fair, respect players, and enjoy the arena!')">Terms & Conditions</a>
+            <a onclick="openPolicyModal('terms')">Terms & Conditions</a>
             <span>•</span>
-            <a href="#" onclick="showPolicy('Privacy Policy', 'Privacy Policy: Your data is 100% secure and never shared with third parties.')">Privacy Policy</a>
+            <a onclick="openPolicyModal('privacy')">Privacy Policy</a>
             <span>•</span>
-            <a href="#" onclick="showPolicy('Refund Policy', 'Refund Policy: Contact support for any purchase refund requests within 48 hours.')">Refund</a>
+            <a onclick="openPolicyModal('refund')">Refund</a>
             <span>•</span>
-            <a href="#" onclick="showPolicy('Help & Support', 'Help & Support: Need assistance? Email us at support@slitherpro.com')">Help & Support</a>
+            <a onclick="openPolicyModal('support')">Help & Support</a>
         </div>
+    </div>
+
+    <!-- 📄 SEPARATE POLICY MODAL PANEL (NEWLY ADDED) -->
+    <div id="screen-policy" class="modal-overlay hidden">
+        <div class="policy-card">
+            <h2 id="policy-title" style="margin-bottom: 5px;">TERMS & CONDITIONS</h2>
+            <div id="policy-content" class="policy-body">
+                <!-- Content injected dynamically -->
+            </div>
+            <div class="btn" style="min-width: 140px; margin-top: 10px;" onclick="closePolicyModal()">CLOSE</div>
+        </div>
+    </div>
+
+    <!-- ⏸️ PAUSE MODAL OVERLAY (NEWLY ADDED) -->
+    <div id="screen-pause" class="modal-overlay hidden">
+        <h1 style="font-size: 2.8rem; margin-bottom: 20px;">GAME PAUSED</h1>
+        <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold;" onclick="togglePause()">▶️ Resume Game</div>
+        <div class="btn" onclick="restartGame()">🔄 Restart</div>
+        <div class="btn" style="background: #241414; border-color: #4a2929;" onclick="quitToMainMenu()">🏠 Main Menu</div>
     </div>
 
     <div id="screen-multiplayer-load" class="ui-screen hidden">
@@ -236,7 +308,7 @@
         <div class="btn" style="margin-top: 25px; min-width: 140px;" onclick="closeControlsDemoModal()">GOT IT!</div>
     </div>
 
-    <!-- 💀 GAME OVER SCREEN (WITH WATCH AD TO REVIVE BUTTON) -->
+    <!-- 💀 GAME OVER SCREEN -->
     <div id="screen-gameover" class="ui-screen hidden">
         <h1 style="background: linear-gradient(45deg, #ff3333, #ff7700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 3.5rem;">GAME OVER</h1>
         <p id="final-score-display" style="font-size: 1.4rem; color: #cbd5e1; margin: 0 0 20px 0;">Final Score: 0</p>
@@ -244,6 +316,9 @@
         <div class="btn" onclick="launchSelectedMode()">Play Again</div>
         <div class="btn" style="background: #241414; border-color: #4a2929;" onclick="showScreen('screen-main')">Main Menu</div>
     </div>
+
+    <!-- ⏸️ IN-GAME PAUSE BUTTON (NEWLY ADDED) -->
+    <button id="inGamePauseBtn" onclick="togglePause()">⏸️ PAUSE</button>
 
     <div id="hud">
         <div id="hud-score" style="font-size: 20px; font-weight: 800; color: #00ffaa;">Score: 0</div>
@@ -267,6 +342,98 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        // 📄 POLICY MODAL SYSTEM
+        const policyData = {
+            terms: {
+                title: "TERMS & CONDITIONS",
+                html: `
+                    <h4>1. Game Rules</h4>
+                    <p>Welcome to Slither Pro. By playing this game, you agree to follow fair play guidelines. Any use of automated bots, scripts, or speed hacks is strictly prohibited.</p>
+                    <h4>2. Account & Purchases</h4>
+                    <p>In-app purchases and VIP skin passes are bound to your browser session / local storage. Refunds are subject to our Refund Policy.</p>
+                    <h4>3. Service Availability</h4>
+                    <p>Multiplayer servers are optimized for low ping; however, server maintenance may cause temporary disconnects.</p>
+                `
+            },
+            privacy: {
+                title: "PRIVACY POLICY",
+                html: `
+                    <h4>1. Data Collection</h4>
+                    <p>Slither Pro values your privacy. We do not collect or share personal information. Only local game settings and high scores are saved locally on your device.</p>
+                    <h4>2. Analytics & Performance</h4>
+                    <p>Anonymized network diagnostic data (like ping rates and FPS) may be processed to improve multiplayer server routing.</p>
+                    <h4>3. Third-Party Services</h4>
+                    <p>Payments are securely processed via Razorpay SDK. No sensitive payment details are stored on our servers.</p>
+                `
+            },
+            refund: {
+                title: "REFUND POLICY",
+                html: `
+                    <h4>1. Digital Items Refund</h4>
+                    <p>Purchases like VIP Skins or Passes are non-refundable once activated on your account, except in cases of payment processing errors.</p>
+                    <h4>2. Processing Time</h4>
+                    <p>If payment was deducted but item was not received, submit a ticket via Help & Support with your payment ID. Eligible refunds will be processed within 5-7 business days.</p>
+                `
+            },
+            support: {
+                title: "HELP & SUPPORT",
+                html: `
+                    <h4>Need Help?</h4>
+                    <p>Having trouble with lag, control setup, or payment issues? We are here to assist you!</p>
+                    <h4>Contact Options</h4>
+                    <p><b>📧 Email Support:</b> support@slitherpro.com<br/>
+                    <b>💬 Community Discord:</b> discord.gg/slitherpro<br/>
+                    <b>⏱️ Response Time:</b> Within 24 Hours</p>
+                `
+            }
+        };
+
+        function openPolicyModal(type) {
+            const data = policyData[type];
+            if (!data) return;
+            document.getElementById('policy-title').innerText = data.title;
+            document.getElementById('policy-content').innerHTML = data.html;
+            document.getElementById('screen-policy').classList.remove('hidden');
+        }
+
+        function closePolicyModal() {
+            document.getElementById('screen-policy').classList.add('hidden');
+        }
+
+        // ⏸️ IN-GAME PAUSE & RESUME LOGIC
+        let isPaused = false;
+
+        function togglePause() {
+            if (!isGameRunning) return;
+            isPaused = !isPaused;
+
+            if (isPaused) {
+                document.getElementById('screen-pause').classList.remove('hidden');
+            } else {
+                document.getElementById('screen-pause').classList.add('hidden');
+                lastFrameTime = performance.now();
+                runGameLoop();
+            }
+        }
+
+        function restartGame() {
+            document.getElementById('screen-pause').classList.add('hidden');
+            isPaused = false;
+            launchSelectedMode();
+        }
+
+        function quitToMainMenu() {
+            isPaused = false;
+            isGameRunning = false;
+            document.getElementById('screen-pause').classList.add('hidden');
+            document.getElementById('hud').style.display = 'none';
+            document.getElementById('leaderboard').style.display = 'none';
+            document.getElementById('pingBadge').style.display = 'none';
+            document.getElementById('inGamePauseBtn').style.display = 'none';
+            document.getElementById('mobileControls').style.display = 'none';
+            showScreen('screen-main');
+        }
+
         // 📺 WATCH AD TO REVIVE FUNCTION
         function watchAdToRevive() {
             alert("🎬 Showing Ad... Please wait!");
@@ -275,19 +442,16 @@
                 document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
                 document.getElementById('hud').style.display = 'block';
                 document.getElementById('leaderboard').style.display = 'block';
+                document.getElementById('inGamePauseBtn').style.display = 'block';
                 if (isMobile) document.getElementById('mobileControls').style.display = 'block';
                 if (isMultiplayerArena) document.getElementById('pingBadge').style.display = 'block';
 
                 snake.isDead = false;
                 isGameRunning = true;
+                isPaused = false;
                 lastFrameTime = performance.now();
                 runGameLoop();
             }, 1000);
-        }
-
-        // 📄 FOOTER DIALOG DISPLAY FUNCTION
-        function showPolicy(title, content) {
-            alert(`--- ${title} ---\n\n${content}`);
         }
 
         // 💳 IN APP PURCHASE FUNCTION
@@ -709,7 +873,7 @@
         });
 
         window.addEventListener("touchstart", (e) => {
-            if (!isGameRunning || !isMobile) return;
+            if (!isGameRunning || !isMobile || isPaused) return;
             for (let i = 0; i < e.changedTouches.length; i++) {
                 let t = e.changedTouches[i];
                 if (t.target === boostBtn) continue;
@@ -733,7 +897,7 @@
         }, { passive: true });
 
         window.addEventListener("touchmove", (e) => {
-            if (!isGameRunning || !touchJoystick.active || !isMobile) return;
+            if (!isGameRunning || !touchJoystick.active || !isMobile || isPaused) return;
             for (let i = 0; i < e.changedTouches.length; i++) {
                 let t = e.changedTouches[i];
                 if (t.identifier === touchJoystick.touchId) {
@@ -893,20 +1057,24 @@
             document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
             document.getElementById('hud').style.display = 'block';
             document.getElementById('leaderboard').style.display = 'block';
+            document.getElementById('inGamePauseBtn').style.display = 'block';
             document.getElementById('pingBadge').style.display = multiplayerFlag ? 'block' : 'none';
             document.getElementById('mobileControls').style.display = isMobile ? 'block' : 'none';
             
             isGameRunning = true;
+            isPaused = false;
             lastFrameTime = performance.now();
             runGameLoop();
         }
 
         function triggerGameOver() {
             isGameRunning = false;
+            isPaused = false;
             cancelAnimationFrame(gameLoopId);
             document.getElementById('hud').style.display = 'none';
             document.getElementById('leaderboard').style.display = 'none';
             document.getElementById('pingBadge').style.display = 'none';
+            document.getElementById('inGamePauseBtn').style.display = 'none';
             document.getElementById('mobileControls').style.display = 'none';
             document.getElementById('final-score-display').innerText = "Final Score: " + Math.floor(snake.score);
             showScreen('screen-gameover');
@@ -922,7 +1090,7 @@
         }
 
         function runGameLoop() {
-            if (!isGameRunning) return;
+            if (!isGameRunning || isPaused) return;
             gameLoopId = requestAnimationFrame(runGameLoop);
 
             let now = performance.now();

@@ -58,6 +58,48 @@
         .demo-canvas { width: 180px; height: 140px; background: #050512; border-radius: 10px; border: 1px solid #222244; margin-bottom: 10px; }
         .demo-desc { font-size: 0.8rem; color: #94a3b8; line-height: 1.3; }
 
+        /* 👑 STORE CARDS STYLING */
+        .store-cards-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 95%;
+            margin: 20px 0;
+        }
+        .store-card {
+            background: rgba(15, 15, 30, 0.85);
+            border: 1px solid rgba(255, 0, 128, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            width: 250px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        .store-card:hover {
+            transform: translateY(-5px);
+            border-color: #00ffaa;
+            box-shadow: 0 12px 30px rgba(0, 255, 170, 0.2);
+        }
+        .store-card-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .store-card-title { font-size: 1.1rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+        .store-card-badge { background: rgba(0, 255, 170, 0.15); border: 1px solid #00ffaa; color: #00ffaa; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; margin-bottom: 15px; }
+        .store-price-btn {
+            background: linear-gradient(135deg, #ff0077 0%, #7700ff 100%);
+            border: none; color: #fff; padding: 10px 20px; font-size: 1rem; font-weight: 700;
+            border-radius: 20px; cursor: pointer; width: 100%; transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(255, 0, 119, 0.4);
+        }
+        .store-price-btn:hover {
+            background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%);
+            color: #000; box-shadow: 0 0 20px #00ffaa;
+        }
+
         /* 📄 POLICY PANEL / MODAL STYLING */
         .policy-card {
             background: rgba(15, 15, 30, 0.95);
@@ -86,29 +128,12 @@
 
         /* ⏸️ PAUSE BUTTON STYLING */
         #inGamePauseBtn {
-            position: absolute;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 8;
-            background: rgba(3, 3, 15, 0.6);
-            border: 1px solid rgba(0, 255, 170, 0.4);
-            color: #00ffaa;
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            cursor: pointer;
-            backdrop-filter: blur(8px);
-            display: none;
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 8;
+            background: rgba(3, 3, 15, 0.6); border: 1px solid rgba(0, 255, 170, 0.4); color: #00ffaa;
+            padding: 8px 18px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+            backdrop-filter: blur(8px); display: none; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         }
-        #inGamePauseBtn:hover {
-            background: #00ffaa;
-            color: #000;
-            box-shadow: 0 0 15px #00ffaa;
-        }
+        #inGamePauseBtn:hover { background: #00ffaa; color: #000; box-shadow: 0 0 15px #00ffaa; }
 
         #mobileControls { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; display: none; }
         #joystickBase {
@@ -166,27 +191,11 @@
         .name-input { padding: 10px; width: 260px; border-radius: 10px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1rem; margin-bottom: 12px; }
 
         .footer-links {
-            position: absolute;
-            bottom: 20px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            font-size: 0.8rem;
-            color: #64748b;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 0 15px;
+            position: absolute; bottom: 20px; display: flex; gap: 10px; align-items: center;
+            font-size: 0.8rem; color: #64748b; flex-wrap: wrap; justify-content: center; padding: 0 15px;
         }
-        .footer-links a {
-            color: #94a3b8;
-            text-decoration: none;
-            transition: color 0.2s;
-            cursor: pointer;
-        }
-        .footer-links a:hover {
-            color: #00ffaa;
-            text-decoration: underline;
-        }
+        .footer-links a { color: #94a3b8; text-decoration: none; transition: color 0.2s; cursor: pointer; }
+        .footer-links a:hover { color: #00ffaa; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -201,7 +210,9 @@
         <h1>SLITHER PRO</h1>
         <div class="btn" onclick="openCustomization('offline')">Play Offline</div>
         <div class="btn" onclick="openCustomization('multiplayer')">Multiplayer Mode</div>
-        <div class="btn" style="background: linear-gradient(135deg, #ff0077 0%, #7700ff 100%);" onclick="triggerInAppPurchase('VIP_NEON_PASS', 49)">👑 Buy VIP Skin (₹49)</div>
+        
+        <!-- 👑 STORE SCENE BUTTON -->
+        <div class="btn" style="background: linear-gradient(135deg, #ff0077 0%, #7700ff 100%); font-weight: bold; border-color: #ff00aa;" onclick="showScreen('screen-store')">👑 Premium Store</div>
 
         <div class="footer-links">
             <a onclick="openPolicyModal('terms')">Terms & Conditions</a>
@@ -212,6 +223,40 @@
             <span>•</span>
             <a onclick="openPolicyModal('support')">Help & Support</a>
         </div>
+    </div>
+
+    <!-- 👑 NEW SEPARATE PREMIUM STORE SCENE -->
+    <div id="screen-store" class="ui-screen hidden">
+        <h1 style="font-size: 2.2rem; background: linear-gradient(45deg, #ff0077, #ffcc00, #00ffaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">👑 PREMIUM LEGENDARY STORE</h1>
+        <p style="color: #94a3b8; font-size: 0.9rem; margin-top: -10px;">Get Legendary Perks & Ultimate Stat Boosts!</p>
+
+        <div class="store-cards-container">
+            <!-- Option 1 -->
+            <div class="store-card">
+                <div class="store-card-icon">🐍</div>
+                <div class="store-card-title">Premium Legendary Snake Skin</div>
+                <div class="store-card-badge">Speed +25%</div>
+                <button class="store-price-btn" onclick="triggerInAppPurchase('LEGENDARY_SNAKE_SKIN', 49)">Buy for ₹49</button>
+            </div>
+
+            <!-- Option 2 -->
+            <div class="store-card">
+                <div class="store-card-icon">🔥</div>
+                <div class="store-card-title">Premium Legendary Boost Effect</div>
+                <div class="store-card-badge">Boost Speed +25%</div>
+                <button class="store-price-btn" onclick="triggerInAppPurchase('LEGENDARY_BOOST_EFFECT', 49)">Buy for ₹49</button>
+            </div>
+
+            <!-- Option 3 -->
+            <div class="store-card">
+                <div class="store-card-icon">🌌</div>
+                <div class="store-card-title">Premium Legendary Background Skin</div>
+                <div class="store-card-badge">Growth +25%</div>
+                <button class="store-price-btn" onclick="triggerInAppPurchase('LEGENDARY_BG_SKIN', 49)">Buy for ₹49</button>
+            </div>
+        </div>
+
+        <div class="btn" style="background: #111122; border-color: #333355; min-width: 150px; margin-top: 10px;" onclick="showScreen('screen-main')">🏠 Back to Main Menu</div>
     </div>
 
     <div id="screen-policy" class="modal-overlay hidden">
@@ -303,12 +348,11 @@
         <div class="btn" style="margin-top: 25px; min-width: 140px;" onclick="closeControlsDemoModal()">GOT IT!</div>
     </div>
 
-    <!-- 💀 GAME OVER SCREEN WITH REVIVE BUTTON (OFFLINE + MULTIPLAYER) -->
+    <!-- 💀 GAME OVER SCREEN -->
     <div id="screen-gameover" class="ui-screen hidden">
         <h1 style="background: linear-gradient(45deg, #ff3333, #ff7700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 3.5rem;">GAME OVER</h1>
         <p id="final-score-display" style="font-size: 1.4rem; color: #cbd5e1; margin: 0 0 20px 0;">Final Score: 0</p>
         
-        <!-- 🎬 WATCH AD TO REVIVE BUTTON -->
         <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold; border-color: #00ffaa;" onclick="watchAdToRevive()">📺 Watch AD to Revive</div>
         
         <div class="btn" onclick="launchSelectedMode()">Play Again</div>
@@ -429,7 +473,6 @@
             showScreen('screen-main');
         }
 
-        // 🎬 WATCH AD TO REVIVE LOGIC (WORKS FOR BOTH OFFLINE & MULTIPLAYER)
         function watchAdToRevive() {
             alert("🎬 Showing Ad... Please wait!");
             
@@ -443,13 +486,11 @@
                 if (isMobile) document.getElementById('mobileControls').style.display = 'block';
                 if (isMultiplayerArena) document.getElementById('pingBadge').style.display = 'block';
 
-                // Spawn player safely at random location
                 let startAngle = Math.random() * Math.PI * 2;
                 let startDist = Math.random() * 800;
                 snake.x = Math.cos(startAngle) * startDist;
                 snake.y = Math.sin(startAngle) * startDist;
                 
-                // Re-build body segments cleanly
                 snake.body = [];
                 let reviveLen = Math.max(25, Math.floor(snake.length * 0.7)); 
                 snake.length = reviveLen;
@@ -460,7 +501,6 @@
 
                 snake.isDead = false;
                 
-                // If Multiplayer, re-register player to room
                 if (isMultiplayerArena && socket.connected) {
                     socket.emit('joinMultiplayer', { 
                         name: snake.name, 
@@ -511,7 +551,7 @@
                         });
                         const verifyData = await verifyRes.json();
                         if (verifyData.success) {
-                            alert("🎉 Payment Successful! VIP Item Unlocked!");
+                            alert("🎉 Payment Successful! Premium Perk Unlocked!");
                             localStorage.setItem(itemId, "UNLOCKED");
                         }
                     },
@@ -1058,9 +1098,16 @@
             let startX = Math.cos(startAngle) * startDist;
             let startY = Math.sin(startAngle) * startDist;
 
+            // Apply purchased stat boosts if unlocked
+            let hasSpeedBoost = localStorage.getItem('LEGENDARY_SNAKE_SKIN') === 'UNLOCKED';
+            let hasBoostEffect = localStorage.getItem('LEGENDARY_BOOST_EFFECT') === 'UNLOCKED';
+
             snake = { 
                 id: "player", name: document.getElementById('player-nick').value || "You", x: startX, y: startY, angle: -Math.PI / 2,
-                currentRadius: 15, normalSpeed: 3.5, boostSpeed: 7.0, maxTurnSpeed: 0.08, 
+                currentRadius: 15, 
+                normalSpeed: 3.5 * (hasSpeedBoost ? 1.25 : 1.0), 
+                boostSpeed: 7.0 * (hasBoostEffect ? 1.25 : 1.0), 
+                maxTurnSpeed: 0.08, 
                 body: [], length: 45, targetLength: 45, score: 100, isDead: false 
             };
             for(let i=0; i < snake.length; i++) snake.body.push({x: snake.x, y: snake.y});
@@ -1411,11 +1458,15 @@
                 }
             }
 
+            // Food Growth perk check (+25% growth)
+            let hasGrowthBoost = localStorage.getItem('LEGENDARY_BG_SKIN') === 'UNLOCKED';
+            let growthMultiplier = hasGrowthBoost ? 1.25 : 1.0;
+
             for (let i = foods.length - 1; i >= 0; i--) {
                 let f = foods[i];
                 if (Math.hypot(snake.x - f.x, snake.y - f.y) < snake.currentRadius + 8) {
-                    snake.score += f.value;
-                    snake.targetLength += 0.25;
+                    snake.score += f.value * growthMultiplier;
+                    snake.targetLength += 0.25 * growthMultiplier;
                     foods[i] = createFood((Math.random() - 0.5) * MAP_RADIUS * 1.8, (Math.random() - 0.5) * MAP_RADIUS * 1.8);
                 }
             }

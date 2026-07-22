@@ -56,7 +56,7 @@
         .demo-canvas { width: 180px; height: 140px; background: #050512; border-radius: 10px; border: 1px solid #222244; margin-bottom: 10px; }
         .demo-desc { font-size: 0.8rem; color: #94a3b8; line-height: 1.3; }
 
-        /* 👑 STORE CARDS STYLING */
+        /* STORE CARDS STYLING */
         .store-cards-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 95%; margin: 20px 0; }
         .store-card {
             background: rgba(15, 15, 30, 0.85); border: 1px solid rgba(255, 0, 128, 0.3);
@@ -76,7 +76,7 @@
         }
         .store-price-btn:hover { background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; box-shadow: 0 0 20px #00ffaa; }
 
-        /* 📱 UPI & VERIFICATION CARD STYLING */
+        /* UPI & VERIFICATION CARD STYLING */
         .upi-card {
             background: rgba(15, 15, 30, 0.95); border: 2px solid #00ffaa;
             border-radius: 20px; padding: 20px; width: 90%; max-width: 360px;
@@ -155,17 +155,17 @@
     <div id="screen-mobile-verify" class="ui-screen hidden">
         <h1>VERIFY NUMBER</h1>
         <p style="color: #94a3b8; font-size: 0.9rem; max-width: 300px; text-align: center; margin-bottom: 20px;">
-            In-App Store se skin reward lene ke liye apna Mobile Number verify karein.
+            Please verify your mobile number to receive skin rewards from the in-app store.
         </p>
         
         <div id="phone-step">
             <input type="tel" id="user-mobile-num" class="name-input" placeholder="10-Digit Mobile Number" maxlength="10">
-            <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold;" onclick="sendOtp()">Send OTP</div>
+            <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold;" onclick="requestOtp()">Send OTP</div>
         </div>
 
         <div id="otp-step" style="display: none;">
-            <p style="color: #00ffaa; font-size: 0.85rem; margin-bottom: 10px;">Enter Demo OTP: <b>1234</b></p>
-            <input type="number" id="user-otp-code" class="name-input" placeholder="Enter 4-Digit OTP" maxlength="4">
+            <p style="color: #00ffaa; font-size: 0.85rem; margin-bottom: 10px;">Enter the verification code sent to your phone</p>
+            <input type="number" id="user-otp-code" class="name-input" placeholder="Enter 6-Digit OTP" maxlength="6">
             <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold;" onclick="verifyOtp()">Verify & Continue</div>
         </div>
     </div>
@@ -228,16 +228,16 @@
             <img id="upi-qr-code" class="upi-qr-img" src="" alt="UPI QR Code">
 
             <div class="upi-box">
-                <span id="upi-id-text" style="color: #00ffaa; font-weight: bold;">yourupi@upi</span>
+                <span id="upi-id-text" style="color: #00ffaa; font-weight: bold;">yourname@upi</span>
                 <button style="background: #00ffaa; color: #000; border: none; padding: 4px 10px; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="copyUpiId()">Copy</button>
             </div>
 
-            <!-- Mobile UPI App Direct Pay Button -->
+            <!-- In-Panel UPI App Direct Pay Button -->
             <a id="upi-direct-btn" href="#" style="text-decoration: none; width: 100%;">
                 <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold; width: 100%; box-sizing: border-box; margin: 8px 0; min-width: unset; font-size: 0.9rem;">📱 Pay via GPay / PhonePe / Paytm</div>
             </a>
 
-            <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">Payment complete karne ke baad UTR/Transaction ID yahan likhein:</p>
+            <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">After completing payment, enter your 12-digit UTR/Ref No below:</p>
             <input type="text" id="upi-utr-input" class="name-input" placeholder="Enter 12-Digit UTR/Ref No." style="width: 100%; box-sizing: border-box; font-size: 0.85rem; padding: 8px; margin-bottom: 8px;">
 
             <div style="display: flex; gap: 8px; width: 100%;">
@@ -381,40 +381,65 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // 💳 SETUP YOUR UPI DETAILS HERE
-        const MY_UPI_ID = "yourname@upi"; // 👈 Apni UPI ID Yahan Daalein!
+        const MY_UPI_ID = "yourname@upi"; // 👈 Enter your real UPI ID here
         let currentUpiItemId = null;
         let verifiedMobileNumber = localStorage.getItem("VERIFIED_MOBILE") || null;
 
-        // --- MOBILE NUMBER VERIFICATION FLOW ---
-        function sendOtp() {
+        const socket = io({ 
+            transports: ['websocket'],
+            upgrade: false
+        });
+
+        // --- REAL MOBILE NUMBER VERIFICATION VIA BACKEND ---
+        let pendingPhone = "";
+
+        function requestOtp() {
             let phoneInput = document.getElementById('user-mobile-num').value.trim();
             if (phoneInput.length !== 10 || isNaN(phoneInput)) {
-                alert("⚠️ Please enter a valid 10-digit mobile number!");
+                alert("Please enter a valid 10-digit mobile number!");
                 return;
             }
-            alert("📩 OTP Sent to +91 " + phoneInput + " (Demo OTP: 1234)");
+            pendingPhone = phoneInput;
+            
+            // Request server to send real OTP
+            socket.emit('request-otp', { phone: pendingPhone });
+        }
+
+        socket.on('otp-sent-success', (data) => {
+            alert("Verification code sent successfully to +91 " + pendingPhone);
             document.getElementById('phone-step').style.display = 'none';
             document.getElementById('otp-step').style.display = 'block';
-        }
+        });
+
+        socket.on('otp-sent-error', (errData) => {
+            alert("Failed to send OTP: " + (errData.message || "Please try again."));
+        });
 
         function verifyOtp() {
             let otpInput = document.getElementById('user-otp-code').value.trim();
-            let phoneInput = document.getElementById('user-mobile-num').value.trim();
-            if (otpInput === "1234") {
-                verifiedMobileNumber = phoneInput;
-                localStorage.setItem("VERIFIED_MOBILE", verifiedMobileNumber);
-                alert("✅ Mobile Number Verified Successfully!");
-                showScreen('screen-main');
-            } else {
-                alert("❌ Incorrect OTP! Please enter 1234.");
+            if (otpInput.length !== 6 || isNaN(otpInput)) {
+                alert("Please enter a valid 6-digit verification code!");
+                return;
             }
+
+            // Verify via server
+            socket.emit('verify-otp', { phone: pendingPhone, otp: otpInput });
         }
 
+        socket.on('otp-verification-success', (data) => {
+            verifiedMobileNumber = data.phone;
+            localStorage.setItem("VERIFIED_MOBILE", verifiedMobileNumber);
+            alert("Mobile Number Verified Successfully!");
+            showScreen('screen-main');
+        });
+
+        socket.on('otp-verification-failed', (data) => {
+            alert("Invalid verification code! Please try again.");
+        });
+
         function openUpiModal(itemId, price, itemTitle) {
-            // Mobile Number check
             if (!verifiedMobileNumber) {
-                alert("⚠️ Please verify your Mobile Number first!");
+                alert("Please verify your mobile number first!");
                 showScreen('screen-mobile-verify');
                 return;
             }
@@ -425,7 +450,6 @@
             document.getElementById('upi-user-phone').innerText = "Linked Mobile: +91 " + verifiedMobileNumber;
             document.getElementById('upi-id-text').innerText = MY_UPI_ID;
 
-            // Generate UPI Intent Link with Mobile Number attached in Note (tn)
             let upiLink = `upi://pay?pa=${MY_UPI_ID}&pn=SlitherPro&am=${price}&cu=INR&tn=Skin_${itemId}_Mob_${verifiedMobileNumber}`;
             let qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiLink)}`;
             
@@ -442,21 +466,20 @@
 
         function copyUpiId() {
             navigator.clipboard.writeText(MY_UPI_ID);
-            alert("📋 UPI ID Copied: " + MY_UPI_ID);
+            alert("UPI ID Copied: " + MY_UPI_ID);
         }
 
         function verifyAndUnlockUpi() {
             let utr = document.getElementById('upi-utr-input').value.trim();
             if (utr.length < 6) {
-                alert("⚠️ Please enter a valid 12-digit UTR or Transaction Ref Number!");
+                alert("Please enter a valid 12-digit UTR or Transaction Reference Number!");
                 return;
             }
 
-            // Save to Local Storage linked with Mobile Number & Grant Access
             localStorage.setItem(currentUpiItemId, "UNLOCKED");
             localStorage.setItem(currentUpiItemId + "_MOBILE", verifiedMobileNumber);
 
-            alert("🎉 Payment Verified for Mobile: " + verifiedMobileNumber + "\n" + currentUpiItemId + " is now UNLOCKED!");
+            alert("Payment Verified for Mobile: " + verifiedMobileNumber + "\n" + currentUpiItemId + " is now UNLOCKED!");
             closeUpiModal();
         }
 
@@ -467,7 +490,7 @@
                     <h4>1. Game Rules</h4>
                     <p>Welcome to Slither Pro. By playing this game, you agree to follow fair play guidelines. Any use of automated bots, scripts, or speed hacks is strictly prohibited.</p>
                     <h4>2. Account & Purchases</h4>
-                    <p>In-app purchases and VIP skin passes are bound to your verified Mobile Number and browser session. Refunds are subject to our Refund Policy.</p>
+                    <p>In-app purchases and VIP skin passes are bound to your verified mobile number and browser session. Refunds are subject to our Refund Policy.</p>
                     <h4>3. Service Availability</h4>
                     <p>Multiplayer servers are optimized for low ping; however, server maintenance may cause temporary disconnects.</p>
                 `
@@ -476,7 +499,7 @@
                 title: "PRIVACY POLICY",
                 html: `
                     <h4>1. Data Collection</h4>
-                    <p>We collect your Mobile Number strictly for skin distribution and purchase verification purposes. We do not sell or share your phone number with third parties.</p>
+                    <p>We collect your mobile number strictly for skin distribution and purchase verification purposes. We do not sell or share your phone number with third parties.</p>
                     <h4>2. Analytics & Performance</h4>
                     <p>Anonymized network diagnostic data (like ping rates and FPS) may be processed to improve multiplayer server routing.</p>
                     <h4>3. Third-Party Services</h4>
@@ -489,7 +512,7 @@
                     <h4>1. Digital Items Refund</h4>
                     <p>Purchases like VIP Skins or Passes are non-refundable once activated on your account, except in cases of payment processing errors.</p>
                     <h4>2. Processing Time</h4>
-                    <p>If payment was deducted but item was not received, submit a ticket via Help & Support with your payment ID and registered Mobile Number. Eligible refunds will be processed within 5-7 business days.</p>
+                    <p>If payment was deducted but item was not received, submit a ticket via Help & Support with your payment ID and registered mobile number. Eligible refunds will be processed within 5-7 business days.</p>
                 `
             },
             support: {
@@ -561,7 +584,7 @@
 
                 document.getElementById('screen-ad-loading').classList.add('hidden');
                 
-                alert("🎉 Ad completed! You are revived!");
+                alert("Ad completed! You are revived!");
                 
                 document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
                 document.getElementById('hud').style.display = 'block';
@@ -623,11 +646,6 @@
         let chosenMode = 'offline'; 
         let isMultiplayerArena = false;
         let networkPlayers = {};
-
-        const socket = io({ 
-            transports: ['websocket'],
-            upgrade: false
-        });
 
         let pingStartTime = 0;
         setInterval(() => {
@@ -799,14 +817,13 @@
             }
         }
 
-        // SPLASH SCREEN LOADING LOGIC
+        // SPLASH SCREEN LOADING LOGIC + PERSISTENCE CHECK
         let loadProgress = 0;
         const loaderInterval = setInterval(() => {
             loadProgress += 10;
             if (loadProgress >= 100) {
                 clearInterval(loaderInterval);
                 setTimeout(() => {
-                    // Check if phone number is already verified
                     if (verifiedMobileNumber) {
                         showScreen('screen-main');
                     } else {

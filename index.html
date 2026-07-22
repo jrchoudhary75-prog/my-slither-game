@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Slither.io Pro - Adaptive AI Modes Edition</title>
+    <title>Slither.io Pro - Authentic Controls Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- 💳 RAZORPAY PAYMENT SDK -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -335,6 +335,7 @@
     <!-- HUD -->
     <div id="hud">
         <div id="hud-score" style="font-size: 20px; font-weight: 800; color: #00ffaa;">Score: 0</div>
+        <div style="font-size: 12px; color: #a0aec0; margin-top: 3px;">Hold Click / Touch / Space to Boost ⚡</div>
     </div>
 
     <!-- ⏸️ MIDDLE RIGHT PAUSE BUTTON -->
@@ -570,7 +571,7 @@
             }
         }
 
-        /* 🐍 GAMEPLAY ENGINE WITH DEADZONE PREVENTING CIRCULAR ORBITING */
+        /* 🐍 AUTHENTIC SLITHER.IO GAMEPLAY ENGINE */
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d");
         let isGameRunning = false;
@@ -580,6 +581,7 @@
 
         let snake = { x: 0, y: 0, radius: 10, angle: 0, speed: 3.5, body: [] };
         let mousePos = { x: 0, y: 0 };
+        let isBoosting = false;
 
         let foods = [];
         let aiBots = [];
@@ -600,6 +602,7 @@
 
             hasRevivedInCurrentGame = false;
             playerScore = 0;
+            isBoosting = false;
             document.getElementById('hud-score').innerText = 'Score: ' + playerScore;
 
             // Spawn Player Snake
@@ -607,17 +610,17 @@
             snake.y = canvas.height / 2;
             snake.angle = 0;
             snake.body = [];
-            for (let i = 0; i < 15; i++) {
-                snake.body.push({ x: snake.x - i * 6, y: snake.y });
+            for (let i = 0; i < 18; i++) {
+                snake.body.push({ x: snake.x - i * 5, y: snake.y });
             }
 
-            // Initial Target Cursor Position Ahead of Snake
+            // Initial Pointer Position
             mousePos.x = snake.x + 100;
             mousePos.y = snake.y;
 
             // Spawn Food Particles
             foods = [];
-            for (let i = 0; i < 120; i++) {
+            for (let i = 0; i < 140; i++) {
                 foods.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
@@ -633,7 +636,7 @@
                     let bx = Math.random() * canvas.width;
                     let by = Math.random() * canvas.height;
                     let botBody = [];
-                    for(let i=0; i<12; i++) botBody.push({x: bx, y: by + i*5});
+                    for(let i=0; i<14; i++) botBody.push({x: bx, y: by + i*5});
 
                     aiBots.push({
                         x: bx, y: by,
@@ -650,17 +653,39 @@
             runGameLoop();
         }
 
-        // TRACK MOUSE / TOUCH POINTER
+        /* 🖱️ SLITHER.IO CONTROLS & BOOST LISTENERS */
         window.addEventListener('mousemove', (e) => {
             mousePos.x = e.clientX;
             mousePos.y = e.clientY;
         });
 
+        window.addEventListener('mousedown', (e) => {
+            if (e.button === 0) isBoosting = true;
+        });
+        window.addEventListener('mouseup', () => { isBoosting = false; });
+
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                mousePos.x = e.touches[0].clientX;
+                mousePos.y = e.touches[0].clientY;
+            }
+            if (e.touches.length >= 2 || e.touches.length === 1) {
+                isBoosting = true;
+            }
+        });
         window.addEventListener('touchmove', (e) => {
             if (e.touches.length > 0) {
                 mousePos.x = e.touches[0].clientX;
                 mousePos.y = e.touches[0].clientY;
             }
+        });
+        window.addEventListener('touchend', () => { isBoosting = false; });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') isBoosting = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') isBoosting = false;
         });
 
         function runGameLoop() {
@@ -675,26 +700,39 @@
             for (let x = 0; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
             for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
 
-            // 2. STEERING MECHANICS WITH CURSOR DEADZONE (PREVENTS GOL-GOL GHUMNA)
+            // 2. 🎯 AUTHENTIC SLITHER.IO STEERING PHYSICS
             let dx = mousePos.x - snake.x;
             let dy = mousePos.y - snake.y;
-            let distToCursor = Math.hypot(dx, dy);
+            let targetAngle = Math.atan2(dy, dx);
 
-            // Only adjust turn angle if cursor is outside deadzone (25px)
-            if (distToCursor > 25) {
-                let targetAngle = Math.atan2(dy, dx);
-                let diff = targetAngle - snake.angle;
-                
-                // Keep angle difference normalized between -PI and PI
-                while (diff < -Math.PI) diff += Math.PI * 2;
-                while (diff > Math.PI) diff -= Math.PI * 2;
-                
-                snake.angle += diff * 0.12; // Smooth rotation response
+            // Calculate exact angle difference
+            let angleDiff = Math.atan2(Math.sin(targetAngle - snake.angle), Math.cos(targetAngle - snake.angle));
+
+            // Slither.io Max Turn Rate Curve
+            let maxTurnRate = isBoosting ? 0.09 : 0.07;
+            if (Math.abs(angleDiff) < maxTurnRate) {
+                snake.angle = targetAngle;
+            } else {
+                snake.angle += Math.sign(angleDiff) * maxTurnRate;
             }
 
-            // 3. CONTINUOUS MOVEMENT (NEVER STOPS)
-            snake.x += Math.cos(snake.angle) * snake.speed;
-            snake.y += Math.sin(snake.angle) * snake.speed;
+            // 3. ⚡ SPEED & BOOST SYSTEM
+            let currentSpeed = (isBoosting && playerScore > 10) ? 6.5 : 3.5;
+            snake.x += Math.cos(snake.angle) * currentSpeed;
+            snake.y += Math.sin(snake.angle) * currentSpeed;
+
+            // Boost Food Particle Trail Drop
+            if (isBoosting && playerScore > 10 && Math.random() < 0.35) {
+                playerScore = Math.max(0, playerScore - 1);
+                document.getElementById('hud-score').innerText = 'Score: ' + playerScore;
+                let tail = snake.body[snake.body.length - 1] || snake;
+                foods.push({
+                    x: tail.x + (Math.random() - 0.5) * 12,
+                    y: tail.y + (Math.random() - 0.5) * 12,
+                    radius: 3.5,
+                    color: skinColors[selectedSkinIdx]
+                });
+            }
 
             // Screen Wraparound Boundaries
             if (snake.x < 0) snake.x = canvas.width;
@@ -702,8 +740,10 @@
             if (snake.y < 0) snake.y = canvas.height;
             if (snake.y > canvas.height) snake.y = 0;
 
+            // Update Body Chain
             snake.body.unshift({ x: snake.x, y: snake.y });
-            if (snake.body.length > 15 + Math.floor(playerScore / 20)) {
+            let maxBodyLength = 18 + Math.floor(playerScore / 15);
+            while (snake.body.length > maxBodyLength) {
                 snake.body.pop();
             }
 
@@ -720,7 +760,6 @@
                 if (dist < snake.radius + f.radius) {
                     playerScore += 10;
                     document.getElementById('hud-score').innerText = 'Score: ' + playerScore;
-                    snake.body.push({ x: snake.x, y: snake.y });
                     foods.splice(i, 1);
                     foods.push({
                         x: Math.random() * canvas.width, y: Math.random() * canvas.height,
@@ -755,20 +794,20 @@
                 }
             });
 
-            // 6. Draw Player Snake Body
+            // 6. Draw Player Snake Body with Slither.io Glow
             let playerColor = skinColors[selectedSkinIdx];
             for (let i = snake.body.length - 1; i >= 0; i--) {
                 let seg = snake.body[i];
                 ctx.fillStyle = playerColor;
                 ctx.shadowColor = playerColor;
-                ctx.shadowBlur = i === 0 ? 15 : 4;
+                ctx.shadowBlur = isBoosting ? 20 : (i === 0 ? 12 : 3);
                 ctx.beginPath();
-                ctx.arc(seg.x, seg.y, i === 0 ? snake.radius : snake.radius - 2, 0, Math.PI * 2);
+                ctx.arc(seg.x, seg.y, i === 0 ? snake.radius : snake.radius - 2.2, 0, Math.PI * 2);
                 ctx.fill();
             }
             ctx.shadowBlur = 0;
 
-            // Snake Eyes facing current direction
+            // Snake Eyes facing current movement angle
             ctx.fillStyle = '#ffffff';
             let eyeX1 = snake.x + Math.cos(snake.angle - 0.4) * 6;
             let eyeY1 = snake.y + Math.sin(snake.angle - 0.4) * 6;

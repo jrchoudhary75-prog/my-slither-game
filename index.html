@@ -37,6 +37,7 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         }
         .btn:hover { background: linear-gradient(135deg, #00ffaa 0%, #00bfff 100%); border-color: #fff; color: #000; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
         
         .option-row { display: flex; align-items: center; justify-content: space-between; width: 280px; background: rgba(255,255,255,0.01); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03); }
         .option-label { font-size: 0.9rem; color: #94a3b8; font-weight: 500; }
@@ -133,7 +134,7 @@
         
         .ping-badge { position: absolute; bottom: 15px; right: 15px; z-index: 5; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; color: #00ffaa; border: 1px solid rgba(0,255,170,0.2); }
 
-        .name-input { padding: 10px; width: 260px; border-radius: 10px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1rem; margin-bottom: 12px; }
+        .name-input { padding: 10px; width: 260px; border-radius: 10px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1rem; margin-bottom: 8px; }
 
         .footer-links { position: absolute; bottom: 20px; display: flex; gap: 10px; align-items: center; font-size: 0.8rem; color: #64748b; flex-wrap: wrap; justify-content: center; padding: 0 15px; }
         .footer-links a { color: #94a3b8; text-decoration: none; transition: color 0.2s; cursor: pointer; }
@@ -154,19 +155,28 @@
     <!-- 2️⃣ MOBILE NUMBER VERIFICATION SCREEN -->
     <div id="screen-mobile-verify" class="ui-screen hidden">
         <h1>VERIFY NUMBER</h1>
-        <p style="color: #94a3b8; font-size: 0.9rem; max-width: 300px; text-align: center; margin-bottom: 20px;">
+        <p style="color: #94a3b8; font-size: 0.9rem; max-width: 300px; text-align: center; margin-bottom: 15px;">
             Please verify your mobile number to receive skin rewards from the in-app store.
         </p>
         
+        <!-- In-Panel Error / Success Message Container -->
+        <div id="verify-msg-box" style="color: #ff3366; font-size: 0.85rem; margin-bottom: 10px; min-height: 20px; text-align: center; font-weight: bold;"></div>
+
         <div id="phone-step">
             <input type="tel" id="user-mobile-num" class="name-input" placeholder="10-Digit Mobile Number" maxlength="10">
-            <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold;" onclick="requestOtp()">Send OTP</div>
+            <div id="send-otp-btn" class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold;" onclick="requestOtp()">Send OTP</div>
         </div>
 
-        <div id="otp-step" style="display: none;">
+        <div id="otp-step" style="display: none; text-align: center;">
             <p style="color: #00ffaa; font-size: 0.85rem; margin-bottom: 10px;">Enter the verification code sent to your phone</p>
             <input type="number" id="user-otp-code" class="name-input" placeholder="Enter 6-Digit OTP" maxlength="6">
             <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold;" onclick="verifyOtp()">Verify & Continue</div>
+            
+            <!-- Timer & Resend Option -->
+            <div id="otp-timer-container" style="color: #94a3b8; font-size: 0.85rem; margin-top: 12px;">
+                Resend OTP in <span id="timer-countdown" style="color: #00ffaa; font-weight: bold;">60</span>s
+            </div>
+            <div id="resend-otp-btn" class="btn hidden" style="background: #1e1e38; border-color: #3b3b6d; font-size: 0.9rem; margin-top: 10px; min-width: unset; padding: 8px 20px;" onclick="resendOtp()">Resend OTP</div>
         </div>
     </div>
 
@@ -232,7 +242,6 @@
                 <button style="background: #00ffaa; color: #000; border: none; padding: 4px 10px; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="copyUpiId()">Copy</button>
             </div>
 
-            <!-- In-Panel UPI App Direct Pay Button -->
             <a id="upi-direct-btn" href="#" style="text-decoration: none; width: 100%;">
                 <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold; width: 100%; box-sizing: border-box; margin: 8px 0; min-width: unset; font-size: 0.9rem;">📱 Pay via GPay / PhonePe / Paytm</div>
             </a>
@@ -390,51 +399,97 @@
             upgrade: false
         });
 
-        // --- REAL MOBILE NUMBER VERIFICATION VIA BACKEND ---
         let pendingPhone = "";
+        let otpTimerInterval = null;
+
+        function showVerifyMessage(msg, isError = true) {
+            let box = document.getElementById('verify-msg-box');
+            box.style.color = isError ? '#ff3366' : '#00ffaa';
+            box.innerText = msg;
+        }
 
         function requestOtp() {
             let phoneInput = document.getElementById('user-mobile-num').value.trim();
-            if (phoneInput.length !== 10 || isNaN(phoneInput)) {
-                alert("Please enter a valid 10-digit mobile number!");
+            
+            // Validation for invalid mobile number inside panel
+            if (phoneInput.length !== 10 || isNaN(phoneInput) || !['6','7','8','9'].includes(phoneInput[0])) {
+                showVerifyMessage("Please enter a valid 10-digit mobile number!", true);
                 return;
             }
+            
+            showVerifyMessage("", true);
             pendingPhone = phoneInput;
             
-            // Request server to send real OTP
+            // Disable send button temporarily
+            let sendBtn = document.getElementById('send-otp-btn');
+            sendBtn.classList.add('hidden');
+
             socket.emit('request-otp', { phone: pendingPhone });
         }
 
         socket.on('otp-sent-success', (data) => {
-            alert("Verification code sent successfully to +91 " + pendingPhone);
+            showVerifyMessage("Verification code sent successfully!", false);
             document.getElementById('phone-step').style.display = 'none';
             document.getElementById('otp-step').style.display = 'block';
+            startOtpTimer();
         });
 
         socket.on('otp-sent-error', (errData) => {
-            alert("Failed to send OTP: " + (errData.message || "Please try again."));
+            showVerifyMessage(errData.message || "Failed to send OTP. Please try again.", true);
+            document.getElementById('send-otp-btn').classList.remove('hidden');
         });
+
+        function startOtpTimer() {
+            let timeLeft = 60;
+            let timerSpan = document.getElementById('timer-countdown');
+            let timerContainer = document.getElementById('otp-timer-container');
+            let resendBtn = document.getElementById('resend-otp-btn');
+
+            timerContainer.style.display = 'block';
+            resendBtn.classList.add('hidden');
+            timerSpan.innerText = timeLeft;
+
+            if (otpTimerInterval) clearInterval(otpTimerInterval);
+
+            otpTimerInterval = setInterval(() => {
+                timeLeft--;
+                timerSpan.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(otpTimerInterval);
+                    timerContainer.style.display = 'none';
+                    resendBtn.classList.remove('hidden'); // Show resend button after 1 min
+                }
+            }, 1000);
+        }
+
+        function resendOtp() {
+            showVerifyMessage("Resending verification code...", false);
+            socket.emit('request-otp', { phone: pendingPhone });
+            startOtpTimer();
+        }
 
         function verifyOtp() {
             let otpInput = document.getElementById('user-otp-code').value.trim();
             if (otpInput.length !== 6 || isNaN(otpInput)) {
-                alert("Please enter a valid 6-digit verification code!");
+                showVerifyMessage("Please enter a valid 6-digit verification code!", true);
                 return;
             }
 
-            // Verify via server
             socket.emit('verify-otp', { phone: pendingPhone, otp: otpInput });
         }
 
         socket.on('otp-verification-success', (data) => {
+            if (otpTimerInterval) clearInterval(otpTimerInterval);
             verifiedMobileNumber = data.phone;
             localStorage.setItem("VERIFIED_MOBILE", verifiedMobileNumber);
-            alert("Mobile Number Verified Successfully!");
-            showScreen('screen-main');
+            showVerifyMessage("Mobile Number Verified Successfully!", false);
+            setTimeout(() => {
+                showScreen('screen-main');
+            }, 800);
         });
 
         socket.on('otp-verification-failed', (data) => {
-            alert("Invalid verification code! Please try again.");
+            showVerifyMessage("Invalid verification code! Please try again.", true);
         });
 
         function openUpiModal(itemId, price, itemTitle) {

@@ -570,7 +570,7 @@
             }
         }
 
-        /* 🐍 GAMEPLAY ENGINE WITH CONTINUOUS MOVEMENT TOWARDS CURSOR */
+        /* 🐍 GAMEPLAY ENGINE WITH DEADZONE PREVENTING CIRCULAR ORBITING */
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d");
         let isGameRunning = false;
@@ -611,7 +611,7 @@
                 snake.body.push({ x: snake.x - i * 6, y: snake.y });
             }
 
-            // Initial Target Cursor
+            // Initial Target Cursor Position Ahead of Snake
             mousePos.x = snake.x + 100;
             mousePos.y = snake.y;
 
@@ -675,12 +675,13 @@
             for (let x = 0; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
             for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
 
-            // 2. STEERING TOWARDS CURSOR DIRECTION
+            // 2. STEERING MECHANICS WITH CURSOR DEADZONE (PREVENTS GOL-GOL GHUMNA)
             let dx = mousePos.x - snake.x;
             let dy = mousePos.y - snake.y;
-            
-            // Turn smoothly towards target cursor angle
-            if (Math.hypot(dx, dy) > 2) {
+            let distToCursor = Math.hypot(dx, dy);
+
+            // Only adjust turn angle if cursor is outside deadzone (25px)
+            if (distToCursor > 25) {
                 let targetAngle = Math.atan2(dy, dx);
                 let diff = targetAngle - snake.angle;
                 
@@ -688,10 +689,10 @@
                 while (diff < -Math.PI) diff += Math.PI * 2;
                 while (diff > Math.PI) diff -= Math.PI * 2;
                 
-                snake.angle += diff * 0.15; // Smooth steering responsiveness
+                snake.angle += diff * 0.12; // Smooth rotation response
             }
 
-            // 3. CONTINUOUS MOVEMENT (SNAKE NEVER STOPS)
+            // 3. CONTINUOUS MOVEMENT (NEVER STOPS)
             snake.x += Math.cos(snake.angle) * snake.speed;
             snake.y += Math.sin(snake.angle) * snake.speed;
 

@@ -1,11 +1,22 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const axios = require('axios'); // Optional: real SMS API call ke liye
+const path = require('path');
+const axios = require('axios'); // Optional for real SMS Gateway
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: { origin: "*" }
+});
+
+// ✅ Fix "Cannot GET /": Serve all static files from root directory
+app.use(express.static(path.join(__dirname)));
+
+// Root route to serve index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 const pendingOtps = {};
 
@@ -14,7 +25,6 @@ io.on('connection', (socket) => {
 
     // Request Real OTP
     socket.on('request-otp', async ({ phone }) => {
-        // Validate 10-digit phone format on server
         if (!phone || phone.length !== 10 || isNaN(phone)) {
             socket.emit('otp-sent-error', { message: "Invalid mobile number format!" });
             return;
@@ -28,8 +38,6 @@ io.on('connection', (socket) => {
         try {
             /* 
                👇 REAL SMS GATEWAY INTEGRATION (Example with Fast2SMS)
-               Aapko apni Fast2SMS API Key yahan daalni hogi:
-               
                await axios.get(`https://www.fast2sms.com/dev/bulkV2`, {
                    params: {
                        authorization: "YOUR_FAST2SMS_API_KEY",
@@ -39,11 +47,10 @@ io.on('connection', (socket) => {
                    }
                });
             */
-
             socket.emit('otp-sent-success');
         } catch (error) {
             console.error("SMS Gateway Error:", error);
-            socket.emit('otp-sent-error', { message: "Failed to dispatch SMS. Check server configuration." });
+            socket.emit('otp-sent-error', { message: "Failed to dispatch SMS." });
         }
     });
 
@@ -58,11 +65,31 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Multiplayer Game Handlers
+    socket.on('joinMultiplayer', (data) => {
+        socket.data = data;
+        socket.broadcast.emit('playerJoined', { id: socket.id, ...data });
+    });
+
+    socket.on('updatePlayer', (data) => {
+        socket.broadcast.emit('gameStateUpdate', { [socket.id]: data });
+    });
+
+    socket.on('playerDied', () => {
+        socket.broadcast.emit('gameStateUpdate', { [socket.id]: null });
+    });
+
+    socket.on('pingTest', () => {
+        socket.emit('pongTest');
+    });
+
     socket.on('disconnect', () => {
         console.log('Player disconnected:', socket.id);
+        socket.broadcast.emit('gameStateUpdate', { [socket.id]: null });
     });
 });
 
-server.listen(3000, () => {
-    console.log('Server running on port 3000');
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });

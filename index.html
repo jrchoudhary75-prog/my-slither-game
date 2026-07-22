@@ -76,7 +76,7 @@
         }
         .store-price-btn:hover { background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; box-shadow: 0 0 20px #00ffaa; }
 
-        /* 📱 UPI MODAL STYLING */
+        /* 📱 UPI & VERIFICATION CARD STYLING */
         .upi-card {
             background: rgba(15, 15, 30, 0.95); border: 2px solid #00ffaa;
             border-radius: 20px; padding: 20px; width: 90%; max-width: 360px;
@@ -144,12 +144,33 @@
 </head>
 <body>
 
+    <!-- 1️⃣ SPLASH SCREEN -->
     <div id="screen-splash" class="ui-screen">
         <h1>SLITHER PRO</h1>
         <div class="loader-container"><div id="loader" class="loader-bar"></div></div>
         <p style="color: #ff3366; font-size: 0.85rem; font-weight: bold; margin-top: 15px; letter-spacing: 2px;">LOADING ADAPTIVE AI ENGINE...</p>
     </div>
 
+    <!-- 2️⃣ MOBILE NUMBER VERIFICATION SCREEN -->
+    <div id="screen-mobile-verify" class="ui-screen hidden">
+        <h1>VERIFY NUMBER</h1>
+        <p style="color: #94a3b8; font-size: 0.9rem; max-width: 300px; text-align: center; margin-bottom: 20px;">
+            In-App Store se skin reward lene ke liye apna Mobile Number verify karein.
+        </p>
+        
+        <div id="phone-step">
+            <input type="tel" id="user-mobile-num" class="name-input" placeholder="10-Digit Mobile Number" maxlength="10">
+            <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold;" onclick="sendOtp()">Send OTP</div>
+        </div>
+
+        <div id="otp-step" style="display: none;">
+            <p style="color: #00ffaa; font-size: 0.85rem; margin-bottom: 10px;">Enter Demo OTP: <b>1234</b></p>
+            <input type="number" id="user-otp-code" class="name-input" placeholder="Enter 4-Digit OTP" maxlength="4">
+            <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold;" onclick="verifyOtp()">Verify & Continue</div>
+        </div>
+    </div>
+
+    <!-- 3️⃣ MAIN MENU -->
     <div id="screen-main" class="ui-screen hidden">
         <h1>SLITHER PRO</h1>
         <div class="btn" onclick="openCustomization('offline')">Play Offline</div>
@@ -201,6 +222,7 @@
         <div class="upi-card">
             <h2 id="upi-item-title" style="font-size: 1.3rem; margin: 0; color: #00ffaa;">PAY VIA UPI</h2>
             <p id="upi-item-price" style="color: #cbd5e1; font-size: 0.9rem; margin: 5px 0;">Amount: ₹49</p>
+            <p id="upi-user-phone" style="color: #00bfff; font-size: 0.8rem; margin: 0 0 10px 0;">Linked Mobile: +91 XXXXXXXXXX</p>
 
             <!-- Dynamic QR Code -->
             <img id="upi-qr-code" class="upi-qr-img" src="" alt="UPI QR Code">
@@ -362,15 +384,49 @@
         // 💳 SETUP YOUR UPI DETAILS HERE
         const MY_UPI_ID = "yourname@upi"; // 👈 Apni UPI ID Yahan Daalein!
         let currentUpiItemId = null;
+        let verifiedMobileNumber = localStorage.getItem("VERIFIED_MOBILE") || null;
+
+        // --- MOBILE NUMBER VERIFICATION FLOW ---
+        function sendOtp() {
+            let phoneInput = document.getElementById('user-mobile-num').value.trim();
+            if (phoneInput.length !== 10 || isNaN(phoneInput)) {
+                alert("⚠️ Please enter a valid 10-digit mobile number!");
+                return;
+            }
+            alert("📩 OTP Sent to +91 " + phoneInput + " (Demo OTP: 1234)");
+            document.getElementById('phone-step').style.display = 'none';
+            document.getElementById('otp-step').style.display = 'block';
+        }
+
+        function verifyOtp() {
+            let otpInput = document.getElementById('user-otp-code').value.trim();
+            let phoneInput = document.getElementById('user-mobile-num').value.trim();
+            if (otpInput === "1234") {
+                verifiedMobileNumber = phoneInput;
+                localStorage.setItem("VERIFIED_MOBILE", verifiedMobileNumber);
+                alert("✅ Mobile Number Verified Successfully!");
+                showScreen('screen-main');
+            } else {
+                alert("❌ Incorrect OTP! Please enter 1234.");
+            }
+        }
 
         function openUpiModal(itemId, price, itemTitle) {
+            // Mobile Number check
+            if (!verifiedMobileNumber) {
+                alert("⚠️ Please verify your Mobile Number first!");
+                showScreen('screen-mobile-verify');
+                return;
+            }
+
             currentUpiItemId = itemId;
             document.getElementById('upi-item-title').innerText = "Unlock " + itemTitle;
             document.getElementById('upi-item-price').innerText = "Amount to Pay: ₹" + price;
+            document.getElementById('upi-user-phone').innerText = "Linked Mobile: +91 " + verifiedMobileNumber;
             document.getElementById('upi-id-text').innerText = MY_UPI_ID;
 
-            // Generate UPI Intent Link for Mobile & QR Code
-            let upiLink = `upi://pay?pa=${MY_UPI_ID}&pn=SlitherPro&am=${price}&cu=INR&tn=Unlock_${itemId}`;
+            // Generate UPI Intent Link with Mobile Number attached in Note (tn)
+            let upiLink = `upi://pay?pa=${MY_UPI_ID}&pn=SlitherPro&am=${price}&cu=INR&tn=Skin_${itemId}_Mob_${verifiedMobileNumber}`;
             let qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiLink)}`;
             
             document.getElementById('upi-qr-code').src = qrCodeUrl;
@@ -396,9 +452,11 @@
                 return;
             }
 
-            // Save to Local Storage & Grant Access
+            // Save to Local Storage linked with Mobile Number & Grant Access
             localStorage.setItem(currentUpiItemId, "UNLOCKED");
-            alert("🎉 Payment Received & Verified! " + currentUpiItemId + " is now UNLOCKED!");
+            localStorage.setItem(currentUpiItemId + "_MOBILE", verifiedMobileNumber);
+
+            alert("🎉 Payment Verified for Mobile: " + verifiedMobileNumber + "\n" + currentUpiItemId + " is now UNLOCKED!");
             closeUpiModal();
         }
 
@@ -409,7 +467,7 @@
                     <h4>1. Game Rules</h4>
                     <p>Welcome to Slither Pro. By playing this game, you agree to follow fair play guidelines. Any use of automated bots, scripts, or speed hacks is strictly prohibited.</p>
                     <h4>2. Account & Purchases</h4>
-                    <p>In-app purchases and VIP skin passes are bound to your browser session / local storage. Refunds are subject to our Refund Policy.</p>
+                    <p>In-app purchases and VIP skin passes are bound to your verified Mobile Number and browser session. Refunds are subject to our Refund Policy.</p>
                     <h4>3. Service Availability</h4>
                     <p>Multiplayer servers are optimized for low ping; however, server maintenance may cause temporary disconnects.</p>
                 `
@@ -418,7 +476,7 @@
                 title: "PRIVACY POLICY",
                 html: `
                     <h4>1. Data Collection</h4>
-                    <p>Slither Pro values your privacy. We do not collect or share personal information. Only local game settings and high scores are saved locally on your device.</p>
+                    <p>We collect your Mobile Number strictly for skin distribution and purchase verification purposes. We do not sell or share your phone number with third parties.</p>
                     <h4>2. Analytics & Performance</h4>
                     <p>Anonymized network diagnostic data (like ping rates and FPS) may be processed to improve multiplayer server routing.</p>
                     <h4>3. Third-Party Services</h4>
@@ -431,7 +489,7 @@
                     <h4>1. Digital Items Refund</h4>
                     <p>Purchases like VIP Skins or Passes are non-refundable once activated on your account, except in cases of payment processing errors.</p>
                     <h4>2. Processing Time</h4>
-                    <p>If payment was deducted but item was not received, submit a ticket via Help & Support with your payment ID. Eligible refunds will be processed within 5-7 business days.</p>
+                    <p>If payment was deducted but item was not received, submit a ticket via Help & Support with your payment ID and registered Mobile Number. Eligible refunds will be processed within 5-7 business days.</p>
                 `
             },
             support: {
@@ -741,12 +799,20 @@
             }
         }
 
+        // SPLASH SCREEN LOADING LOGIC
         let loadProgress = 0;
         const loaderInterval = setInterval(() => {
             loadProgress += 10;
             if (loadProgress >= 100) {
                 clearInterval(loaderInterval);
-                setTimeout(() => showScreen('screen-main'), 100);
+                setTimeout(() => {
+                    // Check if phone number is already verified
+                    if (verifiedMobileNumber) {
+                        showScreen('screen-main');
+                    } else {
+                        showScreen('screen-mobile-verify');
+                    }
+                }, 100);
             }
             document.getElementById('loader').style.width = loadProgress + '%';
         }, 20);

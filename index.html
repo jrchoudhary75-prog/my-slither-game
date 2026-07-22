@@ -97,7 +97,7 @@
         .option-label { font-size: 0.9rem; color: #94a3b8; font-weight: 500; }
         .select-btn { background: #131324; border: 1px solid #363659; color: #fff; padding: 6px 12px; border-radius: 8px; cursor: pointer; min-width: 120px; font-size: 0.85rem; font-weight: 600; text-align: center; }
 
-        /* SETUP SKIN PREVIEW CANVAS (RIGHT SIDE) */
+        /* SKIN PREVIEW CANVAS ON RIGHT */
         #skinPreviewCanvas { width: 190px; height: 190px; background: #050512; border-radius: 16px; border: 2px solid #00ffaa; box-shadow: 0 0 20px rgba(0, 255, 170, 0.25); }
 
         #hud { position: absolute; top: 15px; left: 15px; z-index: 5; pointer-events: none; background: rgba(3, 3, 15, 0.45); padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12); display: none; backdrop-filter: blur(8px); }
@@ -570,7 +570,7 @@
             }
         }
 
-        /* 🐍 GAMEPLAY ENGINE WITH INVISIBLE TARGET DOT CONTROLS */
+        /* 🐍 GAMEPLAY ENGINE WITH CONTINUOUS MOVEMENT TOWARDS CURSOR */
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d");
         let isGameRunning = false;
@@ -579,10 +579,6 @@
         let hasRevivedInCurrentGame = false;
 
         let snake = { x: 0, y: 0, radius: 10, angle: 0, speed: 3.5, body: [] };
-        
-        // 🔴 INVISIBLE TARGET DOT (Player controls this dot, not the snake directly)
-        const TARGET_FIXED_DIST = 35; // Fixed distance between snake head and target dot
-        let targetDot = { x: 0, y: 0 };
         let mousePos = { x: 0, y: 0 };
 
         let foods = [];
@@ -606,19 +602,18 @@
             playerScore = 0;
             document.getElementById('hud-score').innerText = 'Score: ' + playerScore;
 
-            // Spawn Player Snake & Invisible Target Dot
+            // Spawn Player Snake
             snake.x = canvas.width / 2;
             snake.y = canvas.height / 2;
+            snake.angle = 0;
             snake.body = [];
             for (let i = 0; i < 15; i++) {
-                snake.body.push({ x: snake.x, y: snake.y + i * 6 });
+                snake.body.push({ x: snake.x - i * 6, y: snake.y });
             }
 
-            // Target Dot Positioned Slightly Ahead of Snake
-            targetDot.x = snake.x;
-            targetDot.y = snake.y - TARGET_FIXED_DIST;
-            mousePos.x = targetDot.x;
-            mousePos.y = targetDot.y;
+            // Initial Target Cursor
+            mousePos.x = snake.x + 100;
+            mousePos.y = snake.y;
 
             // Spawn Food Particles
             foods = [];
@@ -655,7 +650,7 @@
             runGameLoop();
         }
 
-        // PLAYER CONTROLS THE INVISIBLE TARGET DOT
+        // TRACK MOUSE / TOUCH POINTER
         window.addEventListener('mousemove', (e) => {
             mousePos.x = e.clientX;
             mousePos.y = e.clientY;
@@ -680,33 +675,31 @@
             for (let x = 0; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
             for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
 
-            // 2. Move Invisible Target Dot Towards Player Pointer
-            targetDot.x = mousePos.x;
-            targetDot.y = mousePos.y;
-
-            // 3. Update Snake Steering & Fixed Distance Mechanics
-            let dx = targetDot.x - snake.x;
-            let dy = targetDot.y - snake.y;
-            let currentDist = Math.hypot(dx, dy);
-
-            if (currentDist > 0.1) {
-                snake.angle = Math.atan2(dy, dx);
+            // 2. STEERING TOWARDS CURSOR DIRECTION
+            let dx = mousePos.x - snake.x;
+            let dy = mousePos.y - snake.y;
+            
+            // Turn smoothly towards target cursor angle
+            if (Math.hypot(dx, dy) > 2) {
+                let targetAngle = Math.atan2(dy, dx);
+                let diff = targetAngle - snake.angle;
+                
+                // Keep angle difference normalized between -PI and PI
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                
+                snake.angle += diff * 0.15; // Smooth steering responsiveness
             }
 
-            // Snake moves towards target dot
-            if (currentDist > TARGET_FIXED_DIST) {
-                snake.x += Math.cos(snake.angle) * snake.speed;
-                snake.y += Math.sin(snake.angle) * snake.speed;
-            }
+            // 3. CONTINUOUS MOVEMENT (SNAKE NEVER STOPS)
+            snake.x += Math.cos(snake.angle) * snake.speed;
+            snake.y += Math.sin(snake.angle) * snake.speed;
 
-            // Enforce FIXED DISTANCE (Snake cannot collide with dot)
-            let newDx = targetDot.x - snake.x;
-            let newDy = targetDot.y - snake.y;
-            let newDist = Math.hypot(newDx, newDy);
-            if (newDist < TARGET_FIXED_DIST && newDist > 0) {
-                snake.x = targetDot.x - Math.cos(snake.angle) * TARGET_FIXED_DIST;
-                snake.y = targetDot.y - Math.sin(snake.angle) * TARGET_FIXED_DIST;
-            }
+            // Screen Wraparound Boundaries
+            if (snake.x < 0) snake.x = canvas.width;
+            if (snake.x > canvas.width) snake.x = 0;
+            if (snake.y < 0) snake.y = canvas.height;
+            if (snake.y > canvas.height) snake.y = 0;
 
             snake.body.unshift({ x: snake.x, y: snake.y });
             if (snake.body.length > 15 + Math.floor(playerScore / 20)) {
@@ -774,7 +767,7 @@
             }
             ctx.shadowBlur = 0;
 
-            // Snake Eyes
+            // Snake Eyes facing current direction
             ctx.fillStyle = '#ffffff';
             let eyeX1 = snake.x + Math.cos(snake.angle - 0.4) * 6;
             let eyeY1 = snake.y + Math.sin(snake.angle - 0.4) * 6;

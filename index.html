@@ -60,32 +60,15 @@
 
         /* 👑 STORE CARDS STYLING */
         .store-cards-container {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: 95%;
-            margin: 20px 0;
+            display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 95%; margin: 20px 0;
         }
         .store-card {
-            background: rgba(15, 15, 30, 0.85);
-            border: 1px solid rgba(255, 0, 128, 0.3);
-            border-radius: 20px;
-            padding: 20px;
-            width: 250px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s, border-color 0.3s;
+            background: rgba(15, 15, 30, 0.85); border: 1px solid rgba(255, 0, 128, 0.3);
+            border-radius: 20px; padding: 20px; width: 250px; text-align: center;
+            display: flex; flex-direction: column; align-items: center; box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px); transition: transform 0.3s, border-color 0.3s;
         }
-        .store-card:hover {
-            transform: translateY(-5px);
-            border-color: #00ffaa;
-            box-shadow: 0 12px 30px rgba(0, 255, 170, 0.2);
-        }
+        .store-card:hover { transform: translateY(-5px); border-color: #00ffaa; box-shadow: 0 12px 30px rgba(0, 255, 170, 0.2); }
         .store-card-icon { font-size: 2.5rem; margin-bottom: 10px; }
         .store-card-title { font-size: 1.1rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
         .store-card-badge { background: rgba(0, 255, 170, 0.15); border: 1px solid #00ffaa; color: #00ffaa; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; margin-bottom: 15px; }
@@ -95,35 +78,15 @@
             border-radius: 20px; cursor: pointer; width: 100%; transition: all 0.2s;
             box-shadow: 0 4px 15px rgba(255, 0, 119, 0.4);
         }
-        .store-price-btn:hover {
-            background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%);
-            color: #000; box-shadow: 0 0 20px #00ffaa;
-        }
+        .store-price-btn:hover { background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; box-shadow: 0 0 20px #00ffaa; }
 
         /* 📄 POLICY PANEL / MODAL STYLING */
         .policy-card {
-            background: rgba(15, 15, 30, 0.95);
-            border: 1px solid rgba(0, 255, 170, 0.3);
-            border-radius: 20px;
-            padding: 25px;
-            width: 88%;
-            max-width: 500px;
-            max-height: 70vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            background: rgba(15, 15, 30, 0.95); border: 1px solid rgba(0, 255, 170, 0.3);
+            border-radius: 20px; padding: 25px; width: 88%; max-width: 500px; max-height: 70vh;
+            display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
-        .policy-body {
-            color: #cbd5e1;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            overflow-y: auto;
-            margin: 15px 0;
-            padding-right: 10px;
-            text-align: left;
-            width: 100%;
-        }
+        .policy-body { color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; overflow-y: auto; margin: 15px 0; padding-right: 10px; text-align: left; width: 100%; }
         .policy-body h4 { color: #00ffaa; margin: 10px 0 5px 0; font-size: 1rem; }
 
         /* ⏸️ PAUSE BUTTON STYLING */
@@ -136,41 +99,15 @@
         #inGamePauseBtn:hover { background: #00ffaa; color: #000; box-shadow: 0 0 15px #00ffaa; }
 
         #mobileControls { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; display: none; }
-        #joystickBase {
-            position: absolute; width: 110px; height: 110px; border-radius: 50%;
-            background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(0, 255, 170, 0.4);
-            transform: translate(-50%, -50%); display: none; pointer-events: none;
-        }
-        #joystickStick {
-            position: absolute; width: 45px; height: 45px; border-radius: 50%;
-            background: radial-gradient(circle, #00ffaa, #0088cc); box-shadow: 0 0 15px #00ffaa;
-            transform: translate(-50%, -50%); display: none; pointer-events: none;
-        }
-        #mobileBoostBtn {
-            position: absolute; bottom: 35px; right: 35px; width: 75px; height: 75px;
-            border-radius: 50%; background: radial-gradient(circle, #ff0055, #880022);
-            border: 3px solid #ff6699; box-shadow: 0 0 20px rgba(255, 0, 85, 0.6);
-            display: flex; justify-content: center; align-items: center;
-            font-size: 1.8rem; pointer-events: auto; touch-action: manipulation;
-        }
+        #joystickBase { position: absolute; width: 110px; height: 110px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(0, 255, 170, 0.4); transform: translate(-50%, -50%); display: none; pointer-events: none; }
+        #joystickStick { position: absolute; width: 45px; height: 45px; border-radius: 50%; background: radial-gradient(circle, #00ffaa, #0088cc); box-shadow: 0 0 15px #00ffaa; transform: translate(-50%, -50%); display: none; pointer-events: none; }
+        #mobileBoostBtn { position: absolute; bottom: 35px; right: 35px; width: 75px; height: 75px; border-radius: 50%; background: radial-gradient(circle, #ff0055, #880022); border: 3px solid #ff6699; box-shadow: 0 0 20px rgba(255, 0, 85, 0.6); display: flex; justify-content: center; align-items: center; font-size: 1.8rem; pointer-events: auto; touch-action: manipulation; }
         #mobileBoostBtn:active { transform: scale(0.92); background: radial-gradient(circle, #ff5500, #ff0055); }
 
         #server-console-box { width: 90%; max-width: 400px; height: 140px; background: #020207; border: 1px solid #1e1e38; border-radius: 12px; font-family: monospace; padding: 12px; color: #00ffaa; overflow-y: hidden; text-align: left; font-size: 0.8rem; line-height: 1.4; margin-bottom: 15px; }
 
-        #hud { 
-            position: absolute; top: 15px; left: 15px; z-index: 5; pointer-events: none; 
-            background: rgba(3, 3, 15, 0.45); padding: 10px 16px; border-radius: 12px; 
-            border: 1px solid rgba(255, 255, 255, 0.12); display: none; backdrop-filter: blur(8px); 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-
-        #leaderboard { 
-            position: absolute; top: 15px; right: 15px; z-index: 5; 
-            background: rgba(3, 3, 15, 0.45); padding: 10px 14px; border-radius: 12px; 
-            border: 1px solid rgba(255, 255, 255, 0.12); width: 180px; display: none; 
-            font-size: 0.8rem; backdrop-filter: blur(8px); 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
+        #hud { position: absolute; top: 15px; left: 15px; z-index: 5; pointer-events: none; background: rgba(3, 3, 15, 0.45); padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12); display: none; backdrop-filter: blur(8px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        #leaderboard { position: absolute; top: 15px; right: 15px; z-index: 5; background: rgba(3, 3, 15, 0.45); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12); width: 180px; display: none; font-size: 0.8rem; backdrop-filter: blur(8px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
 
         @media (max-width: 768px) {
             #hud { top: 10px; left: 10px; padding: 8px 12px; background: rgba(3, 3, 15, 0.35); }
@@ -190,12 +127,14 @@
 
         .name-input { padding: 10px; width: 260px; border-radius: 10px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1rem; margin-bottom: 12px; }
 
-        .footer-links {
-            position: absolute; bottom: 20px; display: flex; gap: 10px; align-items: center;
-            font-size: 0.8rem; color: #64748b; flex-wrap: wrap; justify-content: center; padding: 0 15px;
-        }
+        .footer-links { position: absolute; bottom: 20px; display: flex; gap: 10px; align-items: center; font-size: 0.8rem; color: #64748b; flex-wrap: wrap; justify-content: center; padding: 0 15px; }
         .footer-links a { color: #94a3b8; text-decoration: none; transition: color 0.2s; cursor: pointer; }
         .footer-links a:hover { color: #00ffaa; text-decoration: underline; }
+
+        @keyframes adPulse {
+            0% { width: 10%; }
+            100% { width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -210,8 +149,6 @@
         <h1>SLITHER PRO</h1>
         <div class="btn" onclick="openCustomization('offline')">Play Offline</div>
         <div class="btn" onclick="openCustomization('multiplayer')">Multiplayer Mode</div>
-        
-        <!-- 👑 STORE SCENE BUTTON -->
         <div class="btn" style="background: linear-gradient(135deg, #ff0077 0%, #7700ff 100%); font-weight: bold; border-color: #ff00aa;" onclick="showScreen('screen-store')">👑 Premium Store</div>
 
         <div class="footer-links">
@@ -225,29 +162,23 @@
         </div>
     </div>
 
-    <!-- 👑 NEW SEPARATE PREMIUM STORE SCENE -->
     <div id="screen-store" class="ui-screen hidden">
         <h1 style="font-size: 2.2rem; background: linear-gradient(45deg, #ff0077, #ffcc00, #00ffaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">👑 PREMIUM LEGENDARY STORE</h1>
         <p style="color: #94a3b8; font-size: 0.9rem; margin-top: -10px;">Get Legendary Perks & Ultimate Stat Boosts!</p>
 
         <div class="store-cards-container">
-            <!-- Option 1 -->
             <div class="store-card">
                 <div class="store-card-icon">🐍</div>
                 <div class="store-card-title">Premium Legendary Snake Skin</div>
                 <div class="store-card-badge">Speed +25%</div>
                 <button class="store-price-btn" onclick="triggerInAppPurchase('LEGENDARY_SNAKE_SKIN', 49)">Buy for ₹49</button>
             </div>
-
-            <!-- Option 2 -->
             <div class="store-card">
                 <div class="store-card-icon">🔥</div>
                 <div class="store-card-title">Premium Legendary Boost Effect</div>
                 <div class="store-card-badge">Boost Speed +25%</div>
                 <button class="store-price-btn" onclick="triggerInAppPurchase('LEGENDARY_BOOST_EFFECT', 49)">Buy for ₹49</button>
             </div>
-
-            <!-- Option 3 -->
             <div class="store-card">
                 <div class="store-card-icon">🌌</div>
                 <div class="store-card-title">Premium Legendary Background Skin</div>
@@ -262,8 +193,7 @@
     <div id="screen-policy" class="modal-overlay hidden">
         <div class="policy-card">
             <h2 id="policy-title" style="margin-bottom: 5px;">TERMS & CONDITIONS</h2>
-            <div id="policy-content" class="policy-body">
-            </div>
+            <div id="policy-content" class="policy-body"></div>
             <div class="btn" style="min-width: 140px; margin-top: 10px;" onclick="closePolicyModal()">CLOSE</div>
         </div>
     </div>
@@ -353,10 +283,22 @@
         <h1 style="background: linear-gradient(45deg, #ff3333, #ff7700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 3.5rem;">GAME OVER</h1>
         <p id="final-score-display" style="font-size: 1.4rem; color: #cbd5e1; margin: 0 0 20px 0;">Final Score: 0</p>
         
-        <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold; border-color: #00ffaa;" onclick="watchAdToRevive()">📺 Watch AD to Revive</div>
+        <!-- 🎬 WATCH AD BUTTON WITH UNIQUE ID -->
+        <div id="revive-ad-btn" class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold; border-color: #00ffaa;" onclick="watchAdToRevive()">📺 Watch AD to Revive</div>
         
         <div class="btn" onclick="launchSelectedMode()">Play Again</div>
         <div class="btn" style="background: #241414; border-color: #4a2929;" onclick="showScreen('screen-main')">Main Menu</div>
+    </div>
+
+    <!-- 🎬 LOADING AD POPUP PANEL -->
+    <div id="screen-ad-loading" class="modal-overlay hidden" style="z-index: 30;">
+        <div class="policy-card" style="text-align: center; max-width: 320px; padding: 30px 20px; border-color: #00ffaa;">
+            <h2 style="color: #00ffaa; margin-bottom: 10px; font-size: 1.6rem;">🎬 Loading AD...</h2>
+            <div class="loader-container" style="width: 100%; height: 8px; margin-top: 15px;">
+                <div class="loader-bar" style="animation: adPulse 2s infinite ease-in-out;"></div>
+            </div>
+            <p style="color: #cbd5e1; font-size: 0.85rem; margin-top: 15px;">Please wait while advertisement plays...</p>
+        </div>
     </div>
 
     <button id="inGamePauseBtn" onclick="togglePause()">⏸️ PAUSE</button>
@@ -441,6 +383,7 @@
         }
 
         let isPaused = false;
+        let hasRevivedThisGame = false; // 🛑 TRACKS IF REVIVE WAS USED IN CURRENT GAME
 
         function togglePause() {
             if (!isGameRunning) return;
@@ -473,10 +416,19 @@
             showScreen('screen-main');
         }
 
+        // 🎬 WATCH AD TO REVIVE WITH PANEL & 1-TIME LIMIT LOGIC
         function watchAdToRevive() {
-            alert("🎬 Showing Ad... Please wait!");
+            if (hasRevivedThisGame) return;
+
+            // Show "Loading AD..." Panel
+            document.getElementById('screen-ad-loading').classList.remove('hidden');
             
             setTimeout(() => {
+                hasRevivedThisGame = true; // Mark revive as used
+
+                // Hide AD Panel
+                document.getElementById('screen-ad-loading').classList.add('hidden');
+                
                 alert("🎉 Ad completed! You are revived!");
                 
                 document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
@@ -516,7 +468,7 @@
                 isPaused = false;
                 lastFrameTime = performance.now();
                 runGameLoop();
-            }, 1000);
+            }, 2000);
         }
 
         async function triggerInAppPurchase(itemId, priceInINR) {
@@ -1092,13 +1044,13 @@
 
         function initGameData(multiplayerFlag) {
             isMultiplayerArena = multiplayerFlag;
+            hasRevivedThisGame = false; // Reset revive status for new match
 
             let startAngle = Math.random() * Math.PI * 2;
             let startDist = Math.random() * 1000;
             let startX = Math.cos(startAngle) * startDist;
             let startY = Math.sin(startAngle) * startDist;
 
-            // Apply purchased stat boosts if unlocked
             let hasSpeedBoost = localStorage.getItem('LEGENDARY_SNAKE_SKIN') === 'UNLOCKED';
             let hasBoostEffect = localStorage.getItem('LEGENDARY_BOOST_EFFECT') === 'UNLOCKED';
 
@@ -1148,6 +1100,15 @@
             document.getElementById('inGamePauseBtn').style.display = 'none';
             document.getElementById('mobileControls').style.display = 'none';
             document.getElementById('final-score-display').innerText = "Final Score: " + Math.floor(snake.score);
+            
+            // 🛑 SHOW / HIDE WATCH AD BUTTON BASED ON REVIVE COUNT
+            const reviveBtn = document.getElementById('revive-ad-btn');
+            if (hasRevivedThisGame) {
+                reviveBtn.style.display = 'none'; // Hide if already revived once
+            } else {
+                reviveBtn.style.display = 'block'; // Show if first time dying
+            }
+
             showScreen('screen-gameover');
         }
 
@@ -1458,7 +1419,6 @@
                 }
             }
 
-            // Food Growth perk check (+25% growth)
             let hasGrowthBoost = localStorage.getItem('LEGENDARY_BG_SKIN') === 'UNLOCKED';
             let growthMultiplier = hasGrowthBoost ? 1.25 : 1.0;
 

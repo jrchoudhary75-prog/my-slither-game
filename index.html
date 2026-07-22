@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slither Pro Multiplayer</title>
+    <title>Slither Pro Multiplayer - Hyper Games</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; user-select: none; }
@@ -21,6 +21,20 @@
         }
         .hidden { display: none !important; }
         
+        /* Splash Screen Style */
+        #screen-splash {
+            border-color: #ff0055;
+            box-shadow: 0 0 40px rgba(255, 0, 85, 0.4);
+        }
+        .splash-logo {
+            font-size: 2.8rem; font-weight: 900; color: #ff0055;
+            text-shadow: 0 0 20px #ff0055, 0 0 40px #ff0055;
+            letter-spacing: 3px; margin-bottom: 5px;
+        }
+        .splash-sub {
+            color: #00ffaa; font-size: 0.9rem; font-weight: bold; letter-spacing: 4px; text-transform: uppercase;
+        }
+
         h1 { color: #00ffaa; font-size: 2.2rem; margin-bottom: 10px; text-shadow: 0 0 12px rgba(0, 255, 170, 0.6); letter-spacing: 1.5px; }
         p { color: #94a3b8; font-size: 0.88rem; line-height: 1.4; }
         
@@ -78,27 +92,36 @@
     <!-- Game Canvas -->
     <canvas id="game-canvas"></canvas>
 
+    <!-- 0️⃣ HYPER GAMES SPLASH SCREEN -->
+    <div id="screen-splash" class="ui-screen">
+        <div class="splash-logo">HYPER GAMES</div>
+        <div class="splash-sub">STUDIOS</div>
+        <p style="margin-top: 20px; color: #64748b; font-size: 0.75rem;">Loading resources...</p>
+    </div>
+
     <!-- 1️⃣ EMAIL VERIFICATION SCREEN -->
-    <div id="screen-mobile-verify" class="ui-screen">
+    <div id="screen-mobile-verify" class="ui-screen hidden">
         <h1>VERIFY EMAIL</h1>
         <p>Verify your email address to log in and play Slither Pro Multiplayer.</p>
         
         <div id="verify-msg-box"></div>
 
+        <!-- Step 1: Email Input & Send OTP Button -->
         <div id="phone-step">
             <input type="email" id="user-email-id" class="name-input" placeholder="Enter Your Email Address" autocomplete="off">
             <button id="send-otp-btn" class="btn btn-primary" onclick="requestOtp()">Send OTP</button>
         </div>
 
+        <!-- Step 2: OTP Input & Timer (Shown after clicking Send OTP) -->
         <div id="otp-step" style="display: none;">
-            <p style="color: #00ffaa; margin-bottom: 10px;">Enter the 6-digit code sent to your email</p>
+            <p style="color: #00ffaa; margin-bottom: 10px; font-weight: 500;">Enter the 6-digit code sent to your email</p>
             <input type="number" id="user-otp-code" class="name-input" placeholder="Enter 6-Digit OTP" maxlength="6">
             <button class="btn btn-primary" onclick="verifyOtp()">Verify & Continue</button>
             
-            <div id="otp-timer-container" style="color: #94a3b8; font-size: 0.85rem; margin-top: 12px;">
+            <div id="otp-timer-container" style="color: #94a3b8; font-size: 0.85rem; margin-top: 15px;">
                 Resend OTP in <span id="timer-countdown" style="color: #00ffaa; font-weight: bold;">60</span>s
             </div>
-            <button id="resend-otp-btn" class="btn hidden" style="background: #1e1e38; color: #fff; font-size: 0.85rem; border: 1px solid #3b3b6d; margin-top: 10px;" onclick="resendOtp()">Resend OTP</button>
+            <button id="resend-otp-btn" class="btn hidden" style="background: #1e1e38; color: #fff; font-size: 0.85rem; border: 1px solid #3b3b6d; margin-top: 15px;" onclick="resendOtp()">Resend OTP</button>
         </div>
     </div>
 
@@ -116,14 +139,18 @@
         let pendingEmail = "";
         let otpTimerInterval = null;
 
-        // Auto Check if already verified on load
+        // Auto Splash Screen -> then Verification / Main Menu Logic
         window.onload = () => {
-            if (verifiedEmail) {
-                showScreen('screen-main');
-                document.getElementById('user-welcome-tag').innerText = "Logged in: " + verifiedEmail;
-            } else {
-                showScreen('screen-mobile-verify');
-            }
+            showScreen('screen-splash');
+
+            setTimeout(() => {
+                if (verifiedEmail) {
+                    showScreen('screen-main');
+                    document.getElementById('user-welcome-tag').innerText = "Logged in: " + verifiedEmail;
+                } else {
+                    showScreen('screen-mobile-verify');
+                }
+            }, 2500); // 2.5 Seconds Splash Time
         };
 
         function showScreen(screenId) {
@@ -137,7 +164,7 @@
             box.innerText = msg;
         }
 
-        // --- OTP LOGIC ---
+        // --- OTP FLOW LOGIC ---
         function requestOtp() {
             let emailInput = document.getElementById('user-email-id').value.trim();
             if (!emailInput.includes('@') || !emailInput.includes('.')) {
@@ -145,7 +172,6 @@
                 return;
             }
             showVerifyMessage("Sending verification code... Please wait.", false);
-            document.getElementById('send-otp-btn').classList.add('hidden');
             pendingEmail = emailInput;
             socket.emit('request-otp', { email: pendingEmail });
         }
@@ -159,7 +185,6 @@
 
         socket.on('otp-sent-error', (errData) => {
             showVerifyMessage(errData.message || "Failed to send OTP.", true);
-            document.getElementById('send-otp-btn').classList.remove('hidden');
         });
 
         function startOtpTimer() {
@@ -177,6 +202,7 @@
             otpTimerInterval = setInterval(() => {
                 timeLeft--;
                 timerSpan.innerText = timeLeft;
+                
                 if (timeLeft <= 0) {
                     clearInterval(otpTimerInterval);
                     timerContainer.style.display = 'none';
@@ -215,10 +241,7 @@
             showVerifyMessage("Invalid verification code! Try again.", true);
         });
 
-
-        // =========================================================
-        // --- 🐍 ADVANCED SLITHER GAME ENGINE (CANVAS & PHYSICS) ---
-        // =========================================================
+        // --- 🐍 SLITHER GAME ENGINE ---
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
 
@@ -248,7 +271,6 @@
             color: '#00ffaa'
         };
 
-        // Pre-fill snake body segments
         for (let i = 0; i < mySnake.length; i++) {
             mySnake.body.push({ x: mySnake.x - i * 5, y: mySnake.y });
         }
@@ -256,7 +278,6 @@
         let foods = [];
         const FOOD_COUNT = 300;
 
-        // Generate glowing foods
         function initFoods() {
             foods = [];
             for (let i = 0; i < FOOD_COUNT; i++) {
@@ -270,7 +291,6 @@
         }
         initFoods();
 
-        // Control Listeners
         window.addEventListener('mousemove', (e) => {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
@@ -293,47 +313,39 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Main Game Loop
         function gameLoop() {
             if (!gameRunning) return;
 
-            // 1. UPDATE PHYSICS & SNAKE MOVEMENT
             let targetAngle = Math.atan2(mouse.y - canvas.height / 2, mouse.x - canvas.width / 2);
             
-            // Smooth angle rotation
             let diff = targetAngle - mySnake.angle;
             while (diff < -Math.PI) diff += Math.PI * 2;
             while (diff > Math.PI) diff -= Math.PI * 2;
             mySnake.angle += diff * 0.1;
 
-            // Speed & Boost calculation
             let currentSpeed = isBoosting && mySnake.length > 10 ? 6 : 3;
             if (isBoosting && mySnake.length > 10) {
-                mySnake.length -= 0.05; // Consume length slowly when boosting
+                mySnake.length -= 0.05;
             }
 
             mySnake.x += Math.cos(mySnake.angle) * currentSpeed;
             mySnake.y += Math.sin(mySnake.angle) * currentSpeed;
 
-            // Constrain inside world bounds
             mySnake.x = Math.max(50, Math.min(WORLD_SIZE - 50, mySnake.x));
             mySnake.y = Math.max(50, Math.min(WORLD_SIZE - 50, mySnake.y));
 
-            // Camera follow head
             camera.x = mySnake.x;
             camera.y = mySnake.y;
 
-            // Update body segment follow physics
             mySnake.body.unshift({ x: mySnake.x, y: mySnake.y });
             while (mySnake.body.length > mySnake.length * 2.5) {
                 mySnake.body.pop();
             }
 
-            // Food collision check
             for (let i = foods.length - 1; i >= 0; i--) {
                 let f = foods[i];
                 let dist = Math.hypot(mySnake.x - f.x, mySnake.y - f.y);
-                if (dist < mySnake.body[0] ? 18 : 15) {
+                if (dist < 18) {
                     mySnake.length += 1;
                     foods[i] = {
                         x: Math.random() * (WORLD_SIZE - 100) + 50,
@@ -344,22 +356,17 @@
                 }
             }
 
-            // Update Score HUD
             let currentScore = Math.floor(mySnake.length);
             document.getElementById('score').innerText = currentScore;
             document.getElementById('lb-score').innerText = currentScore;
 
-            // 2. RENDER GRAPHICS
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             ctx.save();
-            // Center camera on player
             ctx.translate(canvas.width / 2 - camera.x, canvas.height / 2 - camera.y);
 
-            // Draw World Grid Background
             drawGrid();
 
-            // Draw Foods
             for (let f of foods) {
                 ctx.beginPath();
                 ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
@@ -370,7 +377,6 @@
                 ctx.shadowBlur = 0;
             }
 
-            // Draw Snake Body
             for (let i = mySnake.body.length - 1; i >= 0; i--) {
                 let seg = mySnake.body[i];
                 ctx.beginPath();
@@ -379,13 +385,11 @@
                 ctx.fill();
             }
 
-            // Draw Snake Eyes on Head
             let head = mySnake.body[0];
             if (head) {
                 let eyeOffsetAngle = 0.5;
                 let eyeDist = 7;
                 
-                // Left Eye
                 let eye1X = head.x + Math.cos(mySnake.angle - eyeOffsetAngle) * eyeDist;
                 let eye1Y = head.y + Math.sin(mySnake.angle - eyeOffsetAngle) * eyeDist;
                 ctx.beginPath();
@@ -393,7 +397,6 @@
                 ctx.fillStyle = '#fff';
                 ctx.fill();
 
-                // Right Eye
                 let eye2X = head.x + Math.cos(mySnake.angle + eyeOffsetAngle) * eyeDist;
                 let eye2Y = head.y + Math.sin(mySnake.angle + eyeOffsetAngle) * eyeDist;
                 ctx.beginPath();
@@ -402,7 +405,6 @@
                 ctx.fill();
             }
 
-            // Draw Player Name Tag
             ctx.font = 'bold 12px Segoe UI';
             ctx.fillStyle = '#ffffff';
             ctx.textAlign = 'center';
@@ -410,7 +412,6 @@
 
             ctx.restore();
 
-            // Send Realtime Multiplayer updates
             socket.emit('updatePlayer', {
                 x: mySnake.x,
                 y: mySnake.y,
@@ -422,14 +423,11 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Draw World Boundaries & Hex/Grid Lines
         function drawGrid() {
-            // Draw Border Wall
             ctx.strokeStyle = '#ff3366';
             ctx.lineWidth = 8;
             ctx.strokeRect(0, 0, WORLD_SIZE, WORLD_SIZE);
 
-            // Draw Grid Lines
             ctx.strokeStyle = '#181a29';
             ctx.lineWidth = 1;
             let gridSize = 60;

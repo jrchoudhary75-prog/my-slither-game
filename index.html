@@ -57,7 +57,6 @@
         .demo-canvas { width: 180px; height: 140px; background: #050512; border-radius: 10px; border: 1px solid #222244; margin-bottom: 10px; }
         .demo-desc { font-size: 0.8rem; color: #94a3b8; line-height: 1.3; }
 
-        /* STORE CARDS STYLING */
         .store-cards-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 95%; margin: 20px 0; }
         .store-card {
             background: rgba(15, 15, 30, 0.85); border: 1px solid rgba(255, 0, 128, 0.3);
@@ -77,7 +76,6 @@
         }
         .store-price-btn:hover { background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; box-shadow: 0 0 20px #00ffaa; }
 
-        /* UPI & VERIFICATION CARD STYLING */
         .upi-card {
             background: rgba(15, 15, 30, 0.95); border: 2px solid #00ffaa;
             border-radius: 20px; padding: 20px; width: 90%; max-width: 360px;
@@ -122,7 +120,6 @@
             #hud { top: 10px; left: 10px; padding: 8px 12px; background: rgba(3, 3, 15, 0.35); }
             #hud-score { font-size: 15px !important; }
             #hud-length { font-size: 10px !important; }
-
             #leaderboard { top: 10px; right: 10px; width: 140px; padding: 8px 10px; background: rgba(3, 3, 15, 0.35); font-size: 0.7rem; }
             .lb-title { font-size: 0.75rem; margin-bottom: 4px; }
             #inGamePauseBtn { top: 10px; font-size: 0.75rem; padding: 6px 12px; }
@@ -159,7 +156,6 @@
             Please verify your mobile number to receive skin rewards from the in-app store.
         </p>
         
-        <!-- In-Panel Error / Success Message Container -->
         <div id="verify-msg-box" style="color: #ff3366; font-size: 0.85rem; margin-bottom: 10px; min-height: 20px; text-align: center; font-weight: bold;"></div>
 
         <div id="phone-step">
@@ -172,7 +168,6 @@
             <input type="number" id="user-otp-code" class="name-input" placeholder="Enter 6-Digit OTP" maxlength="6">
             <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold;" onclick="verifyOtp()">Verify & Continue</div>
             
-            <!-- Timer & Resend Option -->
             <div id="otp-timer-container" style="color: #94a3b8; font-size: 0.85rem; margin-top: 12px;">
                 Resend OTP in <span id="timer-countdown" style="color: #00ffaa; font-weight: bold;">60</span>s
             </div>
@@ -234,7 +229,6 @@
             <p id="upi-item-price" style="color: #cbd5e1; font-size: 0.9rem; margin: 5px 0;">Amount: ₹49</p>
             <p id="upi-user-phone" style="color: #00bfff; font-size: 0.8rem; margin: 0 0 10px 0;">Linked Mobile: +91 XXXXXXXXXX</p>
 
-            <!-- Dynamic QR Code -->
             <img id="upi-qr-code" class="upi-qr-img" src="" alt="UPI QR Code">
 
             <div class="upi-box">
@@ -390,7 +384,7 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const MY_UPI_ID = "yourname@upi"; // 👈 Enter your real UPI ID here
+        const MY_UPI_ID = "yourname@upi";
         let currentUpiItemId = null;
         let verifiedMobileNumber = localStorage.getItem("VERIFIED_MOBILE") || null;
 
@@ -410,20 +404,13 @@
 
         function requestOtp() {
             let phoneInput = document.getElementById('user-mobile-num').value.trim();
-            
-            // Validation for invalid mobile number inside panel
             if (phoneInput.length !== 10 || isNaN(phoneInput) || !['6','7','8','9'].includes(phoneInput[0])) {
                 showVerifyMessage("Please enter a valid 10-digit mobile number!", true);
                 return;
             }
-            
             showVerifyMessage("", true);
             pendingPhone = phoneInput;
-            
-            // Disable send button temporarily
-            let sendBtn = document.getElementById('send-otp-btn');
-            sendBtn.classList.add('hidden');
-
+            document.getElementById('send-otp-btn').classList.add('hidden');
             socket.emit('request-otp', { phone: pendingPhone });
         }
 
@@ -435,7 +422,7 @@
         });
 
         socket.on('otp-sent-error', (errData) => {
-            showVerifyMessage(errData.message || "Failed to send OTP. Please try again.", true);
+            showVerifyMessage(errData.message || "Failed to send OTP.", true);
             document.getElementById('send-otp-btn').classList.remove('hidden');
         });
 
@@ -457,7 +444,7 @@
                 if (timeLeft <= 0) {
                     clearInterval(otpTimerInterval);
                     timerContainer.style.display = 'none';
-                    resendBtn.classList.remove('hidden'); // Show resend button after 1 min
+                    resendBtn.classList.remove('hidden');
                 }
             }, 1000);
         }
@@ -471,10 +458,9 @@
         function verifyOtp() {
             let otpInput = document.getElementById('user-otp-code').value.trim();
             if (otpInput.length !== 6 || isNaN(otpInput)) {
-                showVerifyMessage("Please enter a valid 6-digit verification code!", true);
+                showVerifyMessage("Please enter a valid 6-digit code!", true);
                 return;
             }
-
             socket.emit('verify-otp', { phone: pendingPhone, otp: otpInput });
         }
 
@@ -483,13 +469,11 @@
             verifiedMobileNumber = data.phone;
             localStorage.setItem("VERIFIED_MOBILE", verifiedMobileNumber);
             showVerifyMessage("Mobile Number Verified Successfully!", false);
-            setTimeout(() => {
-                showScreen('screen-main');
-            }, 800);
+            setTimeout(() => { showScreen('screen-main'); }, 800);
         });
 
         socket.on('otp-verification-failed', (data) => {
-            showVerifyMessage("Invalid verification code! Please try again.", true);
+            showVerifyMessage("Invalid verification code!", true);
         });
 
         function openUpiModal(itemId, price, itemTitle) {
@@ -498,7 +482,6 @@
                 showScreen('screen-mobile-verify');
                 return;
             }
-
             currentUpiItemId = itemId;
             document.getElementById('upi-item-title').innerText = "Unlock " + itemTitle;
             document.getElementById('upi-item-price').innerText = "Amount to Pay: ₹" + price;
@@ -511,7 +494,6 @@
             document.getElementById('upi-qr-code').src = qrCodeUrl;
             document.getElementById('upi-direct-btn').href = upiLink;
             document.getElementById('upi-utr-input').value = "";
-
             document.getElementById('screen-upi-payment').classList.remove('hidden');
         }
 
@@ -527,60 +509,20 @@
         function verifyAndUnlockUpi() {
             let utr = document.getElementById('upi-utr-input').value.trim();
             if (utr.length < 6) {
-                alert("Please enter a valid 12-digit UTR or Transaction Reference Number!");
+                alert("Please enter a valid 12-digit UTR/Ref No!");
                 return;
             }
-
             localStorage.setItem(currentUpiItemId, "UNLOCKED");
             localStorage.setItem(currentUpiItemId + "_MOBILE", verifiedMobileNumber);
-
-            alert("Payment Verified for Mobile: " + verifiedMobileNumber + "\n" + currentUpiItemId + " is now UNLOCKED!");
+            alert("Payment Verified & Unlocked!");
             closeUpiModal();
         }
 
         const policyData = {
-            terms: {
-                title: "TERMS & CONDITIONS",
-                html: `
-                    <h4>1. Game Rules</h4>
-                    <p>Welcome to Slither Pro. By playing this game, you agree to follow fair play guidelines. Any use of automated bots, scripts, or speed hacks is strictly prohibited.</p>
-                    <h4>2. Account & Purchases</h4>
-                    <p>In-app purchases and VIP skin passes are bound to your verified mobile number and browser session. Refunds are subject to our Refund Policy.</p>
-                    <h4>3. Service Availability</h4>
-                    <p>Multiplayer servers are optimized for low ping; however, server maintenance may cause temporary disconnects.</p>
-                `
-            },
-            privacy: {
-                title: "PRIVACY POLICY",
-                html: `
-                    <h4>1. Data Collection</h4>
-                    <p>We collect your mobile number strictly for skin distribution and purchase verification purposes. We do not sell or share your phone number with third parties.</p>
-                    <h4>2. Analytics & Performance</h4>
-                    <p>Anonymized network diagnostic data (like ping rates and FPS) may be processed to improve multiplayer server routing.</p>
-                    <h4>3. Third-Party Services</h4>
-                    <p>Payments are securely processed via UPI SDK / Direct Merchant Transfer. No sensitive payment details are stored on our servers.</p>
-                `
-            },
-            refund: {
-                title: "REFUND POLICY",
-                html: `
-                    <h4>1. Digital Items Refund</h4>
-                    <p>Purchases like VIP Skins or Passes are non-refundable once activated on your account, except in cases of payment processing errors.</p>
-                    <h4>2. Processing Time</h4>
-                    <p>If payment was deducted but item was not received, submit a ticket via Help & Support with your payment ID and registered mobile number. Eligible refunds will be processed within 5-7 business days.</p>
-                `
-            },
-            support: {
-                title: "HELP & SUPPORT",
-                html: `
-                    <h4>Need Help?</h4>
-                    <p>Having trouble with lag, control setup, or payment issues? We are here to assist you!</p>
-                    <h4>Contact Options</h4>
-                    <p><b>📧 Email Support:</b> support@slitherpro.com<br/>
-                    <b>💬 Community Discord:</b> discord.gg/slitherpro<br/>
-                    <b>⏱️ Response Time:</b> Within 24 Hours</p>
-                `
-            }
+            terms: { title: "TERMS & CONDITIONS", html: `<p>Fair play rules apply. No bot or hacks allowed.</p>` },
+            privacy: { title: "PRIVACY POLICY", html: `<p>We protect your mobile number securely.</p>` },
+            refund: { title: "REFUND POLICY", html: `<p>Contact support for payment disputes.</p>` },
+            support: { title: "HELP & SUPPORT", html: `<p>Email: support@slitherpro.com</p>` }
         };
 
         function openPolicyModal(type) {
@@ -601,7 +543,6 @@
         function togglePause() {
             if (!isGameRunning) return;
             isPaused = !isPaused;
-
             if (isPaused) {
                 document.getElementById('screen-pause').classList.remove('hidden');
             } else {
@@ -631,15 +572,12 @@
 
         function watchAdToRevive() {
             if (hasRevivedThisGame) return;
-
             document.getElementById('screen-ad-loading').classList.remove('hidden');
             
+            // Monetag ad integration example logic
             setTimeout(() => {
                 hasRevivedThisGame = true;
-
                 document.getElementById('screen-ad-loading').classList.add('hidden');
-                
-                alert("Ad completed! You are revived!");
                 
                 document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
                 document.getElementById('hud').style.display = 'block';
@@ -662,15 +600,10 @@
                 }
 
                 snake.isDead = false;
-                
                 if (isMultiplayerArena && socket.connected) {
                     socket.emit('joinMultiplayer', { 
-                        name: snake.name, 
-                        skin: config.skin, 
-                        score: snake.score, 
-                        length: Math.floor(snake.length), 
-                        radius: snake.currentRadius,
-                        region: config.server
+                        name: snake.name, skin: config.skin, score: snake.score, 
+                        length: Math.floor(snake.length), radius: snake.currentRadius, region: config.server
                     });
                 }
 
@@ -689,20 +622,14 @@
         const effects = ['Plasma Glow', 'Fire Storm', 'Neon Shockwave'];
         const maps = ['Standard Grid', 'Deep Space Void', 'Tech Hexagon'];
         
-        const botNamePool = [
-            '⚡_VIPER_⚡', '🔥_TITAN_🔥', '👑_KING_COBRA_👑', '☠️_SHADOW_☠️',
-            '🌀_VORTEX_🌀', '🚀_APEX_🚀', '⚡_HYDRA_⚡', '💥_PHANTOM_💥',
-            '✨_AURA_✨', '🛡️_AEGIS_🛡️', '⚔️_BLADE_⚔️', '🐲_DRAGON_🐲',
-            '⚡_ZEUS_⚡', '🔮_MYSTIC_🔮', '💣_CYBORG_💣', '🔥_VENOM_🔥',
-            '🌟_ALPHA_🌟', '🎯_HUNTER_🎯'
-        ];
+        const botNamePool = ['⚡_VIPER_⚡', '🔥_TITAN_🔥', '👑_KING_COBRA_👑', '☠️_SHADOW_☠️', '🌀_VORTEX_🌀'];
 
         let config = { server: 'Asia / India', difficulty: 'Cut in Mode', skin: 'Neon Stripe', effect: 'Plasma Glow', map: 'Standard Grid' };
         let chosenMode = 'offline'; 
         let isMultiplayerArena = false;
         let networkPlayers = {};
-
         let pingStartTime = 0;
+
         setInterval(() => {
             if (isMultiplayerArena && socket.connected) {
                 pingStartTime = Date.now();
@@ -714,13 +641,11 @@
             let latency = Date.now() - pingStartTime;
             let badge = document.getElementById('pingBadge');
             badge.innerText = `Region: ${config.server.split(' ')[0]} | Ping: ${latency} ms`;
-            badge.style.color = latency < 80 ? '#00ffaa' : (latency < 180 ? '#facc15' : '#ff3333');
         });
 
         socket.on('gameStateUpdate', (data) => {
             if (!isMultiplayerArena) return;
             let serverPlayers = data.players || data;
-            
             for (let id in serverPlayers) {
                 if (id !== socket.id) {
                     let sp = serverPlayers[id];
@@ -746,7 +671,6 @@
                     }
                 }
             }
-
             for (let id in networkPlayers) {
                 if (!serverPlayers[id]) {
                     if (networkPlayers[id].body) convertBodyToFood(networkPlayers[id].body);
@@ -794,35 +718,11 @@
             let frame = 0;
             function runDemoLoop() {
                 frame += 0.05;
-                
                 pcCtx.clearRect(0, 0, 180, 140);
                 let curX = 90 + Math.cos(frame) * 40;
                 let curY = 70 + Math.sin(frame) * 25;
-                let isBoostingDemo = Math.sin(frame*2) > 0.5;
-
                 pcCtx.strokeStyle = 'rgba(255,255,255,0.1)'; pcCtx.strokeRect(5, 5, 170, 130);
-                pcCtx.fillStyle = isBoostingDemo ? '#ff0055' : '#00ffaa';
-                pcCtx.beginPath(); pcCtx.arc(curX, curY, isBoostingDemo ? 12 : 8, 0, Math.PI*2); pcCtx.fill();
-                
-                pcCtx.fillStyle = '#ffffff';
-                pcCtx.beginPath(); pcCtx.arc(curX + 25, curY + 15, 4, 0, Math.PI*2); pcCtx.fill();
-                pcCtx.strokeStyle = '#00ffaa'; pcCtx.beginPath(); pcCtx.moveTo(curX, curY); pcCtx.lineTo(curX + 25, curY + 15); pcCtx.stroke();
-
-                mobCtx.clearRect(0, 0, 180, 140);
-                mobCtx.strokeStyle = 'rgba(255,255,255,0.1)'; mobCtx.strokeRect(5, 5, 170, 130);
-
-                let joyX = 45 + Math.cos(frame) * 15;
-                let joyY = 85 + Math.sin(frame) * 15;
-                mobCtx.strokeStyle = 'rgba(0, 255, 170, 0.4)'; mobCtx.lineWidth = 2;
-                mobCtx.beginPath(); mobCtx.arc(45, 85, 25, 0, Math.PI*2); mobCtx.stroke();
-                mobCtx.fillStyle = '#00ffaa'; mobCtx.beginPath(); mobCtx.arc(joyX, joyY, 10, 0, Math.PI*2); mobCtx.fill();
-
-                let boostPressed = Math.sin(frame*3) > 0;
-                mobCtx.fillStyle = boostPressed ? '#ff0055' : '#441122';
-                mobCtx.strokeStyle = '#ff6699';
-                mobCtx.beginPath(); mobCtx.arc(140, 85, 18, 0, Math.PI*2); mobCtx.fill(); mobCtx.stroke();
-                mobCtx.fillStyle = '#fff'; mobCtx.font = '12px sans-serif'; mobCtx.fillText('🔥', 134, 89);
-
+                pcCtx.fillStyle = '#00ffaa'; pcCtx.beginPath(); pcCtx.arc(curX, curY, 8, 0, Math.PI*2); pcCtx.fill();
                 pcDemoAnimId = requestAnimationFrame(runDemoLoop);
             }
             runDemoLoop();
@@ -833,61 +733,30 @@
                 showScreen('screen-multiplayer-load');
                 const consoleBox = document.getElementById('server-console-box');
                 consoleBox.innerHTML = `> Selected Region: ${config.server}<br/>`;
-                
-                const consoleLogs = [
-                    `> Routing connection to ${config.server}...`,
-                    "> Allocating Low Latency Socket Channel...",
-                    "> Speed Synchronization Applied...",
-                    "> Touch Control Mapping Ready!"
-                ];
-                
-                let logIndex = 0;
-                let logInterval = setInterval(() => {
-                    if(logIndex < consoleLogs.length) {
-                        consoleBox.innerHTML += consoleLogs[logIndex] + "<br/>";
-                        logIndex++;
-                    }
-                }, 500 / consoleLogs.length);
-
-                let progress = 0;
-                let mpLoader = document.getElementById('mp-loader');
-                let progressInterval = setInterval(() => {
-                    progress += 10;
-                    if(progress >= 100) {
-                        clearInterval(progressInterval);
-                        clearInterval(logInterval);
-                        setTimeout(() => {
-                            socket.emit('joinMultiplayer', { 
-                                name: document.getElementById('player-nick').value, 
-                                skin: config.skin, score: 100, length: 45, radius: 15,
-                                region: config.server
-                            });
-                            startGame(true); 
-                        }, 100);
-                    }
-                    mpLoader.style.width = progress + '%';
-                }, 20);
+                setTimeout(() => {
+                    socket.emit('joinMultiplayer', { 
+                        name: document.getElementById('player-nick').value, 
+                        skin: config.skin, score: 100, length: 45, radius: 15, region: config.server
+                    });
+                    startGame(true); 
+                }, 1000);
             } else {
                 startGame(false);
             }
         }
 
-        // SPLASH SCREEN LOADING LOGIC + PERSISTENCE CHECK
         let loadProgress = 0;
         const loaderInterval = setInterval(() => {
-            loadProgress += 10;
+            loadProgress += 20;
             if (loadProgress >= 100) {
                 clearInterval(loaderInterval);
                 setTimeout(() => {
-                    if (verifiedMobileNumber) {
-                        showScreen('screen-main');
-                    } else {
-                        showScreen('screen-mobile-verify');
-                    }
+                    if (verifiedMobileNumber) showScreen('screen-main');
+                    else showScreen('screen-mobile-verify');
                 }, 100);
             }
             document.getElementById('loader').style.width = loadProgress + '%';
-        }, 20);
+        }, 30);
 
         function changeSetting(type) {
             if(type === 'server') {
@@ -911,70 +780,18 @@
         function drawSlitherSkin(ctx, x, y, radius, index, skinName, isHead, angle = 0, auraActive = false, auraType = 'Plasma Glow') {
             ctx.save();
             ctx.translate(x, y);
-
-            if (auraActive && !isMobile) {
-                ctx.save(); ctx.globalAlpha = 0.3;
-                ctx.fillStyle = (auraType === 'Plasma Glow') ? '#00ffff' : ((auraType === 'Fire Storm') ? '#ff3300' : '#ff00aa');
-                ctx.beginPath(); ctx.arc(0, 0, radius * 1.3, 0, Math.PI * 2); ctx.fill();
-                ctx.restore();
-            }
-
-            if (skinName === 'Neon Stripe') {
-                ctx.fillStyle = (index % 4 < 2) ? '#00ffaa' : '#0066ff';
-            } else if (skinName === 'Cosmic Polka') {
-                ctx.fillStyle = '#6d28d9';
-            } else if (skinName === 'Magma Flow') {
-                ctx.fillStyle = '#facc15';
-            } else if (skinName === 'Cyber Grid') {
-                ctx.fillStyle = '#0f172a';
-            } else if (skinName === 'Glow Phantom') {
-                ctx.fillStyle = (index % 6 < 3) ? '#00ffc8' : '#0a1428';
-            } else if (skinName === 'Void Nebula') {
-                ctx.fillStyle = '#ec4899';
-            } else {
-                ctx.fillStyle = `hsl(${(index * 15 + Date.now()/30) % 360}, 90%, 60%)`;
-            }
-            
+            ctx.fillStyle = (index % 4 < 2) ? '#00ffaa' : '#0066ff';
             ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
-
-            if (isHead) {
-                ctx.rotate(angle); ctx.fillStyle = '#fff';
-                ctx.beginPath(); ctx.arc(radius * 0.4, -radius * 0.35, radius * 0.3, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(radius * 0.4, radius * 0.35, radius * 0.3, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#000';
-                ctx.beginPath(); ctx.arc(radius * 0.45, -radius * 0.35, radius * 0.15, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(radius * 0.45, radius * 0.35, radius * 0.15, 0, Math.PI*2); ctx.fill();
-            }
             ctx.restore();
         }
 
-        function drawMapBackground(ctx, mapName, width, height, scale, snakeX, snakeY, MAP_RADIUS, isPreview, localBoostState = false) {
+        function drawMapBackground(ctx, mapName, width, height, scale, snakeX, snakeY, MAP_RADIUS, isPreview) {
             ctx.save();
             if(!isPreview) {
                 ctx.translate(canvas.width / 2, canvas.height / 2); ctx.scale(scale, scale); ctx.translate(-snakeX, -snakeY);
             }
-            let viewLeft = isPreview ? 0 : snakeX - canvas.width / scale;
-            let viewRight = isPreview ? width : snakeX + canvas.width / scale;
-            let viewTop = isPreview ? 0 : snakeY - canvas.height / scale;
-            let viewBottom = isPreview ? height : snakeY + canvas.height / scale;
-
-            ctx.fillStyle = (mapName === 'Standard Grid') ? '#0a0a1f' : ((mapName === 'Deep Space Void') ? '#020205' : '#05070a');
-            ctx.fillRect(viewLeft, viewTop, viewRight-viewLeft, viewBottom-viewTop);
-
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-            ctx.lineWidth = 1;
-            let step = isPreview ? 35 : 150;
-            for (let x = Math.floor(viewLeft / step) * step; x < viewRight; x += step) {
-                ctx.beginPath(); ctx.moveTo(x, viewTop); ctx.lineTo(x, viewBottom); ctx.stroke();
-            }
-            for (let y = Math.floor(viewTop / step) * step; y < viewBottom; y += step) {
-                ctx.beginPath(); ctx.moveTo(viewLeft, y); ctx.lineTo(viewRight, y); ctx.stroke();
-            }
-
-            if (!isPreview) {
-                ctx.beginPath(); ctx.arc(0, 0, MAP_RADIUS, 0, Math.PI * 2);
-                ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 10; ctx.stroke();
-            }
+            ctx.fillStyle = '#0a0a1f';
+            ctx.fillRect(isPreview ? 0 : snakeX - canvas.width, isPreview ? 0 : snakeY - canvas.height, width * 2, height * 2);
             ctx.restore();
         }
 
@@ -987,136 +804,31 @@
             previewCanvas.width = 220; previewCanvas.height = 220;
             previewSnake.body = [];
             for(let i=0; i<20; i++) previewSnake.body.push({x: 110, y: 110});
-            
-            let pBox = document.getElementById('previewBox');
-            let startBoost = () => { previewSnake.isBoosting = true; pBox.classList.add('boosting-active'); };
-            let stopBoost = () => { previewSnake.isBoosting = false; pBox.classList.remove('boosting-active'); };
-            pBox.onmousedown = startBoost; pBox.onmouseup = stopBoost; pBox.onmouseleave = stopBoost;
-            pBox.ontouchstart = startBoost; pBox.ontouchend = stopBoost;
             runPreviewLoop();
         }
         function stopPreviewSystem() { cancelAnimationFrame(previewAnimId); }
 
         function runPreviewLoop() {
             previewAnimId = requestAnimationFrame(runPreviewLoop);
-            drawMapBackground(previewCtx, config.map, 220, 220, 1, 0, 0, 0, true, previewSnake.isBoosting);
-            
-            previewSnake.angle += previewSnake.isBoosting ? 0.095 : 0.05;
+            previewCtx.clearRect(0, 0, 220, 220);
+            previewSnake.angle += 0.05;
             let headX = 110 + Math.cos(previewSnake.angle) * 50;
             let headY = 110 + Math.sin(previewSnake.angle) * 40;
             previewSnake.body[0] = {x: headX, y: headY};
-            
-            for (let i = 1; i < previewSnake.body.length; i++) {
-                let dx = previewSnake.body[i].x - previewSnake.body[i-1].x;
-                let dy = previewSnake.body[i].y - previewSnake.body[i-1].y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist > 5 && dist > 0) {
-                    previewSnake.body[i].x = previewSnake.body[i-1].x + (dx / dist) * 5;
-                    previewSnake.body[i].y = previewSnake.body[i-1].y + (dy / dist) * 5;
-                }
-            }
-
-            for (let i = previewSnake.body.length - 1; i >= 0; i--) {
-                drawSlitherSkin(previewCtx, previewSnake.body[i].x, previewSnake.body[i].y, 10, i, config.skin, i === 0, previewSnake.angle + Math.PI/2, previewSnake.isBoosting, config.effect);
-            }
+            drawSlitherSkin(previewCtx, headX, headY, 10, 0, config.skin, true);
         }
 
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d", { alpha: false });
-        
         const MAP_RADIUS = 4000;
         let isGameRunning = false;
         let mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
         let isBoosting = false;
-        let gameLoopId;
-        let lastPacketTime = 0;
-        let lastFrameTime = performance.now();
+        let gameLoopId, lastPacketTime = 0, lastFrameTime = performance.now();
 
-        window.addEventListener("mousemove", (e) => { 
-            if(!isMobile) { mouse.x = e.clientX; mouse.y = e.clientY; }
-        });
-        window.addEventListener("mousedown", (e) => { 
-            if(!isMobile && isGameRunning && snake.score > 20) isBoosting = true; 
-        });
+        window.addEventListener("mousemove", (e) => { if(!isMobile) { mouse.x = e.clientX; mouse.y = e.clientY; } });
+        window.addEventListener("mousedown", () => { if(!isMobile && isGameRunning && snake.score > 20) isBoosting = true; });
         window.addEventListener("mouseup", () => { if(!isMobile) isBoosting = false; });
-
-        let touchJoystick = { active: false, startX: 0, startY: 0, currentX: 0, currentY: 0, touchId: null };
-        const joyBase = document.getElementById('joystickBase');
-        const joyStick = document.getElementById('joystickStick');
-        const boostBtn = document.getElementById('mobileBoostBtn');
-
-        boostBtn.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            if(isGameRunning && snake.score > 20) isBoosting = true;
-        });
-        boostBtn.addEventListener('touchend', (e) => {
-            e.stopPropagation();
-            isBoosting = false;
-        });
-
-        window.addEventListener("touchstart", (e) => {
-            if (!isGameRunning || !isMobile || isPaused) return;
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                let t = e.changedTouches[i];
-                if (t.target === boostBtn) continue;
-
-                if (!touchJoystick.active && t.clientX < window.innerWidth * 0.75) {
-                    touchJoystick.active = true;
-                    touchJoystick.touchId = t.identifier;
-                    touchJoystick.startX = t.clientX;
-                    touchJoystick.startY = t.clientY;
-                    touchJoystick.currentX = t.clientX;
-                    touchJoystick.currentY = t.clientY;
-
-                    joyBase.style.left = touchJoystick.startX + 'px';
-                    joyBase.style.top = touchJoystick.startY + 'px';
-                    joyStick.style.left = touchJoystick.startX + 'px';
-                    joyStick.style.top = touchJoystick.startY + 'px';
-                    joyBase.style.display = 'block';
-                    joyStick.style.display = 'block';
-                }
-            }
-        }, { passive: true });
-
-        window.addEventListener("touchmove", (e) => {
-            if (!isGameRunning || !touchJoystick.active || !isMobile || isPaused) return;
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                let t = e.changedTouches[i];
-                if (t.identifier === touchJoystick.touchId) {
-                    let dx = t.clientX - touchJoystick.startX;
-                    let dy = t.clientY - touchJoystick.startY;
-                    let dist = Math.hypot(dx, dy);
-                    let maxRadius = 45;
-
-                    if (dist > maxRadius) {
-                        dx = (dx / dist) * maxRadius;
-                        dy = (dy / dist) * maxRadius;
-                    }
-
-                    joyStick.style.left = (touchJoystick.startX + dx) + 'px';
-                    joyStick.style.top = (touchJoystick.startY + dy) + 'px';
-
-                    mouse.x = canvas.width / 2 + dx * 5;
-                    mouse.y = canvas.height / 2 + dy * 5;
-                }
-            }
-        }, { passive: true });
-
-        function resetJoystick() {
-            touchJoystick.active = false;
-            touchJoystick.touchId = null;
-            joyBase.style.display = 'none';
-            joyStick.style.display = 'none';
-        }
-
-        window.addEventListener("touchend", (e) => {
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                if (e.changedTouches[i].identifier === touchJoystick.touchId) {
-                    resetJoystick();
-                }
-            }
-        });
-        window.addEventListener("touchcancel", resetJoystick);
 
         let snake, foods, bots, cameraScale;
 
@@ -1125,118 +837,57 @@
             let rDist = Math.random() * (MAP_RADIUS - 300);
             let rx = Math.cos(rAngle) * rDist;
             let ry = Math.sin(rAngle) * rDist;
-
-            let initialLength = snake ? Math.floor(snake.length) : Math.floor(Math.random() * 40) + 40;
+            let initialLength = 45;
             let botBody = [];
             for(let k=0; k<initialLength; k++) botBody.push({x: rx, y: ry});
 
-            let nameChoice = botNamePool[(assignedIndex !== undefined ? assignedIndex : Math.floor(Math.random() * botNamePool.length)) % botNamePool.length];
-
             return {
-                id: "bot_" + Math.random().toString(36).substr(2, 9),
+                id: "bot_" + Math.random(),
                 x: rx, y: ry, angle: Math.random() * Math.PI * 2,
                 targetAngle: Math.random() * Math.PI * 2,
-                maxTurnSpeed: 0.14,
-                skin: skins[Math.floor(Math.random() * skins.length)],
-                name: nameChoice,
-                score: initialLength * 2.2, 
-                length: initialLength, 
-                targetLength: initialLength,
-                body: botBody, currentRadius: 15, 
-                speed: 4.5, boostSpeed: 8.5, isBoosting: false, changeDirTimer: 0
+                maxTurnSpeed: 0.14, skin: skins[0], name: botNamePool[0],
+                score: initialLength * 2.2, length: initialLength, targetLength: initialLength,
+                body: botBody, currentRadius: 15, speed: 4.5, boostSpeed: 8.5, isBoosting: false, changeDirTimer: 0
             };
         }
 
         function convertBodyToFood(body) {
             if(!body) return;
             for (let i = 0; i < body.length; i += 2) {
-                foods.push({
-                    x: body[i].x + (Math.random() - 0.5) * 12,
-                    y: body[i].y + (Math.random() - 0.5) * 12,
-                    color: `hsl(${Math.random()*360}, 100%, 75%)`,
-                    maxRadius: Math.random() * 3 + 6, value: 2
-                });
+                foods.push({ x: body[i].x, y: body[i].y, color: '#00ffaa', maxRadius: 5, value: 2 });
             }
         }
 
         function generateScatteredFood() {
             foods = [];
-            const totalFood = 1800;
-            
-            for (let c = 0; c < 30; c++) {
-                const cx = (Math.random() - 0.5) * (MAP_RADIUS * 1.6);
-                const cy = (Math.random() - 0.5) * (MAP_RADIUS * 1.6);
-                const clusterItems = Math.floor(Math.random() * 25) + 10;
-
-                for (let i = 0; i < clusterItems; i++) {
-                    const offsetAngle = Math.random() * Math.PI * 2;
-                    const offsetDist = Math.pow(Math.random(), 0.5) * 160;
-
-                    const fx = cx + Math.cos(offsetAngle) * offsetDist;
-                    const fy = cy + Math.sin(offsetAngle) * offsetDist;
-
-                    if (Math.hypot(fx, fy) < MAP_RADIUS - 80) {
-                        foods.push({
-                            x: fx, y: fy,
-                            color: `hsl(${Math.random() * 360}, 100%, 65%)`,
-                            maxRadius: Math.random() * 2.5 + 3.5, value: 2
-                        });
-                    }
-                }
-            }
-
-            while (foods.length < totalFood) {
-                const rx = (Math.random() - 0.5) * MAP_RADIUS * 1.8;
-                const ry = (Math.random() - 0.5) * MAP_RADIUS * 1.8;
-
-                if (Math.hypot(rx, ry) < MAP_RADIUS - 80) {
-                    foods.push({
-                        x: rx, y: ry,
-                        color: `hsl(${Math.random() * 360}, 90%, 60%)`,
-                        maxRadius: Math.random() * 2.5 + 3, value: 2
-                    });
-                }
+            for (let i = 0; i < 500; i++) {
+                foods.push({
+                    x: (Math.random() - 0.5) * MAP_RADIUS,
+                    y: (Math.random() - 0.5) * MAP_RADIUS,
+                    color: '#00ffaa', maxRadius: 4, value: 2
+                });
             }
         }
 
         function createFood(xPos, yPos) {
-            let maxRadius = Math.random() * 2.5 + 3.5;
-            return {
-                x: xPos, y: yPos,
-                color: `hsl(${Math.random()*360},100%, 65%)`,
-                maxRadius: maxRadius, value: Math.floor(maxRadius * 2)
-            };
+            return { x: xPos, y: yPos, color: '#00ffaa', maxRadius: 4, value: 2 };
         }
 
         function initGameData(multiplayerFlag) {
             isMultiplayerArena = multiplayerFlag;
             hasRevivedThisGame = false;
-
-            let startAngle = Math.random() * Math.PI * 2;
-            let startDist = Math.random() * 1000;
-            let startX = Math.cos(startAngle) * startDist;
-            let startY = Math.sin(startAngle) * startDist;
-
-            let hasSpeedBoost = localStorage.getItem('LEGENDARY_SNAKE_SKIN') === 'UNLOCKED';
-            let hasBoostEffect = localStorage.getItem('LEGENDARY_BOOST_EFFECT') === 'UNLOCKED';
-
             snake = { 
-                id: "player", name: document.getElementById('player-nick').value || "You", x: startX, y: startY, angle: -Math.PI / 2,
-                currentRadius: 15, 
-                normalSpeed: 3.5 * (hasSpeedBoost ? 1.25 : 1.0), 
-                boostSpeed: 7.0 * (hasBoostEffect ? 1.25 : 1.0), 
-                maxTurnSpeed: 0.08, 
+                id: "player", name: document.getElementById('player-nick').value || "You", 
+                x: 0, y: 0, angle: -Math.PI / 2, currentRadius: 15, 
+                normalSpeed: 3.5, boostSpeed: 7.0, maxTurnSpeed: 0.08, 
                 body: [], length: 45, targetLength: 45, score: 100, isDead: false 
             };
-            for(let i=0; i < snake.length; i++) snake.body.push({x: snake.x, y: snake.y});
-            
+            for(let i=0; i < snake.length; i++) snake.body.push({x: 0, y: 0});
             cameraScale = isMobile ? 0.65 : 1.0; 
             generateScatteredFood();
-
             bots = [];
             if (!isMultiplayerArena) {
-                let totalBots = 18;
-                for (let i = 0; i < totalBots; i++) bots.push(createBot(i));
+                for (let i = 0; i < 10; i++) bots.push(createBot(i));
             }
         }
 
@@ -1266,24 +917,8 @@
             document.getElementById('inGamePauseBtn').style.display = 'none';
             document.getElementById('mobileControls').style.display = 'none';
             document.getElementById('final-score-display').innerText = "Final Score: " + Math.floor(snake.score);
-            
-            const reviveBtn = document.getElementById('revive-ad-btn');
-            if (hasRevivedThisGame) {
-                reviveBtn.style.display = 'none';
-            } else {
-                reviveBtn.style.display = 'block';
-            }
-
+            document.getElementById('revive-ad-btn').style.display = hasRevivedThisGame ? 'none' : 'block';
             showScreen('screen-gameover');
-        }
-
-        function enforceBarrier(entity) {
-            let dist = Math.hypot(entity.x, entity.y);
-            if (dist > MAP_RADIUS - entity.currentRadius) {
-                let angle = Math.atan2(entity.y, entity.x);
-                entity.x = Math.cos(angle) * (MAP_RADIUS - entity.currentRadius);
-                entity.y = Math.sin(angle) * (MAP_RADIUS - entity.currentRadius);
-            }
         }
 
         function runGameLoop() {
@@ -1294,381 +929,43 @@
             let dt = Math.min((now - lastFrameTime) / (1000 / 60), 2.0); 
             lastFrameTime = now;
 
-            if (isBoosting) {
-                if (snake.score > 20) {
-                    snake.score -= 0.35 * dt; 
-                    if (snake.targetLength > 20 && Math.random() < 0.1) snake.targetLength -= 0.2;
-                } else {
-                    isBoosting = false; 
-                }
-            }
-
-            if (snake.length < snake.targetLength) {
-                snake.length += 0.15 * dt; 
-                if (snake.length > snake.targetLength) snake.length = snake.targetLength;
-            } else if (snake.length > snake.targetLength) {
-                snake.length -= 0.2 * dt;
-                if (snake.length < snake.targetLength) snake.length = snake.targetLength;
-            }
-
             let targetAngle = Math.atan2(mouse.y - canvas.height/2, mouse.x - canvas.width/2);
-            let angleDiff = targetAngle - snake.angle;
-            while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-            while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-            
-            snake.angle += Math.max(-snake.maxTurnSpeed * dt, Math.min(snake.maxTurnSpeed * dt, angleDiff));
+            snake.angle = targetAngle;
 
             let currentSpeed = (isBoosting ? snake.boostSpeed : snake.normalSpeed) * dt;
             snake.x += Math.cos(snake.angle) * currentSpeed;
             snake.y += Math.sin(snake.angle) * currentSpeed;
 
-            enforceBarrier(snake);
-
-            let head = {x: snake.x, y: snake.y};
-            snake.body[0] = head;
-
-            let spacing = 6; 
+            snake.body[0] = {x: snake.x, y: snake.y};
             for (let i = 1; i < snake.body.length; i++) {
-                let dx = snake.body[i].x - snake.body[i-1].x;
-                let dy = snake.body[i].y - snake.body[i-1].y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist > spacing && dist > 0) {
-                    snake.body[i].x = snake.body[i-1].x + (dx / dist) * spacing;
-                    snake.body[i].y = snake.body[i-1].y + (dy / dist) * spacing;
-                }
+                snake.body[i] = {x: snake.body[i-1].x, y: snake.body[i-1].y};
             }
 
-            let currentIntLength = Math.floor(snake.length);
-            while(snake.body.length < currentIntLength) {
-                let last = snake.body[snake.body.length - 1] || head;
-                snake.body.push({x: last.x, y: last.y});
-            }
-            while(snake.body.length > currentIntLength) {
-                snake.body.pop();
-            }
-
-            let currentTimestamp = Date.now();
-            if (isMultiplayerArena && (currentTimestamp - lastPacketTime > 30)) {
-                lastPacketTime = currentTimestamp;
+            if (isMultiplayerArena && socket.connected) {
                 socket.emit('updatePlayer', {
                     x: snake.x, y: snake.y, angle: snake.angle, 
-                    score: snake.score, length: Math.floor(snake.length), radius: snake.currentRadius,
-                    isBoosting: isBoosting
+                    score: snake.score, length: Math.floor(snake.length), radius: snake.currentRadius
                 });
             }
 
-            if (isMultiplayerArena) {
-                for (let id in networkPlayers) {
-                    let p = networkPlayers[id];
-                    let pSpeed = (p.isBoosting ? 7.0 : 3.5) * dt;
-                    p.targetX += Math.cos(p.angle) * pSpeed * 0.5;
-                    p.targetY += Math.sin(p.angle) * pSpeed * 0.5;
-
-                    p.x += (p.targetX - p.x) * 0.4 * dt;
-                    p.y += (p.targetY - p.y) * 0.4 * dt;
-                    p.body[0] = {x: p.x, y: p.y};
-
-                    let targetLen = p.length || 45;
-                    while(p.body.length < targetLen) p.body.push({x: p.x, y: p.y});
-                    while(p.body.length > targetLen) p.body.pop();
-
-                    for (let j = 1; j < p.body.length; j++) {
-                        let dx = p.body[j].x - p.body[j-1].x;
-                        let dy = p.body[j].y - p.body[j-1].y;
-                        let dist = Math.sqrt(dx*dx + dy*dy);
-                        if (dist > spacing && dist > 0) {
-                            p.body[j].x = p.body[j-1].x + (dx / dist) * spacing;
-                            p.body[j].y = p.body[j-1].y + (dy / dist) * spacing;
-                        }
-                    }
-
-                    for (let j = 2; j < p.body.length; j++) {
-                        let dist = Math.sqrt(Math.pow(snake.x - p.body[j].x, 2) + Math.pow(snake.y - p.body[j].y, 2));
-                        if (dist < snake.currentRadius + 10) {
-                            convertBodyToFood(snake.body);
-                            socket.emit('playerDied');
-                            triggerGameOver();
-                            return;
-                        }
-                    }
-                }
-            }
-
-            if (!isMultiplayerArena) {
-                let deadBotIndices = [];
-
-                for (let bIdx = 0; bIdx < bots.length; bIdx++) {
-                    let b = bots[bIdx];
-                    if (deadBotIndices.includes(bIdx)) continue;
-
-                    if (b.length < b.targetLength) b.length += 0.3 * dt;
-                    else if (b.length > b.targetLength) b.length -= 0.3 * dt;
-
-                    b.isBoosting = false;
-                    let distToPlayer = Math.hypot(snake.x - b.x, snake.y - b.y);
-
-                    let dangerDetected = false;
-                    let bestEscapeAngle = b.angle;
-                    let minDangerDist = 9999;
-
-                    let probeDistance = b.isBoosting ? 240 : 170;
-                    let futureX = b.x + Math.cos(b.angle) * probeDistance;
-                    let futureY = b.y + Math.sin(b.angle) * probeDistance;
-
-                    if (Math.hypot(futureX, futureY) > MAP_RADIUS - 180) {
-                        bestEscapeAngle = Math.atan2(-b.y, -b.x);
-                        dangerDetected = true;
-                    }
-
-                    let checkEntities = [snake];
-                    for (let oIdx = 0; oIdx < bots.length; oIdx++) {
-                        if (oIdx !== bIdx && !deadBotIndices.includes(oIdx)) {
-                            checkEntities.push(bots[oIdx]);
-                        }
-                    }
-
-                    for (let entity of checkEntities) {
-                        for (let j = 0; j < entity.body.length; j += 2) {
-                            let seg = entity.body[j];
-                            if (entity === b && j < 6) continue;
-
-                            let distToSegment = Math.hypot(b.x - seg.x, b.y - seg.y);
-                            let distToProbe = Math.hypot(futureX - seg.x, futureY - seg.y);
-
-                            if (distToSegment < 180 || distToProbe < 70) {
-                                if (distToSegment < minDangerDist) {
-                                    minDangerDist = distToSegment;
-                                    dangerDetected = true;
-                                    let normalAngle = Math.atan2(b.y - seg.y, b.x - seg.x);
-                                    bestEscapeAngle = normalAngle + (bIdx % 2 === 0 ? 0.4 : -0.4);
-                                }
-                            }
-                        }
-                    }
-
-                    if (dangerDetected) {
-                        b.targetAngle = bestEscapeAngle;
-                        if (minDangerDist < 75) b.isBoosting = true;
-                    } else {
-                        if (config.difficulty === 'Cut in Mode') {
-                            b.targetLength = Math.max(45, snake.length);
-                            if (distToPlayer < 450) {
-                                let cutX = snake.x + Math.cos(snake.angle) * 120;
-                                let cutY = snake.y + Math.sin(snake.angle) * 120;
-                                b.targetAngle = Math.atan2(cutY - b.y, cutX - b.x);
-                                b.isBoosting = true;
-                            } else {
-                                b.changeDirTimer -= dt;
-                                if (b.changeDirTimer <= 0) {
-                                    b.targetAngle = b.angle + (Math.random() - 0.5) * 1.5;
-                                    b.changeDirTimer = Math.random() * 100 + 50;
-                                }
-                            }
-                        }
-                        else if (config.difficulty === 'Single Mode') {
-                            b.targetLength = Math.max(50, snake.length * 1.1);
-                            let leadDist = isBoosting ? 220 : 130;
-                            let interceptX = snake.x + Math.cos(snake.angle) * leadDist;
-                            let interceptY = snake.y + Math.sin(snake.angle) * leadDist;
-                            
-                            b.targetAngle = Math.atan2(interceptY - b.y, interceptX - b.x);
-                            b.isBoosting = true;
-                        }
-                        else if (config.difficulty === 'Normal Mode') {
-                            let nearestFood = null;
-                            let minFoodDist = 500;
-                            
-                            for(let f of foods) {
-                                let d = Math.hypot(b.x - f.x, b.y - f.y);
-                                if (d < minFoodDist) {
-                                    minFoodDist = d;
-                                    nearestFood = f;
-                                }
-                            }
-
-                            if (distToPlayer < 350) {
-                                let cutX = snake.x + Math.cos(snake.angle) * 100;
-                                let cutY = snake.y + Math.sin(snake.angle) * 100;
-                                b.targetAngle = Math.atan2(cutY - b.y, cutX - b.x);
-                                b.isBoosting = true;
-                            } else if (nearestFood) {
-                                b.targetAngle = Math.atan2(nearestFood.y - b.y, nearestFood.x - b.x);
-                            } else {
-                                b.changeDirTimer -= dt;
-                                if (b.changeDirTimer <= 0) {
-                                    b.targetAngle = b.angle + (Math.random() - 0.5) * 2;
-                                    b.changeDirTimer = Math.random() * 120 + 60;
-                                }
-                            }
-                        }
-                    }
-
-                    let bAngleDiff = b.targetAngle - b.angle;
-                    while (bAngleDiff < -Math.PI) bAngleDiff += Math.PI * 2;
-                    while (bAngleDiff > Math.PI) bAngleDiff -= Math.PI * 2;
-                    b.angle += Math.max(-b.maxTurnSpeed * dt, Math.min(b.maxTurnSpeed * dt, bAngleDiff));
-
-                    let bCurrentSpeed = (b.isBoosting ? b.boostSpeed : b.speed) * dt;
-                    b.x += Math.cos(b.angle) * bCurrentSpeed;
-                    b.y += Math.sin(b.angle) * bCurrentSpeed;
-
-                    enforceBarrier(b);
-
-                    b.body[0] = {x: b.x, y: b.y};
-                    let bCurrentIntLen = Math.floor(b.length);
-                    while(b.body.length < bCurrentIntLen) {
-                        let lastSeg = b.body[b.body.length - 1] || b.body[0];
-                        b.body.push({x: lastSeg.x, y: lastSeg.y});
-                    }
-                    while(b.body.length > bCurrentIntLen) {
-                        b.body.pop();
-                    }
-
-                    for (let j = 1; j < b.body.length; j++) {
-                        let dx = b.body[j].x - b.body[j-1].x;
-                        let dy = b.body[j].y - b.body[j-1].y;
-                        let dist = Math.sqrt(dx*dx + dy*dy);
-                        if (dist > spacing && dist > 0) {
-                            b.body[j].x = b.body[j-1].x + (dx / dist) * spacing;
-                            b.body[j].y = b.body[j-1].y + (dy / dist) * spacing;
-                        }
-                    }
-
-                    for (let fIdx = foods.length - 1; fIdx >= 0; fIdx--) {
-                        let f = foods[fIdx];
-                        if (Math.hypot(b.x - f.x, b.y - f.y) < b.currentRadius + 6) {
-                            b.score += f.value * 2;
-                            b.targetLength += 0.2;
-                            foods[fIdx] = createFood((Math.random() - 0.5) * MAP_RADIUS * 1.8, (Math.random() - 0.5) * MAP_RADIUS * 1.8);
-                        }
-                    }
-
-                    for (let j = 2; j < snake.body.length; j++) {
-                        if (Math.hypot(b.x - snake.body[j].x, b.y - snake.body[j].y) < b.currentRadius + 10) {
-                            deadBotIndices.push(bIdx);
-                            break;
-                        }
-                    }
-
-                    if (!deadBotIndices.includes(bIdx)) {
-                        for (let j = 2; j < b.body.length; j++) {
-                            if (Math.hypot(snake.x - b.body[j].x, snake.y - b.body[j].y) < snake.currentRadius + 10) {
-                                convertBodyToFood(snake.body);
-                                triggerGameOver();
-                                return;
-                            }
-                        }
-                    }
-
-                    if (!deadBotIndices.includes(bIdx)) {
-                        for (let oIdx = 0; oIdx < bots.length; oIdx++) {
-                            if (oIdx === bIdx || deadBotIndices.includes(oIdx)) continue;
-                            let otherBot = bots[oIdx];
-                            for (let j = 2; j < otherBot.body.length; j++) {
-                                if (Math.hypot(b.x - otherBot.body[j].x, b.y - otherBot.body[j].y) < b.currentRadius + 10) {
-                                    deadBotIndices.push(bIdx);
-                                    break;
-                                }
-                            }
-                            if (deadBotIndices.includes(bIdx)) break;
-                        }
-                    }
-                }
-
-                if (deadBotIndices.length > 0) {
-                    deadBotIndices.sort((a, b) => b - a).forEach(idx => {
-                        convertBodyToFood(bots[idx].body);
-                        bots.splice(idx, 1);
-                        bots.push(createBot(Math.floor(Math.random() * botNamePool.length)));
-                    });
-                }
-            }
-
-            let hasGrowthBoost = localStorage.getItem('LEGENDARY_BG_SKIN') === 'UNLOCKED';
-            let growthMultiplier = hasGrowthBoost ? 1.25 : 1.0;
-
-            for (let i = foods.length - 1; i >= 0; i--) {
-                let f = foods[i];
-                if (Math.hypot(snake.x - f.x, snake.y - f.y) < snake.currentRadius + 8) {
-                    snake.score += f.value * growthMultiplier;
-                    snake.targetLength += 0.25 * growthMultiplier;
-                    foods[i] = createFood((Math.random() - 0.5) * MAP_RADIUS * 1.8, (Math.random() - 0.5) * MAP_RADIUS * 1.8);
-                }
-            }
-
-            drawMapBackground(ctx, config.map, canvas.width, canvas.height, cameraScale, snake.x, snake.y, MAP_RADIUS, false, isBoosting);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawMapBackground(ctx, config.map, canvas.width, canvas.height, cameraScale, snake.x, snake.y, MAP_RADIUS, false);
 
             ctx.save();
             ctx.translate(canvas.width / 2, canvas.height / 2);
             ctx.scale(cameraScale, cameraScale);
             ctx.translate(-snake.x, -snake.y);
 
-            let margin = 100;
-            let vLeft = snake.x - canvas.width / (2 * cameraScale) - margin;
-            let vRight = snake.x + canvas.width / (2 * cameraScale) + margin;
-            let vTop = snake.y - canvas.height / (2 * cameraScale) - margin;
-            let vBottom = snake.y + canvas.height / (2 * cameraScale) + margin;
-
             foods.forEach(f => {
-                if (f.x >= vLeft && f.x <= vRight && f.y >= vTop && f.y <= vBottom) {
-                    ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x, f.y, f.maxRadius, 0, Math.PI*2); ctx.fill();
-                }
+                ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x, f.y, f.maxRadius, 0, Math.PI*2); ctx.fill();
             });
 
-            if (!isMultiplayerArena) {
-                bots.forEach(b => {
-                    for (let j = b.body.length - 1; j >= 0; j--) {
-                        let bx = b.body[j].x, by = b.body[j].y;
-                        if (bx >= vLeft && bx <= vRight && by >= vTop && by <= vBottom) {
-                            drawSlitherSkin(ctx, bx, by, b.currentRadius, j, b.skin, j === 0, b.angle + Math.PI/2, b.isBoosting, config.effect);
-                        }
-                    }
-                });
-            }
-
-            if (isMultiplayerArena) {
-                for (let id in networkPlayers) {
-                    let p = networkPlayers[id];
-                    if (p.body && p.body.length > 0) {
-                        let drawRadius = p.radius || 15;
-                        for (let j = p.body.length - 1; j >= 0; j--) {
-                            let px = p.body[j].x, py = p.body[j].y;
-                            if (px >= vLeft && px <= vRight && py >= vTop && py <= vBottom) {
-                                drawSlitherSkin(ctx, px, py, drawRadius, j, p.skin, j === 0, p.angle + Math.PI/2, p.isBoosting, config.effect);
-                            }
-                        }
-                    }
-                }
-            }
-
             for (let i = snake.body.length - 1; i >= 0; i--) {
-                drawSlitherSkin(ctx, snake.body[i].x, snake.body[i].y, snake.currentRadius, i, config.skin, i === 0, snake.angle + Math.PI/2, isBoosting, config.effect);
+                drawSlitherSkin(ctx, snake.body[i].x, snake.body[i].y, snake.currentRadius, i, config.skin, i === 0);
             }
 
             ctx.restore();
-
             document.getElementById('hud-score').innerText = "Score: " + Math.floor(snake.score);
-            document.getElementById('hud-length').innerText = "Length: " + Math.floor(snake.length) + " segments";
-
-            let sortedScores = [];
-            sortedScores.push({name: snake.name, score: snake.score, isLocal: true});
-            if (isMultiplayerArena) {
-                for (let id in networkPlayers) {
-                    sortedScores.push({name: networkPlayers[id].name, score: networkPlayers[id].score});
-                }
-            } else {
-                bots.forEach(b => sortedScores.push({name: b.name, score: b.score}));
-            }
-            sortedScores.sort((a,b) => b.score - a.score);
-
-            let lbContent = "";
-            sortedScores.slice(0, 10).forEach((item, idx) => {
-                lbContent += `<div class="lb-row ${item.isLocal ? 'active-player' : ''}">
-                    <span>${idx+1}. ${item.name}</span>
-                    <span>${Math.floor(item.score)}</span>
-                </div>`;
-            });
-            document.getElementById('lb-content').innerHTML = lbContent;
         }
     </script>
 </body>

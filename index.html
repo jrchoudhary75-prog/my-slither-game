@@ -90,14 +90,15 @@
         .buy-btn { background: linear-gradient(135deg, #ffd700 0%, #ff8800 100%); color: #000; border: none; padding: 8px 15px; border-radius: 18px; font-weight: 800; cursor: pointer; width: 100%; transition: opacity 0.2s; font-size: 0.85rem; }
         .buy-btn:hover { opacity: 0.9; }
 
-        .setup-container { display: flex; flex-direction: row; align-items: center; gap: 20px; background: rgba(255, 255, 255, 0.02); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(15px); max-width: 90%; flex-wrap: wrap; justify-content: center; }
-        .controls-side { display: flex; flex-direction: column; gap: 10px; }
+        /* SETUP CONTAINER WITH PREVIEW ON RIGHT SIDE */
+        .setup-container { display: flex; flex-direction: row; align-items: center; gap: 25px; background: rgba(255, 255, 255, 0.02); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(15px); max-width: 90%; flex-wrap: wrap; justify-content: center; }
+        .controls-side { display: flex; flex-direction: column; gap: 12px; }
         .option-row { display: flex; align-items: center; justify-content: space-between; width: 290px; background: rgba(255,255,255,0.01); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03); }
         .option-label { font-size: 0.9rem; color: #94a3b8; font-weight: 500; }
         .select-btn { background: #131324; border: 1px solid #363659; color: #fff; padding: 6px 12px; border-radius: 8px; cursor: pointer; min-width: 120px; font-size: 0.85rem; font-weight: 600; text-align: center; }
 
-        /* SETUP SKIN PREVIEW CANVAS */
-        #skinPreviewCanvas { width: 180px; height: 180px; background: #050512; border-radius: 16px; border: 2px solid #00ffaa; box-shadow: 0 0 20px rgba(0, 255, 170, 0.2); }
+        /* SETUP SKIN PREVIEW CANVAS (RIGHT SIDE) */
+        #skinPreviewCanvas { width: 190px; height: 190px; background: #050512; border-radius: 16px; border: 2px solid #00ffaa; box-shadow: 0 0 20px rgba(0, 255, 170, 0.25); }
 
         #hud { position: absolute; top: 15px; left: 15px; z-index: 5; pointer-events: none; background: rgba(3, 3, 15, 0.45); padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12); display: none; backdrop-filter: blur(8px); }
         .name-input { padding: 10px; width: 260px; border-radius: 10px; border: 1px solid #363659; background: #131324; color: #fff; text-align: center; font-size: 1rem; margin-bottom: 12px; }
@@ -122,11 +123,7 @@
             box-shadow: 0 0 15px rgba(0, 255, 170, 0.3);
             transition: all 0.2s ease;
         }
-        #btn-pause-game:hover {
-            scale: 1.1;
-            background: #00ffaa;
-            color: #000;
-        }
+        #btn-pause-game:hover { scale: 1.1; background: #00ffaa; color: #000; }
 
         /* 💀 GAME OVER MODAL / PANEL */
         #game-over-modal {
@@ -270,14 +267,13 @@
         <div class="btn" style="margin-top: 25px; background: #111; border-color: #444;" onclick="closeVipStore()">Back to Main Menu</div>
     </div>
 
-    <!-- 6. CUSTOMIZATION / SETUP WITH SKIN PREVIEW, AI DIFFICULTY & SERVERS -->
+    <!-- 6. CUSTOMIZATION / SETUP (PREVIEW ON RIGHT SIDE) -->
     <div id="screen-offline" class="ui-screen hidden">
         <h2 id="setup-title">Customization</h2>
         <input type="text" id="player-nick" class="name-input" placeholder="Enter Nickname" value="Player_1">
         
         <div class="setup-container">
-            <canvas id="skinPreviewCanvas"></canvas>
-
+            <!-- CONTROLS ON LEFT -->
             <div class="controls-side">
                 <div class="option-row">
                     <div class="option-label">Snake Skin</div>
@@ -300,6 +296,9 @@
                     <button class="select-btn" id="btn-server" onclick="cycleServer()">Asia-South ⚡</button>
                 </div>
             </div>
+
+            <!-- SKIN PREVIEW CANVAS ON RIGHT -->
+            <canvas id="skinPreviewCanvas"></canvas>
         </div>
 
         <div style="margin-top: 20px; display: flex;">
@@ -511,19 +510,19 @@
 
         function startSkinPreviewAnimation() {
             const pCanvas = document.getElementById('skinPreviewCanvas');
-            pCanvas.width = 180; pCanvas.height = 180;
+            pCanvas.width = 190; pCanvas.height = 190;
             const pCtx = pCanvas.getContext('2d');
             let previewAngle = 0;
 
             function drawPreview() {
                 previewAngle += 0.04;
                 pCtx.fillStyle = '#050512';
-                pCtx.fillRect(0, 0, 180, 180);
+                pCtx.fillRect(0, 0, 190, 190);
 
                 const color = skinColors[selectedSkinIdx];
                 for (let i = 10; i >= 0; i--) {
-                    let px = 90 + Math.cos(previewAngle - i * 0.25) * 40;
-                    let py = 90 + Math.sin(previewAngle - i * 0.25) * 25;
+                    let px = 95 + Math.cos(previewAngle - i * 0.25) * 45;
+                    let py = 95 + Math.sin(previewAngle - i * 0.25) * 28;
                     pCtx.fillStyle = color;
                     pCtx.shadowColor = color;
                     pCtx.shadowBlur = i === 0 ? 12 : 4;
@@ -571,7 +570,7 @@
             }
         }
 
-        /* 🐍 GAMEPLAY ENGINE (SNAKE, FOOD, AI BOTS & CONTROLS) */
+        /* 🐍 GAMEPLAY ENGINE WITH INVISIBLE TARGET DOT CONTROLS */
         const canvas = document.getElementById("game");
         const ctx = canvas.getContext("2d");
         let isGameRunning = false;
@@ -580,7 +579,12 @@
         let hasRevivedInCurrentGame = false;
 
         let snake = { x: 0, y: 0, radius: 10, angle: 0, speed: 3.5, body: [] };
+        
+        // 🔴 INVISIBLE TARGET DOT (Player controls this dot, not the snake directly)
+        const TARGET_FIXED_DIST = 35; // Fixed distance between snake head and target dot
+        let targetDot = { x: 0, y: 0 };
         let mousePos = { x: 0, y: 0 };
+
         let foods = [];
         let aiBots = [];
 
@@ -602,13 +606,19 @@
             playerScore = 0;
             document.getElementById('hud-score').innerText = 'Score: ' + playerScore;
 
-            // Spawn Player Snake
+            // Spawn Player Snake & Invisible Target Dot
             snake.x = canvas.width / 2;
             snake.y = canvas.height / 2;
             snake.body = [];
             for (let i = 0; i < 15; i++) {
                 snake.body.push({ x: snake.x, y: snake.y + i * 6 });
             }
+
+            // Target Dot Positioned Slightly Ahead of Snake
+            targetDot.x = snake.x;
+            targetDot.y = snake.y - TARGET_FIXED_DIST;
+            mousePos.x = targetDot.x;
+            mousePos.y = targetDot.y;
 
             // Spawn Food Particles
             foods = [];
@@ -645,6 +655,7 @@
             runGameLoop();
         }
 
+        // PLAYER CONTROLS THE INVISIBLE TARGET DOT
         window.addEventListener('mousemove', (e) => {
             mousePos.x = e.clientX;
             mousePos.y = e.clientY;
@@ -669,7 +680,40 @@
             for (let x = 0; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
             for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
 
-            // 2. Draw & Collect Food
+            // 2. Move Invisible Target Dot Towards Player Pointer
+            targetDot.x = mousePos.x;
+            targetDot.y = mousePos.y;
+
+            // 3. Update Snake Steering & Fixed Distance Mechanics
+            let dx = targetDot.x - snake.x;
+            let dy = targetDot.y - snake.y;
+            let currentDist = Math.hypot(dx, dy);
+
+            if (currentDist > 0.1) {
+                snake.angle = Math.atan2(dy, dx);
+            }
+
+            // Snake moves towards target dot
+            if (currentDist > TARGET_FIXED_DIST) {
+                snake.x += Math.cos(snake.angle) * snake.speed;
+                snake.y += Math.sin(snake.angle) * snake.speed;
+            }
+
+            // Enforce FIXED DISTANCE (Snake cannot collide with dot)
+            let newDx = targetDot.x - snake.x;
+            let newDy = targetDot.y - snake.y;
+            let newDist = Math.hypot(newDx, newDy);
+            if (newDist < TARGET_FIXED_DIST && newDist > 0) {
+                snake.x = targetDot.x - Math.cos(snake.angle) * TARGET_FIXED_DIST;
+                snake.y = targetDot.y - Math.sin(snake.angle) * TARGET_FIXED_DIST;
+            }
+
+            snake.body.unshift({ x: snake.x, y: snake.y });
+            if (snake.body.length > 15 + Math.floor(playerScore / 20)) {
+                snake.body.pop();
+            }
+
+            // 4. Draw & Collect Food
             for (let i = foods.length - 1; i >= 0; i--) {
                 let f = foods[i];
                 ctx.fillStyle = f.color;
@@ -691,7 +735,7 @@
                 }
             }
 
-            // 3. Move & Draw AI Bots
+            // 5. Move & Draw AI Bots
             aiBots.forEach(bot => {
                 bot.angle += (Math.random() - 0.5) * 0.1;
                 bot.x += Math.cos(bot.angle) * bot.speed;
@@ -717,22 +761,7 @@
                 }
             });
 
-            // 4. Update Player Snake Movement
-            let dx = mousePos.x - snake.x;
-            let dy = mousePos.y - snake.y;
-            snake.angle = Math.atan2(dy, dx);
-            
-            if (Math.hypot(dx, dy) > 10) {
-                snake.x += Math.cos(snake.angle) * snake.speed;
-                snake.y += Math.sin(snake.angle) * snake.speed;
-            }
-
-            snake.body.unshift({ x: snake.x, y: snake.y });
-            if (snake.body.length > 15 + Math.floor(playerScore / 20)) {
-                snake.body.pop();
-            }
-
-            // 5. Draw Player Snake Body
+            // 6. Draw Player Snake Body
             let playerColor = skinColors[selectedSkinIdx];
             for (let i = snake.body.length - 1; i >= 0; i--) {
                 let seg = snake.body[i];

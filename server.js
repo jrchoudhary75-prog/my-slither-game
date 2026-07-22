@@ -2,20 +2,26 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
-const axios = require('axios'); // Optional for real SMS Gateway
+const nodemailer = require('nodemailer');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-    cors: { origin: "*" }
-});
+const io = new Server(server, { cors: { origin: "*" } });
 
-// ✅ Fix "Cannot GET /": Serve all static files from root directory
+// Static files server
 app.use(express.static(path.join(__dirname)));
 
-// Root route to serve index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// ⚠️ YAHAN APNA EMAIL AUR APP PASSWORD DABAYEIN ⚠️
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'jrchoudhary75@gmail.com',         // <-- Yahan apna real Gmail likhein
+        pass: 'xzuq zrmr uvkc qhyu'           // <-- Yahan 16-digit ka App Password likhein
+    }
 });
 
 const pendingOtps = {};
@@ -23,43 +29,48 @@ const pendingOtps = {};
 io.on('connection', (socket) => {
     console.log('Player connected:', socket.id);
 
-    // Request Real OTP
-    socket.on('request-otp', async ({ phone }) => {
-        if (!phone || phone.length !== 10 || isNaN(phone)) {
-            socket.emit('otp-sent-error', { message: "Invalid mobile number format!" });
+    // Request Email OTP
+    socket.on('request-otp', async ({ email }) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailRegex.test(email)) {
+            socket.emit('otp-sent-error', { message: "Invalid email format!" });
             return;
         }
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        pendingOtps[phone] = otp;
+        pendingOtps[email] = otp;
 
-        console.log(`[OTP GENERATED] Phone: ${phone} | OTP: ${otp}`);
+        console.log(`[OTP GENERATED] Email: ${email} | OTP: ${otp}`);
 
         try {
-            /* 
-               👇 REAL SMS GATEWAY INTEGRATION (Example with Fast2SMS)
-               await axios.get(`https://www.fast2sms.com/dev/bulkV2`, {
-                   params: {
-                       authorization: "YOUR_FAST2SMS_API_KEY",
-                       route: "otp",
-                       variables_values: otp,
-                       numbers: phone
-                   }
-               });
-            */
+            await transporter.sendMail({
+                from: '"Slither Pro Game" <YOUR_EMAIL@gmail.com>', // Yahan bhi apna Email likhein
+                to: email,
+                subject: "Your Slither Pro Verification OTP",
+                html: `
+                    <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0f0f1a; color: #ffffff; border-radius: 10px;">
+                        <h2 style="color: #00ffaa; text-align: center;">Welcome to Slither Pro!</h2>
+                        <p style="font-size: 15px; text-align: center;">Your 6-digit verification OTP code is:</p>
+                        <div style="text-align: center; margin: 20px 0;">
+                            <span style="color: #0088ff; font-size: 32px; font-weight: bold; letter-spacing: 6px; background: #1a1a2e; padding: 10px 25px; border-radius: 8px; border: 1px solid #00ffaa;">${otp}</span>
+                        </div>
+                        <p style="color: #8a8a9e; font-size: 13px; text-align: center;">This code is valid for 10 minutes. Please do not share it with anyone.</p>
+                    </div>
+                `
+            });
             socket.emit('otp-sent-success');
         } catch (error) {
-            console.error("SMS Gateway Error:", error);
-            socket.emit('otp-sent-error', { message: "Failed to dispatch SMS." });
+            console.error("Email Gateway Error:", error);
+            socket.emit('otp-sent-error', { message: "Failed to send email. Check credentials." });
         }
     });
 
     // Verify OTP
-    socket.on('verify-otp', ({ phone, otp }) => {
-        if (pendingOtps[phone] && pendingOtps[phone] === otp) {
-            delete pendingOtps[phone]; 
-            socket.emit('otp-verification-success', { phone });
-            console.log(`Phone verified successfully: ${phone}`);
+    socket.on('verify-otp', ({ email, otp }) => {
+        if (pendingOtps[email] && pendingOtps[email] === otp) {
+            delete pendingOtps[email];
+            socket.emit('otp-verification-success', { email });
+            console.log(`Email verified successfully: ${email}`);
         } else {
             socket.emit('otp-verification-failed');
         }

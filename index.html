@@ -72,9 +72,14 @@
             background: linear-gradient(135deg, #ff0077 0%, #7700ff 100%);
             border: none; color: #fff; padding: 10px 20px; font-size: 1rem; font-weight: 700;
             border-radius: 20px; cursor: pointer; width: 100%; transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(255, 0, 119, 0.4);
+            box-shadow: 0 4px 15px rgba(255, 0, 119, 0.4); margin-bottom: 8px;
         }
         .store-price-btn:hover { background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; box-shadow: 0 0 20px #00ffaa; }
+        .store-preview-btn {
+            background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.2); color: #cbd5e1;
+            padding: 8px 15px; font-size: 0.85rem; font-weight: 600; border-radius: 15px; cursor: pointer; width: 100%; transition: all 0.2s;
+        }
+        .store-preview-btn:hover { background: rgba(0, 255, 170, 0.15); border-color: #00ffaa; color: #00ffaa; }
 
         /* 📱 UPI MODAL STYLING */
         .upi-card {
@@ -99,13 +104,15 @@
         .policy-body { color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; overflow-y: auto; margin: 15px 0; padding-right: 10px; text-align: left; width: 100%; }
         .policy-body h4 { color: #00ffaa; margin: 10px 0 5px 0; font-size: 1rem; }
 
-        #inGamePauseBtn {
+        #inGamePauseBtn, #inGameExitBtn {
             position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 8;
             background: rgba(3, 3, 15, 0.6); border: 1px solid rgba(0, 255, 170, 0.4); color: #00ffaa;
             padding: 8px 18px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
             backdrop-filter: blur(8px); display: none; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         }
         #inGamePauseBtn:hover { background: #00ffaa; color: #000; box-shadow: 0 0 15px #00ffaa; }
+        #inGameExitBtn { border-color: rgba(255, 0, 85, 0.6); color: #ff3366; }
+        #inGameExitBtn:hover { background: #ff0055; color: #fff; box-shadow: 0 0 15px #ff0055; }
 
         #mobileControls { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; display: none; }
         #joystickBase { position: absolute; width: 110px; height: 110px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(0, 255, 170, 0.4); transform: translate(-50%, -50%); display: none; pointer-events: none; }
@@ -125,7 +132,7 @@
 
             #leaderboard { top: 10px; right: 10px; width: 140px; padding: 8px 10px; background: rgba(3, 3, 15, 0.35); font-size: 0.7rem; }
             .lb-title { font-size: 0.75rem; margin-bottom: 4px; }
-            #inGamePauseBtn { top: 10px; font-size: 0.75rem; padding: 6px 12px; }
+            #inGamePauseBtn, #inGameExitBtn { top: 10px; font-size: 0.75rem; padding: 6px 12px; }
         }
 
         .lb-title { font-weight: 800; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 6px; color: #38bdf8; }
@@ -179,22 +186,49 @@
                 <div class="store-card-title">Premium Legendary Snake Skin</div>
                 <div class="store-card-badge">Speed +25%</div>
                 <button class="store-price-btn" onclick="openUpiModal('LEGENDARY_SNAKE_SKIN', 49, 'Legendary Snake Skin')">Buy for ₹49</button>
+                <button class="store-preview-btn" onclick="openSkinPreview('LEGENDARY_SNAKE_SKIN', '👑 Legendary Gold', '🐍')">🔍 Preview Showcase</button>
             </div>
             <div class="store-card">
                 <div class="store-card-icon">🔥</div>
                 <div class="store-card-title">Premium Legendary Boost Effect</div>
                 <div class="store-card-badge">Boost Speed +25%</div>
                 <button class="store-price-btn" onclick="openUpiModal('LEGENDARY_BOOST_EFFECT', 49, 'Legendary Boost Effect')">Buy for ₹49</button>
+                <button class="store-preview-btn" onclick="openSkinPreview('LEGENDARY_BOOST_EFFECT', '👑 Legendary Nova', '🔥')">🔍 Preview Showcase</button>
             </div>
             <div class="store-card">
                 <div class="store-card-icon">🌌</div>
                 <div class="store-card-title">Premium Legendary Background Skin</div>
                 <div class="store-card-badge">Growth +25%</div>
                 <button class="store-price-btn" onclick="openUpiModal('LEGENDARY_BG_SKIN', 49, 'Legendary Background Skin')">Buy for ₹49</button>
+                <button class="store-preview-btn" onclick="openSkinPreview('LEGENDARY_BG_SKIN', '👑 Legendary Matrix', '🌌')">🔍 Preview Showcase</button>
             </div>
         </div>
 
         <div class="btn" style="background: #111122; border-color: #333355; min-width: 150px; margin-top: 10px;" onclick="showScreen('screen-main')">🏠 Back to Main Menu</div>
+    </div>
+
+    <!-- 🔍 DEDICATED LEGENDARY SKIN PREVIEW MODAL -->
+    <div id="screen-skin-preview" class="modal-overlay hidden" style="z-index: 35;">
+        <div class="policy-card" style="max-width: 420px; text-align: center; border-color: #00ffaa; box-shadow: 0 0 40px rgba(0, 255, 170, 0.2);">
+            <div id="preview-item-icon" style="font-size: 3rem; margin-bottom: 5px;">👑</div>
+            <h2 id="preview-item-title" style="color: #00ffaa; font-size: 1.4rem; margin-bottom: 10px;">Legendary Showcase</h2>
+            
+            <!-- Live Luxury Podium Preview Canvas -->
+            <div style="width: 220px; height: 180px; background: #03030a; border: 2px solid #00ffaa; border-radius: 16px; margin: 0 auto 15px auto; overflow: hidden; position: relative; box-shadow: inset 0 0 25px rgba(0, 255, 170, 0.3);">
+                <canvas id="luxuryPreviewCanvas" width="220" height="180" style="display: block;"></canvas>
+            </div>
+
+            <div style="text-align: left; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); width: 100%; box-sizing: border-box; margin-bottom: 15px;">
+                <p style="margin: 4px 0; color: #cbd5e1; font-size: 0.85rem;">✨ <b>Exclusive Visual FX:</b> Ultra Glowing Aura & Stardust Trail</p>
+                <p style="margin: 4px 0; color: #cbd5e1; font-size: 0.85rem;">⚡ <b>In-Game Stat Perk:</b> High-End Performance Upgrade Active</p>
+                <p style="margin: 4px 0; color: #cbd5e1; font-size: 0.85rem;">🎵 <b>Audio Cues:</b> Custom Boost Sound Enabled</p>
+            </div>
+
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button class="btn" style="flex: 1; min-width: unset; padding: 10px; font-size: 0.9rem; background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold;" onclick="buyFromPreview()">Buy Now (₹49)</button>
+                <button class="btn" style="flex: 1; min-width: unset; padding: 10px; font-size: 0.9rem; background: #221111; border-color: #552222;" onclick="closeSkinPreview()">Close</button>
+            </div>
+        </div>
     </div>
 
     <!-- 💳 UPI PAYMENT MODAL -->
@@ -203,7 +237,6 @@
             <h2 id="upi-item-title" style="font-size: 1.2rem; margin: 0; color: #00ffaa;">PAY VIA UPI</h2>
             <p id="upi-item-price" style="color: #cbd5e1; font-size: 0.85rem; margin: 4px 0;">Amount: ₹49</p>
 
-            <!-- Dynamic QR Code -->
             <img id="upi-qr-code" class="upi-qr-img" src="" alt="UPI QR Code">
 
             <div class="upi-box">
@@ -211,7 +244,6 @@
                 <button style="background: #00ffaa; color: #000; border: none; padding: 4px 10px; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="copyUpiId()">Copy</button>
             </div>
 
-            <!-- Mobile UPI App Direct Pay Button -->
             <a id="upi-direct-btn" href="#" onclick="handleDirectPay(event)" style="text-decoration: none; width: 100%;">
                 <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold; width: 100%; box-sizing: border-box; margin: 6px 0; min-width: unset; font-size: 0.85rem;">📱 Pay via GPay / PhonePe / Paytm</div>
             </a>
@@ -219,7 +251,6 @@
             <p style="font-size: 0.72rem; color: #94a3b8; margin: 4px 0;">Enter your 12-Digit UTR/Ref No. after payment:</p>
             <input type="text" id="upi-utr-input" class="name-input" placeholder="Enter 12-Digit UTR/Ref No." style="width: 100%; box-sizing: border-box; font-size: 0.85rem; padding: 6px; margin-bottom: 4px;">
 
-            <!-- In-Panel Message Container -->
             <div id="upi-panel-msg"></div>
 
             <div style="display: flex; gap: 8px; width: 100%; margin-top: 4px;">
@@ -339,7 +370,9 @@
         </div>
     </div>
 
+    <!-- IN-GAME BUTTONS -->
     <button id="inGamePauseBtn" onclick="togglePause()">⏸️ PAUSE</button>
+    <button id="inGameExitBtn" onclick="exitMultiplayerGame()">🚪 EXIT & DIE</button>
 
     <div id="hud">
         <div id="hud-score" style="font-size: 20px; font-weight: 800; color: #00ffaa;">Score: 0</div>
@@ -363,8 +396,7 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // 💳 SETUP YOUR UPI DETAILS HERE
-        const MY_UPI_ID = "yourname@upi"; // 👈 Apni UPI ID Yahan Daalein!
+        const MY_UPI_ID = "yourname@upi"; 
         let currentUpiItemId = null;
 
         function openUpiModal(itemId, price, itemTitle) {
@@ -382,6 +414,78 @@
             document.getElementById('upi-utr-input').value = "";
 
             document.getElementById('screen-upi-payment').classList.remove('hidden');
+        }
+
+        let previewModalItemId = null;
+        function openSkinPreview(itemId, itemName, itemIcon) {
+            previewModalItemId = itemId;
+            document.getElementById('preview-item-icon').innerText = itemIcon;
+            document.getElementById('preview-item-title').innerText = itemName + " Showcase";
+            document.getElementById('screen-skin-preview').classList.remove('hidden');
+            initLuxuryPreview(itemName);
+        }
+
+        function closeSkinPreview() {
+            document.getElementById('screen-skin-preview').classList.add('hidden');
+            stopLuxuryPreview();
+        }
+
+        function buyFromPreview() {
+            closeSkinPreview();
+            let titleMap = {
+                'LEGENDARY_SNAKE_SKIN': 'Legendary Snake Skin',
+                'LEGENDARY_BOOST_EFFECT': 'Legendary Boost Effect',
+                'LEGENDARY_BG_SKIN': 'Legendary Background Skin'
+            };
+            openUpiModal(previewModalItemId, 49, titleMap[previewModalItemId]);
+        }
+
+        let luxuryAnimId = null;
+        function initLuxuryPreview(skinName) {
+            let lCanvas = document.getElementById('luxuryPreviewCanvas');
+            let lCtx = lCanvas.getContext('2d');
+            lCanvas.width = 220; lCanvas.height = 180;
+            
+            let angle = 0;
+            let body = [];
+            for(let i=0; i<15; i++) body.push({x: 110, y: 90});
+
+            function renderLuxury() {
+                luxuryAnimId = requestAnimationFrame(renderLuxury);
+                lCtx.fillStyle = '#03030a';
+                lCtx.fillRect(0, 0, 220, 180);
+
+                // Grid lines
+                lCtx.strokeStyle = 'rgba(0, 255, 170, 0.08)';
+                lCtx.lineWidth = 1;
+                for(let i=0; i<220; i+=25) {
+                    lCtx.beginPath(); lCtx.moveTo(i, 0); lCtx.lineTo(i, 180); lCtx.stroke();
+                }
+
+                angle += 0.04;
+                let hX = 110 + Math.cos(angle) * 55;
+                let hY = 90 + Math.sin(angle) * 35;
+                body[0] = {x: hX, y: hY};
+
+                for (let i = 1; i < body.length; i++) {
+                    let dx = body[i].x - body[i-1].x;
+                    let dy = body[i].y - body[i-1].y;
+                    let dist = Math.hypot(dx, dy);
+                    if (dist > 5 && dist > 0) {
+                        body[i].x = body[i-1].x + (dx / dist) * 5;
+                        body[i].y = body[i-1].y + (dy / dist) * 5;
+                    }
+                }
+
+                for (let i = body.length - 1; i >= 0; i--) {
+                    drawSlitherSkin(lCtx, body[i].x, body[i].y, 11, i, skinName, i === 0, angle + Math.PI/2, true, 'Plasma Glow');
+                }
+            }
+            renderLuxury();
+        }
+
+        function stopLuxuryPreview() {
+            if (luxuryAnimId) cancelAnimationFrame(luxuryAnimId);
         }
 
         function handleDirectPay(e) {
@@ -405,7 +509,6 @@
             msg.innerText = "📋 UPI ID Copied to Clipboard!";
         }
 
-        // Base Arrays for Customization
         const baseSkins = ['Neon Stripe', 'Cosmic Polka', 'Magma Flow', 'Cyber Grid', 'Glow Phantom', 'Void Nebula', 'Rainbow Pulse'];
         const baseEffects = ['Plasma Glow', 'Fire Storm', 'Neon Shockwave'];
         const baseMaps = ['Standard Grid', 'Deep Space Void', 'Tech Hexagon'];
@@ -415,15 +518,12 @@
         let maps = [...baseMaps];
 
         function checkUnlockedPurchases() {
-            // Check & Add Legendary Skin
             if (localStorage.getItem('LEGENDARY_SNAKE_SKIN') === 'UNLOCKED') {
                 if (!skins.includes('👑 Legendary Gold')) skins.push('👑 Legendary Gold');
             }
-            // Check & Add Legendary Boost Effect
             if (localStorage.getItem('LEGENDARY_BOOST_EFFECT') === 'UNLOCKED') {
                 if (!effects.includes('👑 Legendary Nova')) effects.push('👑 Legendary Nova');
             }
-            // Check & Add Legendary Background
             if (localStorage.getItem('LEGENDARY_BG_SKIN') === 'UNLOCKED') {
                 if (!maps.includes('👑 Legendary Matrix')) maps.push('👑 Legendary Matrix');
             }
@@ -440,7 +540,6 @@
                 return;
             }
 
-            // Save to Local Storage & Grant Access
             localStorage.setItem(currentUpiItemId, "UNLOCKED");
             checkUnlockedPurchases();
 
@@ -513,7 +612,7 @@
         let hasRevivedThisGame = false;
 
         function togglePause() {
-            if (!isGameRunning) return;
+            if (!isGameRunning || isMultiplayerArena) return;
             isPaused = !isPaused;
 
             if (isPaused) {
@@ -523,6 +622,13 @@
                 lastFrameTime = performance.now();
                 runGameLoop();
             }
+        }
+
+        function exitMultiplayerGame() {
+            if (!isGameRunning || !isMultiplayerArena) return;
+            convertBodyToFood(snake.body);
+            if (socket.connected) socket.emit('playerDied');
+            quitToMainMenu();
         }
 
         function restartGame() {
@@ -539,6 +645,7 @@
             document.getElementById('leaderboard').style.display = 'none';
             document.getElementById('pingBadge').style.display = 'none';
             document.getElementById('inGamePauseBtn').style.display = 'none';
+            document.getElementById('inGameExitBtn').style.display = 'none';
             document.getElementById('mobileControls').style.display = 'none';
             showScreen('screen-main');
         }
@@ -555,9 +662,15 @@
                 document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
                 document.getElementById('hud').style.display = 'block';
                 document.getElementById('leaderboard').style.display = 'block';
-                document.getElementById('inGamePauseBtn').style.display = 'block';
+                
+                if (isMultiplayerArena) {
+                    document.getElementById('inGameExitBtn').style.display = 'block';
+                    document.getElementById('pingBadge').style.display = 'block';
+                } else {
+                    document.getElementById('inGamePauseBtn').style.display = 'block';
+                }
+
                 if (isMobile) document.getElementById('mobileControls').style.display = 'block';
-                if (isMultiplayerArena) document.getElementById('pingBadge').style.display = 'block';
 
                 let startAngle = Math.random() * Math.PI * 2;
                 let startDist = Math.random() * 800;
@@ -820,14 +933,14 @@
             ctx.translate(x, y);
 
             if (auraActive && !isMobile) {
-                ctx.save(); ctx.globalAlpha = 0.3;
-                ctx.fillStyle = (auraType === 'Plasma Glow') ? '#00ffff' : ((auraType === 'Fire Storm') ? '#ff3300' : '#ff00aa');
-                ctx.beginPath(); ctx.arc(0, 0, radius * 1.3, 0, Math.PI * 2); ctx.fill();
+                ctx.save(); ctx.globalAlpha = 0.35;
+                ctx.fillStyle = (skinName === '👑 Legendary Gold') ? '#ffcc00' : ((skinName === '👑 Legendary Nova') ? '#ff0055' : ((auraType === 'Fire Storm') ? '#ff3300' : '#00ffff'));
+                ctx.beginPath(); ctx.arc(0, 0, radius * 1.4, 0, Math.PI * 2); ctx.fill();
                 ctx.restore();
             }
 
-            if (skinName === '👑 Legendary Gold') {
-                ctx.fillStyle = (index % 2 === 0) ? '#ffcc00' : '#ff9900';
+            if (skinName === '👑 Legendary Gold' || skinName === '👑 Legendary Nova' || skinName === '👑 Legendary Matrix') {
+                ctx.fillStyle = (index % 2 === 0) ? '#ffcc00' : '#ff0077';
             } else if (skinName === 'Neon Stripe') {
                 ctx.fillStyle = (index % 4 < 2) ? '#00ffaa' : '#0066ff';
             } else if (skinName === 'Cosmic Polka') {
@@ -1126,7 +1239,6 @@
             let startX = Math.cos(startAngle) * startDist;
             let startY = Math.sin(startAngle) * startDist;
 
-            // 👑 ACTIVE BUFF CHECK BASED ON CURRENT SELECTION & OWNERSHIP
             let hasSpeedBoost = (config.skin === '👑 Legendary Gold' && localStorage.getItem('LEGENDARY_SNAKE_SKIN') === 'UNLOCKED');
             let hasBoostEffect = (config.effect === '👑 Legendary Nova' && localStorage.getItem('LEGENDARY_BOOST_EFFECT') === 'UNLOCKED');
 
@@ -1156,8 +1268,17 @@
             document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
             document.getElementById('hud').style.display = 'block';
             document.getElementById('leaderboard').style.display = 'block';
-            document.getElementById('inGamePauseBtn').style.display = 'block';
-            document.getElementById('pingBadge').style.display = multiplayerFlag ? 'block' : 'none';
+            
+            if (multiplayerFlag) {
+                document.getElementById('inGamePauseBtn').style.display = 'none';
+                document.getElementById('inGameExitBtn').style.display = 'block';
+                document.getElementById('pingBadge').style.display = 'block';
+            } else {
+                document.getElementById('inGamePauseBtn').style.display = 'block';
+                document.getElementById('inGameExitBtn').style.display = 'none';
+                document.getElementById('pingBadge').style.display = 'none';
+            }
+
             document.getElementById('mobileControls').style.display = isMobile ? 'block' : 'none';
             
             isGameRunning = true;
@@ -1174,6 +1295,7 @@
             document.getElementById('leaderboard').style.display = 'none';
             document.getElementById('pingBadge').style.display = 'none';
             document.getElementById('inGamePauseBtn').style.display = 'none';
+            document.getElementById('inGameExitBtn').style.display = 'none';
             document.getElementById('mobileControls').style.display = 'none';
             document.getElementById('final-score-display').innerText = "Final Score: " + Math.floor(snake.score);
             
@@ -1494,7 +1616,6 @@
                 }
             }
 
-            // 👑 ACTIVE GROWTH BUFF MULTIPLIER
             let hasGrowthBoost = (config.map === '👑 Legendary Matrix' && localStorage.getItem('LEGENDARY_BG_SKIN') === 'UNLOCKED');
             let growthMultiplier = hasGrowthBoost ? 1.25 : 1.0;
 

@@ -83,12 +83,13 @@
             display: flex; flex-direction: column; align-items: center; box-shadow: 0 0 30px rgba(0, 255, 170, 0.3);
             text-align: center;
         }
-        .upi-qr-img { width: 160px; height: 160px; border-radius: 12px; border: 2px solid #00ffaa; margin: 12px 0; background: #fff; padding: 5px; }
+        .upi-qr-img { width: 150px; height: 150px; border-radius: 12px; border: 2px solid #00ffaa; margin: 10px 0; background: #fff; padding: 4px; }
         .upi-box {
             background: rgba(255,255,255,0.05); border: 1px dashed rgba(0, 255, 170, 0.5);
-            padding: 8px 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between;
-            width: 100%; box-sizing: border-box; margin: 8px 0; font-family: monospace; font-size: 0.9rem;
+            padding: 6px 10px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between;
+            width: 100%; box-sizing: border-box; margin: 6px 0; font-family: monospace; font-size: 0.9rem;
         }
+        #upi-panel-msg { font-size: 0.8rem; min-height: 18px; margin: 4px 0; font-weight: bold; }
 
         .policy-card {
             background: rgba(15, 15, 30, 0.95); border: 1px solid rgba(0, 255, 170, 0.3);
@@ -199,8 +200,8 @@
     <!-- 💳 UPI PAYMENT MODAL -->
     <div id="screen-upi-payment" class="modal-overlay hidden" style="z-index: 40;">
         <div class="upi-card">
-            <h2 id="upi-item-title" style="font-size: 1.3rem; margin: 0; color: #00ffaa;">PAY VIA UPI</h2>
-            <p id="upi-item-price" style="color: #cbd5e1; font-size: 0.9rem; margin: 5px 0;">Amount: ₹49</p>
+            <h2 id="upi-item-title" style="font-size: 1.2rem; margin: 0; color: #00ffaa;">PAY VIA UPI</h2>
+            <p id="upi-item-price" style="color: #cbd5e1; font-size: 0.85rem; margin: 4px 0;">Amount: ₹49</p>
 
             <!-- Dynamic QR Code -->
             <img id="upi-qr-code" class="upi-qr-img" src="" alt="UPI QR Code">
@@ -211,14 +212,17 @@
             </div>
 
             <!-- Mobile UPI App Direct Pay Button -->
-            <a id="upi-direct-btn" href="#" style="text-decoration: none; width: 100%;">
-                <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold; width: 100%; box-sizing: border-box; margin: 8px 0; min-width: unset; font-size: 0.9rem;">📱 Pay via GPay / PhonePe / Paytm</div>
+            <a id="upi-direct-btn" href="#" onclick="handleDirectPay(event)" style="text-decoration: none; width: 100%;">
+                <div class="btn" style="background: linear-gradient(135deg, #00ffaa 0%, #0088ff 100%); color: #000; font-weight: bold; width: 100%; box-sizing: border-box; margin: 6px 0; min-width: unset; font-size: 0.85rem;">📱 Pay via GPay / PhonePe / Paytm</div>
             </a>
 
-            <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">Payment complete karne ke baad UTR/Transaction ID yahan likhein:</p>
-            <input type="text" id="upi-utr-input" class="name-input" placeholder="Enter 12-Digit UTR/Ref No." style="width: 100%; box-sizing: border-box; font-size: 0.85rem; padding: 8px; margin-bottom: 8px;">
+            <p style="font-size: 0.72rem; color: #94a3b8; margin: 4px 0;">Enter your 12-Digit UTR/Ref No. after payment:</p>
+            <input type="text" id="upi-utr-input" class="name-input" placeholder="Enter 12-Digit UTR/Ref No." style="width: 100%; box-sizing: border-box; font-size: 0.85rem; padding: 6px; margin-bottom: 4px;">
 
-            <div style="display: flex; gap: 8px; width: 100%;">
+            <!-- In-Panel Message Container -->
+            <div id="upi-panel-msg"></div>
+
+            <div style="display: flex; gap: 8px; width: 100%; margin-top: 4px;">
                 <button class="btn" style="flex: 1; min-width: unset; padding: 8px; font-size: 0.85rem; background: #00ffaa; color: #000; font-weight: bold;" onclick="verifyAndUnlockUpi()">Verify & Unlock</button>
                 <button class="btn" style="flex: 1; min-width: unset; padding: 8px; font-size: 0.85rem; background: #221111; border-color: #552222;" onclick="closeUpiModal()">Cancel</button>
             </div>
@@ -368,10 +372,10 @@
             document.getElementById('upi-item-title').innerText = "Unlock " + itemTitle;
             document.getElementById('upi-item-price').innerText = "Amount to Pay: ₹" + price;
             document.getElementById('upi-id-text').innerText = MY_UPI_ID;
+            document.getElementById('upi-panel-msg').innerText = "";
 
-            // Generate UPI Intent Link for Mobile & QR Code
             let upiLink = `upi://pay?pa=${MY_UPI_ID}&pn=SlitherPro&am=${price}&cu=INR&tn=Unlock_${itemId}`;
-            let qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiLink)}`;
+            let qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiLink)}`;
             
             document.getElementById('upi-qr-code').src = qrCodeUrl;
             document.getElementById('upi-direct-btn').href = upiLink;
@@ -380,26 +384,73 @@
             document.getElementById('screen-upi-payment').classList.remove('hidden');
         }
 
+        function handleDirectPay(e) {
+            // Check if user is on mobile/tablet or PC
+            const isTouchDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (!isTouchDevice) {
+                e.preventDefault();
+                let msg = document.getElementById('upi-panel-msg');
+                msg.style.color = "#facc15";
+                msg.innerText = "ℹ️ Please scan the QR code with GPay/PhonePe from your mobile phone.";
+            }
+        }
+
         function closeUpiModal() {
             document.getElementById('screen-upi-payment').classList.add('hidden');
         }
 
         function copyUpiId() {
             navigator.clipboard.writeText(MY_UPI_ID);
-            alert("📋 UPI ID Copied: " + MY_UPI_ID);
+            let msg = document.getElementById('upi-panel-msg');
+            msg.style.color = "#00ffaa";
+            msg.innerText = "📋 UPI ID Copied to Clipboard!";
         }
+
+        // Base Arrays for Customization
+        const baseSkins = ['Neon Stripe', 'Cosmic Polka', 'Magma Flow', 'Cyber Grid', 'Glow Phantom', 'Void Nebula', 'Rainbow Pulse'];
+        const baseEffects = ['Plasma Glow', 'Fire Storm', 'Neon Shockwave'];
+        const baseMaps = ['Standard Grid', 'Deep Space Void', 'Tech Hexagon'];
+
+        let skins = [...baseSkins];
+        let effects = [...baseEffects];
+        let maps = [...baseMaps];
+
+        function checkUnlockedPurchases() {
+            // Check & Add Legendary Skin
+            if (localStorage.getItem('LEGENDARY_SNAKE_SKIN') === 'UNLOCKED') {
+                if (!skins.includes('👑 Legendary Gold')) skins.push('👑 Legendary Gold');
+            }
+            // Check & Add Legendary Boost Effect
+            if (localStorage.getItem('LEGENDARY_BOOST_EFFECT') === 'UNLOCKED') {
+                if (!effects.includes('👑 Legendary Nova')) effects.push('👑 Legendary Nova');
+            }
+            // Check & Add Legendary Background
+            if (localStorage.getItem('LEGENDARY_BG_SKIN') === 'UNLOCKED') {
+                if (!maps.includes('👑 Legendary Matrix')) maps.push('👑 Legendary Matrix');
+            }
+        }
+        checkUnlockedPurchases();
 
         function verifyAndUnlockUpi() {
             let utr = document.getElementById('upi-utr-input').value.trim();
+            let msgBox = document.getElementById('upi-panel-msg');
+
             if (utr.length < 6) {
-                alert("⚠️ Please enter a valid 12-digit UTR or Transaction Ref Number!");
+                msgBox.style.color = "#ff3333";
+                msgBox.innerText = "⚠️ Please enter a valid 12-digit UTR/Ref Number!";
                 return;
             }
 
             // Save to Local Storage & Grant Access
             localStorage.setItem(currentUpiItemId, "UNLOCKED");
-            alert("🎉 Payment Received & Verified! " + currentUpiItemId + " is now UNLOCKED!");
-            closeUpiModal();
+            checkUnlockedPurchases();
+
+            msgBox.style.color = "#00ffaa";
+            msgBox.innerText = "🎉 Payment Verified! Item Unlocked Successfully!";
+
+            setTimeout(() => {
+                closeUpiModal();
+            }, 1800);
         }
 
         const policyData = {
@@ -500,10 +551,7 @@
             
             setTimeout(() => {
                 hasRevivedThisGame = true;
-
                 document.getElementById('screen-ad-loading').classList.add('hidden');
-                
-                alert("🎉 Ad completed! You are revived!");
                 
                 document.querySelectorAll('.ui-screen').forEach(s => s.classList.add('hidden'));
                 document.getElementById('hud').style.display = 'block';
@@ -549,9 +597,6 @@
 
         const servers = ['Asia / India', 'Singapore (Low Ping)', 'Europe Central', 'US East'];
         const difficulties = ['Cut in Mode', 'Single Mode', 'Normal Mode'];
-        const skins = ['Neon Stripe', 'Cosmic Polka', 'Magma Flow', 'Cyber Grid', 'Glow Phantom', 'Void Nebula', 'Rainbow Pulse'];
-        const effects = ['Plasma Glow', 'Fire Storm', 'Neon Shockwave'];
-        const maps = ['Standard Grid', 'Deep Space Void', 'Tech Hexagon'];
         
         const botNamePool = [
             '⚡_VIPER_⚡', '🔥_TITAN_🔥', '👑_KING_COBRA_👑', '☠️_SHADOW_☠️',
@@ -636,6 +681,7 @@
             document.getElementById('setup-title').innerText = mode === 'multiplayer' ? "Multiplayer Setup" : "Offline Setup";
             document.getElementById('diff-row').style.display = mode === 'multiplayer' ? 'none' : 'flex';
             document.getElementById('server-row').style.display = mode === 'multiplayer' ? 'flex' : 'none';
+            checkUnlockedPurchases();
             showScreen('screen-offline');
         }
 
@@ -781,7 +827,9 @@
                 ctx.restore();
             }
 
-            if (skinName === 'Neon Stripe') {
+            if (skinName === '👑 Legendary Gold') {
+                ctx.fillStyle = (index % 2 === 0) ? '#ffcc00' : '#ff9900';
+            } else if (skinName === 'Neon Stripe') {
                 ctx.fillStyle = (index % 4 < 2) ? '#00ffaa' : '#0066ff';
             } else if (skinName === 'Cosmic Polka') {
                 ctx.fillStyle = '#6d28d9';
@@ -820,10 +868,10 @@
             let viewTop = isPreview ? 0 : snakeY - canvas.height / scale;
             let viewBottom = isPreview ? height : snakeY + canvas.height / scale;
 
-            ctx.fillStyle = (mapName === 'Standard Grid') ? '#0a0a1f' : ((mapName === 'Deep Space Void') ? '#020205' : '#05070a');
+            ctx.fillStyle = (mapName === 'Standard Grid' || mapName === '👑 Legendary Matrix') ? '#0a0a1f' : ((mapName === 'Deep Space Void') ? '#020205' : '#05070a');
             ctx.fillRect(viewLeft, viewTop, viewRight-viewLeft, viewBottom-viewTop);
 
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.strokeStyle = (mapName === '👑 Legendary Matrix') ? 'rgba(0, 255, 170, 0.1)' : 'rgba(255, 255, 255, 0.03)';
             ctx.lineWidth = 1;
             let step = isPreview ? 35 : 150;
             for (let x = Math.floor(viewLeft / step) * step; x < viewRight; x += step) {

@@ -53,7 +53,7 @@
             border-radius: 16px; padding: 15px; width: 260px; text-align: center; display: flex; flex-direction: column; align-items: center;
         }
         .demo-card h3 { margin: 0 0 10px 0; color: #00ffaa; font-size: 1.1rem; }
-        .demo-canvas { width: 180px; height: 140px; background: #050512; border-radius: 10px; border: 1px solid #222244; margin-bottom: 10px; }
+        .demo-canvas { width: 180px; height: 140px; background: #050512; border-radius: 10px; margin-bottom: 10px; }
         .demo-desc { font-size: 0.8rem; color: #94a3b8; line-height: 1.3; }
 
         /* 👑 STORE CARDS STYLING */
@@ -218,10 +218,8 @@
                 <canvas id="luxuryPreviewCanvas" width="220" height="180" style="display: block;"></canvas>
             </div>
 
-            <div style="text-align: left; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); width: 100%; box-sizing: border-box; margin-bottom: 15px;">
-                <p style="margin: 4px 0; color: #cbd5e1; font-size: 0.85rem;">✨ <b>Exclusive Visual FX:</b> Ultra Glowing Aura & Stardust Trail</p>
-                <p style="margin: 4px 0; color: #cbd5e1; font-size: 0.85rem;">⚡ <b>In-Game Stat Perk:</b> High-End Performance Upgrade Active</p>
-                <p style="margin: 4px 0; color: #cbd5e1; font-size: 0.85rem;">🎵 <b>Audio Cues:</b> Custom Boost Sound Enabled</p>
+            <div id="preview-perks-container" style="text-align: left; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); width: 100%; box-sizing: border-box; margin-bottom: 15px;">
+                <!-- Dynamically populated perks & buffs -->
             </div>
 
             <div style="display: flex; gap: 10px; width: 100%;">
@@ -421,8 +419,30 @@
             previewModalItemId = itemId;
             document.getElementById('preview-item-icon').innerText = itemIcon;
             document.getElementById('preview-item-title').innerText = itemName + " Showcase";
+            
+            let perkHtml = '';
+            if (itemId === 'LEGENDARY_SNAKE_SKIN') {
+                perkHtml = `
+                    <p style="margin: 4px 0; color: #cbd5e1; font-size: 0.85rem;">✨ <b>Exclusive Visual FX:</b> Ultra Golden Glowing Aura</p>
+                    <p style="margin: 4px 0; color: #00ffaa; font-size: 0.85rem;">⚡ <b>Stat Perk: Speed +25%</b></p>
+                    <p style="margin: 4px 0; color: #cbd5e1; font-size: 0.85rem;">🎵 <b>Audio Cues:</b> Custom Gold Sound Enabled</p>
+                `;
+            } else if (itemId === 'LEGENDARY_BOOST_EFFECT') {
+                perkHtml = `
+                    <p style="margin: 4px 0; color: #cbd5e1; font-size: 0.85rem;">✨ <b>Exclusive Visual FX:</b> Nova Fire Blast & Flame Trail</p>
+                    <p style="margin: 4px 0; color: #00ffaa; font-size: 0.85rem;">⚡ <b>Stat Perk: Boost Speed +25%</b></p>
+                    <p style="margin: 4px 0; color: #cbd5e1; font-size: 0.85rem;">🎵 <b>Audio Cues:</b> Custom Boost Sound Enabled</p>
+                `;
+            } else if (itemId === 'LEGENDARY_BG_SKIN') {
+                perkHtml = `
+                    <p style="margin: 4px 0; color: #cbd5e1; font-size: 0.85rem;">✨ <b>Exclusive Visual FX:</b> Matrix Digital Cyber Theme</p>
+                    <p style="margin: 4px 0; color: #00ffaa; font-size: 0.85rem;">⚡ <b>Stat Perk: Growth +25%</b></p>
+                    <p style="margin: 4px 0; color: #cbd5e1; font-size: 0.85rem;">🎵 <b>Audio Cues:</b> Custom Ambient Sound Enabled</p>
+                `;
+            }
+            document.getElementById('preview-perks-container').innerHTML = perkHtml;
             document.getElementById('screen-skin-preview').classList.remove('hidden');
-            initLuxuryPreview(itemName);
+            initLuxuryPreview(itemId);
         }
 
         function closeSkinPreview() {
@@ -441,7 +461,7 @@
         }
 
         let luxuryAnimId = null;
-        function initLuxuryPreview(skinName) {
+        function initLuxuryPreview(itemId) {
             let lCanvas = document.getElementById('luxuryPreviewCanvas');
             let lCtx = lCanvas.getContext('2d');
             lCanvas.width = 220; lCanvas.height = 180;
@@ -452,17 +472,10 @@
 
             function renderLuxury() {
                 luxuryAnimId = requestAnimationFrame(renderLuxury);
-                lCtx.fillStyle = '#03030a';
+                lCtx.fillStyle = (itemId === 'LEGENDARY_BG_SKIN') ? '#05070a' : '#03030a';
                 lCtx.fillRect(0, 0, 220, 180);
 
-                // Grid lines
-                lCtx.strokeStyle = 'rgba(0, 255, 170, 0.08)';
-                lCtx.lineWidth = 1;
-                for(let i=0; i<220; i+=25) {
-                    lCtx.beginPath(); lCtx.moveTo(i, 0); lCtx.lineTo(i, 180); lCtx.stroke();
-                }
-
-                angle += 0.04;
+                angle += (itemId === 'LEGENDARY_BOOST_EFFECT') ? 0.09 : 0.04;
                 let hX = 110 + Math.cos(angle) * 55;
                 let hY = 90 + Math.sin(angle) * 35;
                 body[0] = {x: hX, y: hY};
@@ -477,8 +490,24 @@
                     }
                 }
 
+                let skinToDraw = 'Neon Stripe';
+                let effectToDraw = 'Plasma Glow';
+                let isBoostingPreview = false;
+
+                if (itemId === 'LEGENDARY_SNAKE_SKIN') {
+                    skinToDraw = '👑 Legendary Gold';
+                    effectToDraw = 'Plasma Glow';
+                } else if (itemId === 'LEGENDARY_BOOST_EFFECT') {
+                    skinToDraw = 'Neon Stripe';
+                    effectToDraw = '👑 Legendary Nova';
+                    isBoostingPreview = true;
+                } else if (itemId === 'LEGENDARY_BG_SKIN') {
+                    skinToDraw = 'Neon Stripe';
+                    effectToDraw = 'Plasma Glow';
+                }
+
                 for (let i = body.length - 1; i >= 0; i--) {
-                    drawSlitherSkin(lCtx, body[i].x, body[i].y, 11, i, skinName, i === 0, angle + Math.PI/2, true, 'Plasma Glow');
+                    drawSlitherSkin(lCtx, body[i].x, body[i].y, 11, i, skinToDraw, i === 0, angle + Math.PI/2, isBoostingPreview, effectToDraw);
                 }
             }
             renderLuxury();
@@ -827,7 +856,6 @@
                 let curY = 70 + Math.sin(frame) * 25;
                 let isBoostingDemo = Math.sin(frame*2) > 0.5;
 
-                pcCtx.strokeStyle = 'rgba(255,255,255,0.1)'; pcCtx.strokeRect(5, 5, 170, 130);
                 pcCtx.fillStyle = isBoostingDemo ? '#ff0055' : '#00ffaa';
                 pcCtx.beginPath(); pcCtx.arc(curX, curY, isBoostingDemo ? 12 : 8, 0, Math.PI*2); pcCtx.fill();
                 
@@ -836,7 +864,6 @@
                 pcCtx.strokeStyle = '#00ffaa'; pcCtx.beginPath(); pcCtx.moveTo(curX, curY); pcCtx.lineTo(curX + 25, curY + 15); pcCtx.stroke();
 
                 mobCtx.clearRect(0, 0, 180, 140);
-                mobCtx.strokeStyle = 'rgba(255,255,255,0.1)'; mobCtx.strokeRect(5, 5, 170, 130);
 
                 let joyX = 45 + Math.cos(frame) * 15;
                 let joyY = 85 + Math.sin(frame) * 15;
@@ -934,7 +961,7 @@
 
             if (auraActive && !isMobile) {
                 ctx.save(); ctx.globalAlpha = 0.35;
-                ctx.fillStyle = (skinName === '👑 Legendary Gold') ? '#ffcc00' : ((skinName === '👑 Legendary Nova') ? '#ff0055' : ((auraType === 'Fire Storm') ? '#ff3300' : '#00ffff'));
+                ctx.fillStyle = (skinName === '👑 Legendary Gold') ? '#ffcc00' : ((auraType === '👑 Legendary Nova') ? '#ff0055' : ((auraType === 'Fire Storm') ? '#ff3300' : '#00ffff'));
                 ctx.beginPath(); ctx.arc(0, 0, radius * 1.4, 0, Math.PI * 2); ctx.fill();
                 ctx.restore();
             }
@@ -980,18 +1007,9 @@
             let viewTop = isPreview ? 0 : snakeY - canvas.height / scale;
             let viewBottom = isPreview ? height : snakeY + canvas.height / scale;
 
+            // Background solid color without grid lines
             ctx.fillStyle = (mapName === 'Standard Grid' || mapName === '👑 Legendary Matrix') ? '#0a0a1f' : ((mapName === 'Deep Space Void') ? '#020205' : '#05070a');
             ctx.fillRect(viewLeft, viewTop, viewRight-viewLeft, viewBottom-viewTop);
-
-            ctx.strokeStyle = (mapName === '👑 Legendary Matrix') ? 'rgba(0, 255, 170, 0.1)' : 'rgba(255, 255, 255, 0.03)';
-            ctx.lineWidth = 1;
-            let step = isPreview ? 35 : 150;
-            for (let x = Math.floor(viewLeft / step) * step; x < viewRight; x += step) {
-                ctx.beginPath(); ctx.moveTo(x, viewTop); ctx.lineTo(x, viewBottom); ctx.stroke();
-            }
-            for (let y = Math.floor(viewTop / step) * step; y < viewBottom; y += step) {
-                ctx.beginPath(); ctx.moveTo(viewLeft, y); ctx.lineTo(viewRight, y); ctx.stroke();
-            }
 
             if (!isPreview) {
                 ctx.beginPath(); ctx.arc(0, 0, MAP_RADIUS, 0, Math.PI * 2);

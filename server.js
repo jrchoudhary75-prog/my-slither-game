@@ -6,7 +6,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Serve static files (like index.html) from the root directory
+// Serve static files from the root directory
 app.use(express.static(__dirname));
 
 const players = {};
@@ -47,6 +47,24 @@ io.on('connection', (socket) => {
             players[socket.id].radius = data.radius;
             players[socket.id].isBoosting = data.isBoosting;
         }
+    });
+
+    // Handle player requesting a revive after watching an AdMob rewarded ad
+    socket.on('requestRevive', (data) => {
+        players[socket.id] = {
+            id: socket.id,
+            name: data.name || "Player",
+            skin: data.skin || "Neon Stripe",
+            x: Math.random() * 800 - 400, // Safe respawn coordinates
+            y: Math.random() * 800 - 400,
+            angle: 0,
+            score: data.score || 100,
+            length: data.length || 45,
+            radius: data.radius || 15,
+            isBoosting: false,
+            region: 'Asia / India'
+        };
+        console.log(`Player successfully revived via AdMob: ${socket.id}`);
     });
 
     // Handle player death event

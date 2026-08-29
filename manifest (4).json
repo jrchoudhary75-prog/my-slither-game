@@ -1,0 +1,16 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "my-slither-game.onrender",
+  "orientation": "portrait",
+  "scope": "/",
+  "short_name": "my-slither-game.onrender",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "categories": [
+    "education",
+    "finance"
+  ],
+  "lang": "en"
+}

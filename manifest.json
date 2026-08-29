@@ -2,15 +2,22 @@
   "background_color": "#ffffff",
   "dir": "ltr",
   "display": "standalone",
-  "name": "my-slither-game.onrender",
+  "name": "Slither Pro",
   "orientation": "portrait",
   "scope": "/",
-  "short_name": "my-slither-game.onrender",
+  "short_name": "SlitherPro",
   "start_url": "/",
   "theme_color": "#ffffff",
   "lang": "en",
   "categories": [
-    "education",
-    "finance"
+    "games",
+    "entertainment"
+  ],
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }

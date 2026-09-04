@@ -747,9 +747,11 @@
             document.getElementById('mobileControls').style.display = 'none';
             showScreen('screen-main');
         }
-
-        function watchAdToRevive() {
+function watchAdToRevive() {
             if (hasRevivedThisGame) return;
+
+            // Monetag Direct Link open hogi jab user Watch ad to revive par click karega
+            window.open("https://omg10.com/4/11718037", "_blank");
 
             document.getElementById('screen-ad-loading').classList.remove('hidden');
             
@@ -802,7 +804,6 @@
                 runGameLoop();
             }, 2000);
         }
-
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
         const servers = ['Asia / India', 'Singapore (Low Ping)', 'Europe Central', 'US East'];

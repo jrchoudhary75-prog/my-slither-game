@@ -1,18 +1,17 @@
 {
   "background_color": "#ffffff",
-  "dir": "auto",
+  "dir": "ltr",
   "display": "fullscreen",
   "name": "Slither Pro",
   "orientation": "portrait",
   "scope": "/",
   "short_name": "Slither Pro",
-  "start_url": "https://my-slither-game.onrender.com",
+  "start_url": "/https://my-slither-game.onrender.com",
   "theme_color": "#ffffff",
   "id": "com.onrender.my_slither_game.twa",
   "lang": "en",
   "categories": [
     "entertainment",
-    "kids",
-    "sports"
+    "games"
   ]
 }

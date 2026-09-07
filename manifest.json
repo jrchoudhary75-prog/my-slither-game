@@ -6,7 +6,7 @@
   "orientation": "portrait",
   "scope": "/",
   "short_name": "Slither Pro",
-  "start_url": "https://my-slither-game.onrender.com",
+  "start_url": "/",
   "theme_color": "#ffffff",
   "id": "https://my-slither-game.onrender.com",
   "lang": "en",

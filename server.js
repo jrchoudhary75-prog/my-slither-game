@@ -7,9 +7,19 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Explicit route to force serving assetlinks.json directly for Android TWA verification
+// Directly serve the assetlinks.json content without needing any physical folder
 app.get('/.well-known/assetlinks.json', (req, res) => {
-    res.sendFile(path.join(__dirname, '.well-known', 'assetlinks.json'));
+    res.setHeader('Content-Type', 'application/json');
+    res.send([
+      {
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+          "namespace": "android_app",
+          "package_name": "com.onrender.my_slither_game.twa",
+          "sha256_cert_fingerprints": ["3C:D8:69:42:52:62:A2:4A:8A:82:25:19:33:23:E6:9F:8E:9D:7F:94:76:5C:C3:90:0C:09:16:37:71:C1:3D:73"]
+        }
+      }
+    ]);
 });
 
 // Serve static files from the root directory

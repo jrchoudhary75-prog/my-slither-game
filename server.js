@@ -61,7 +61,7 @@ io.on('connection', (socket) => {
             id: socket.id,
             name: data.name || "Player",
             skin: data.skin || "Neon Stripe",
-            x: Math.random() * 800 - 400, // Safe respawn coordinates
+            x: Math.random() * 800 - 400, 
             y: Math.random() * 800 - 400,
             angle: 0,
             score: data.score || 100,

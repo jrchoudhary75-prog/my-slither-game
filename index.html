@@ -1,18 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-      function openFullscreen() {
-    let elem = document.documentElement;
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen().catch(err => {
-            console.log("Fullscreen blocked or not supported: ", err);
-        });
-    } else if (elem.webkitRequestFullscreen) { /* Safari */
-        elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) { /* IE11 */
-        elem.msRequestFullscreen();
-    }
-}
      <!-- BEGIN AADS AD UNIT 2454319 -->
 
 <div style="position: absolute; z-index: 99999">
@@ -227,6 +215,18 @@
 
 </head>
 <body>
+     function openFullscreen() {
+    let elem = document.documentElement;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(err => {
+            console.log("Fullscreen blocked or not supported: ", err);
+        });
+    } else if (elem.webkitRequestFullscreen) { /* Safari */
+        elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) { /* IE11 */
+        elem.msRequestFullscreen();
+    }
+}
 
     <div id="screen-splash" class="ui-screen">
         <h1>SLITHER PRO</h1>

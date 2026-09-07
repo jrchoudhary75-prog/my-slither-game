@@ -12,20 +12,20 @@ app.get('/.well-known/assetlinks.json', (req, res) => {
     res.sendFile(path.join(__dirname, '.well-known', 'assetlinks.json'));
 });
 
-// Serve static files from the root directory[cite: 1]
+// Serve static files from the root directory
 app.use(express.static(__dirname));
 
 const players = {};
 
 io.on('connection', (socket) => {
-    console.log(`Player connected: ${socket.id}`);[cite: 1]
+    console.log(`Player connected: ${socket.id}`);
 
-    // Handle latency ping test from client[cite: 1]
+    // Handle latency ping test from client
     socket.on('pingTest', () => {
-        socket.emit('pongTest');[cite: 1]
+        socket.emit('pongTest');
     });
 
-    // Handle player joining the multiplayer arena[cite: 1]
+    // Handle player joining the multiplayer arena
     socket.on('joinMultiplayer', (data) => {
         players[socket.id] = {
             id: socket.id,
@@ -42,7 +42,7 @@ io.on('connection', (socket) => {
         };
     });
 
-    // Handle real-time player movement and state updates[cite: 1]
+    // Handle real-time player movement and state updates
     socket.on('updatePlayer', (data) => {
         if (players[socket.id]) {
             players[socket.id].x = data.x;
@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Handle player requesting a revive after watching an AdMob rewarded ad[cite: 1]
+    // Handle player requesting a revive after watching an AdMob rewarded ad
     socket.on('requestRevive', (data) => {
         players[socket.id] = {
             id: socket.id,
@@ -73,26 +73,26 @@ io.on('connection', (socket) => {
         console.log(`Player successfully revived via AdMob: ${socket.id}`);
     });
 
-    // Handle player death event[cite: 1]
+    // Handle player death event
     socket.on('playerDied', () => {
         if (players[socket.id]) {
             delete players[socket.id];
         }
     });
 
-    // Handle user disconnect[cite: 1]
+    // Handle user disconnect
     socket.on('disconnect', () => {
         console.log(`Player disconnected: ${socket.id}`);
         delete players[socket.id];
     });
 });
 
-// Broadcast game state to all connected clients every 30ms (~33 updates per second)[cite: 1]
+// Broadcast game state to all connected clients every 30ms (~33 updates per second)
 setInterval(() => {
     io.emit('gameStateUpdate', { players });
 }, 30);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Slither Pro Server is running on http://localhost:${PORT}`);[cite: 1]
+    console.log(`Slither Pro Server is running on http://localhost:${PORT}`);
 });

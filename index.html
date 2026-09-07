@@ -215,17 +215,27 @@
 
 </head>
 <body>
-     function openFullscreen() {
-    let elem = document.documentElement;
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen().catch(err => {
-            console.log("Fullscreen blocked or not supported: ", err);
-        });
-    } else if (elem.webkitRequestFullscreen) { /* Safari */
-        elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) { /* IE11 */
-        elem.msRequestFullscreen();
-    }
+     const fullscreenBtn = document.getElementById('your-fullscreen-btn-id');
+
+if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', () => {
+        let elem = document.documentElement;
+        if (!document.fullscreenElement) {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => {
+                    console.log("Error attempting to enable fullscreen:", err);
+                });
+            } else if (elem.webkitRequestFullscreen) { /* Safari / iOS support */
+                elem.webkitRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+    });
 }
 
     <div id="screen-splash" class="ui-screen">

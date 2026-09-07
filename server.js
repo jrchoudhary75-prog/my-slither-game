@@ -7,23 +7,25 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Allow serving dotfiles like .well-known for Android assetlinks verification
-app.use('/.well-known', express.static(path.join(__dirname, '.well-known'), { dotfiles: 'allow' }));
+// Explicit route to force serving assetlinks.json directly for Android TWA verification
+app.get('/.well-known/assetlinks.json', (req, res) => {
+    res.sendFile(path.join(__dirname, '.well-known', 'assetlinks.json'));
+});
 
-// Serve static files from the root directory
+// Serve static files from the root directory[cite: 1]
 app.use(express.static(__dirname));
 
 const players = {};
 
 io.on('connection', (socket) => {
-    console.log(`Player connected: ${socket.id}`);
+    console.log(`Player connected: ${socket.id}`);[cite: 1]
 
-    // Handle latency ping test from client
+    // Handle latency ping test from client[cite: 1]
     socket.on('pingTest', () => {
-        socket.emit('pongTest');
+        socket.emit('pongTest');[cite: 1]
     });
 
-    // Handle player joining the multiplayer arena
+    // Handle player joining the multiplayer arena[cite: 1]
     socket.on('joinMultiplayer', (data) => {
         players[socket.id] = {
             id: socket.id,
@@ -40,7 +42,7 @@ io.on('connection', (socket) => {
         };
     });
 
-    // Handle real-time player movement and state updates
+    // Handle real-time player movement and state updates[cite: 1]
     socket.on('updatePlayer', (data) => {
         if (players[socket.id]) {
             players[socket.id].x = data.x;
@@ -53,7 +55,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Handle player requesting a revive after watching an AdMob rewarded ad
+    // Handle player requesting a revive after watching an AdMob rewarded ad[cite: 1]
     socket.on('requestRevive', (data) => {
         players[socket.id] = {
             id: socket.id,
@@ -71,26 +73,26 @@ io.on('connection', (socket) => {
         console.log(`Player successfully revived via AdMob: ${socket.id}`);
     });
 
-    // Handle player death event
+    // Handle player death event[cite: 1]
     socket.on('playerDied', () => {
         if (players[socket.id]) {
             delete players[socket.id];
         }
     });
 
-    // Handle user disconnect
+    // Handle user disconnect[cite: 1]
     socket.on('disconnect', () => {
         console.log(`Player disconnected: ${socket.id}`);
         delete players[socket.id];
     });
 });
 
-// Broadcast game state to all connected clients every 30ms (~33 updates per second)
+// Broadcast game state to all connected clients every 30ms (~33 updates per second)[cite: 1]
 setInterval(() => {
     io.emit('gameStateUpdate', { players });
 }, 30);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Slither Pro Server is running on http://localhost:${PORT}`);
+    console.log(`Slither Pro Server is running on http://localhost:${PORT}`);[cite: 1]
 });

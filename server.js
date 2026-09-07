@@ -1,10 +1,14 @@
 const express = require('express');
-const http = require('http');
+const http = http = require('http'); // Fixed reference
+const path = require('path');
 const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+
+// Allow serving dotfiles like .well-known for Android assetlinks verification
+app.use('/.well-known', express.static(path.join(__dirname, '.well-known'), { dotfiles: 'allow' }));
 
 // Serve static files from the root directory
 app.use(express.static(__dirname));
